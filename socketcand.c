@@ -1,71 +1,5 @@
-/*
- *  $Id: bcmserver.c 1050 2009-09-10 07:39:33Z hartkopp $
- */
 
 /*
- * tst-bcm-server.c
- *
- * Test programm that implements a socket server which understands ASCII
- * messages for simple broadcast manager frame send commands.
- *
- * < interface command ival_s ival_us can_id can_dlc [data]* >
- *
- * Only the items 'can_id' and 'data' are given in (ASCII) hexadecimal values.
- *
- * ## TX path:
- *
- * The commands are 'A'dd, 'U'pdate, 'D'elete and 'S'end.
- * e.g.
- *
- * Send the CAN frame 123#1122334455667788 every second on vcan1
- * < vcan1 A 1 0 123 8 11 22 33 44 55 66 77 88 >
- *
- * Send the CAN frame 123#1122334455667788 every 10 usecs on vcan1
- * < vcan1 A 0 10 123 8 11 22 33 44 55 66 77 88 >
- *
- * Send the CAN frame 123#42424242 every 20 msecs on vcan1
- * < vcan1 A 0 20000 123 4 42 42 42 42 >
- *
- * Update the CAN frame 123#42424242 with 123#112233 - no change of timers
- * < vcan1 U 0 0 123 3 11 22 33 >
- *
- * Delete the cyclic send job from above
- * < vcan1 D 0 0 123 0 >
- *
- * Send a single CAN frame without cyclic transmission
- * < can0 S 0 0 123 0 >
- *
- * When the socket is closed the cyclic transmissions are terminated.
- *
- * ## RX path:
- *
- * The commands are 'R'eceive setup, 'F'ilter ID Setup and 'X' for delete.
- * e.g.
- *
- * Receive CAN ID 0x123 from vcan1 and check for changes in the first byte
- * < vcan1 R 0 0 123 1 FF >
- *
- * Receive CAN ID 0x123 from vcan1 and check for changes in given mask
- * < vcan1 R 0 0 123 8 FF 00 F8 00 00 00 00 00 >
- *
- * As above but throttle receive update rate down to 1.5 seconds
- * < vcan1 R 1 500000 123 8 FF 00 F8 00 00 00 00 00 >
- *
- * Filter for CAN ID 0x123 from vcan1 without content filtering
- * < vcan1 F 0 0 123 0 >
- *
- * Delete receive filter ('R' or 'F') for CAN ID 0x123
- * < vcan1 X 0 0 123 0 >
- *
- * CAN messages received by the given filters are send in the format:
- * < interface can_id can_dlc [data]* >
- *
- * e.g. when receiving a CAN message from vcan1 with
- * can_id 0x123 , data length 4 and data 0x11, 0x22, 0x33 and 0x44
- *
- * < vcan1 123 4 11 22 33 44 >
- *
- * ##
  *
  * Authors:
  * Andre Naujoks (the socket server stuff)
@@ -238,7 +172,7 @@ int main(int argc, char **argv)
 			ifr.ifr_ifindex = caddr.can_ifindex;
 			ioctl(sc, SIOCGIFNAME, &ifr);
 
-			sprintf(rxmsg, "< %s %03X %d ", ifr.ifr_name,
+			sprintf(rxmsg, "< %s f %03X %d ", ifr.ifr_name,
 				msg.msg_head.can_id, msg.frame.can_dlc);
 
 			for ( i = 0; i < msg.frame.can_dlc; i++)
