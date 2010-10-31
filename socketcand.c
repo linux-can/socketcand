@@ -51,6 +51,7 @@
 #include <string.h>
 #include <signal.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -65,6 +66,13 @@
 
 #define MAXLEN 100
 #define PORT 28600
+
+#define BEACON_LENGTH 2048
+#define BEACON_TYPE "SocketCAN"
+#define BEACON_DESCRIPTION "socketcand"
+
+
+void *beacon_loop(void *ptr );
 
 void childdied(int i)
 {
@@ -85,6 +93,7 @@ int main(int argc, char **argv)
 	socklen_t sin_size = sizeof(clientaddr);
 	struct sigaction signalaction;
 	sigset_t sigset;
+        pthread_t beacon_thread;
 
 	char buf[MAXLEN];
 	char rxmsg[50];
@@ -108,6 +117,8 @@ int main(int argc, char **argv)
 	saddr.sin_family = AF_INET;
 	saddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	saddr.sin_port = htons(PORT);
+
+        beacon_thread = pthread_create(&beacon_thread, NULL, beacon_loop, (void*) NULL);
 
 	while(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
 		printf(".");fflush(NULL);
@@ -291,4 +302,46 @@ int main(int argc, char **argv)
 	close(sa);
 
 	return 0;
+}
+
+void *beacon_loop(void *ptr) {
+    int udp_socket;
+    struct sockaddr_in s;
+    size_t len;
+    int optval;
+    char buffer[BEACON_LENGTH];
+    char hostname[32];
+
+    if ((udp_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
+        printf("Failed to create socket");
+        return NULL;
+    }
+    
+    /* Construct the server sockaddr_in structure */
+    memset(&s, 0, sizeof(s));
+    s.sin_family = AF_INET;
+    s.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+    s.sin_port = htons(42000);
+
+    /* Activate broadcast option */
+    optval = 1;
+    setsockopt(udp_socket, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(int));
+
+    /* Bind the socket */
+    len = sizeof(s);
+    if (bind(udp_socket, (struct sockaddr *) &s, len) < 0) {
+        return NULL;    
+    }
+
+    while(1) {
+        /* Build the beacon */
+        gethostname((char *) &hostname, (size_t)  32);
+        snprintf(buffer, BEACON_LENGTH, "<CANBeacon name=\"%s\" type=\"%s\" description=\"%s\">\n<URL>can://0.0.0.0:%d</URL></CANBeacon>", 
+                hostname, BEACON_TYPE, BEACON_DESCRIPTION, PORT);
+
+        sendto(udp_socket, buffer, strlen(buffer), 0, (struct sockaddr *) &s, sizeof(struct sockaddr_in));
+        sleep(3);
+    }
+
+    return NULL;
 }
