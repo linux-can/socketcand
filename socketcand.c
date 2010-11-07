@@ -52,6 +52,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <pthread.h>
+#include <getopt.h>
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -64,8 +65,11 @@
 #include <linux/can.h>
 #include <linux/can/bcm.h>
 
+#include "libsocketcan/libsocketcan.h"
+
 #define MAXLEN 100
 #define PORT 28600
+#define BROADCAST_PORT 42000
 
 #define BEACON_LENGTH 2048
 #define BEACON_TYPE "SocketCAN"
@@ -73,15 +77,17 @@
 
 
 void *beacon_loop(void *ptr );
-
-void childdied(int i)
-{
+void print_usage(void);
+void childdied(int i) {
 	wait(NULL);
 }
 
+static int verbose_flag=0;
+char **interface_names;
+int interface_count=0;
+
 int main(int argc, char **argv)
 {
-
 	int sl, sa, sc;
 	int i, ret;
 	int idx = 0;
@@ -103,6 +109,65 @@ int main(int argc, char **argv)
 		struct can_frame frame;
 	} msg;
 
+        int c;
+
+        /* Parse commandline arguments */
+        while (1) {
+            /* getopt_long stores the option index here. */
+            int option_index = 0;
+            static struct option long_options[] = {
+               {"verbose", no_argument, &verbose_flag, 1},
+               {"interfaces",  required_argument, 0, 'i'},
+               {0, 0, 0, 0}
+            };
+     
+            c = getopt_long (argc, argv, "vi:", long_options, &option_index);
+     
+           if (c == -1)
+             break;
+     
+           switch (c) {
+             case 0:
+               /* If this option set a flag, do nothing else now. */
+               if (long_options[option_index].flag != 0)
+                 break;
+               printf ("option %s", long_options[option_index].name);
+               if (optarg)
+                 printf (" with arg %s", optarg);
+               printf ("\n");
+               break;
+     
+     
+             case 'v':
+               puts ("Verbose output activated\n");
+               break;
+     
+     
+             case 'i':
+               for(i=0;;i++) {
+                   if(optarg[i] == '\0')
+                       break;
+                   if(optarg[i] == ',')
+                       interface_count++;
+               }
+               interface_count++;
+
+               interface_names = malloc(sizeof(char *) * interface_count);
+
+               interface_names[0] = strtok(optarg, ",");
+
+               for(i=1;i<interface_count;i++) {
+                   interface_names[i] = strtok(NULL, ",");
+               }
+                break; 
+             case '?':
+               break;
+     
+             default:
+               abort ();
+             }
+         }
+
 	sigemptyset(&sigset);
 	signalaction.sa_handler = &childdied;
 	signalaction.sa_mask = sigset;
@@ -118,7 +183,7 @@ int main(int argc, char **argv)
 	saddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	saddr.sin_port = htons(PORT);
 
-        beacon_thread = pthread_create(&beacon_thread, NULL, beacon_loop, (void*) NULL);
+    beacon_thread = pthread_create(&beacon_thread, NULL, beacon_loop, (void*) NULL);
 
 	while(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
 		printf(".");fflush(NULL);
@@ -305,6 +370,7 @@ int main(int argc, char **argv)
 }
 
 void *beacon_loop(void *ptr) {
+    int i, n, chars_left;
     int udp_socket;
     struct sockaddr_in s;
     size_t len;
@@ -321,7 +387,7 @@ void *beacon_loop(void *ptr) {
     memset(&s, 0, sizeof(s));
     s.sin_family = AF_INET;
     s.sin_addr.s_addr = htonl(INADDR_BROADCAST);
-    s.sin_port = htons(42000);
+    s.sin_port = htons(BROADCAST_PORT);
 
     /* Activate broadcast option */
     optval = 1;
@@ -336,12 +402,35 @@ void *beacon_loop(void *ptr) {
     while(1) {
         /* Build the beacon */
         gethostname((char *) &hostname, (size_t)  32);
-        snprintf(buffer, BEACON_LENGTH, "<CANBeacon name=\"%s\" type=\"%s\" description=\"%s\">\n<URL>can://0.0.0.0:%d</URL></CANBeacon>", 
+        snprintf(buffer, BEACON_LENGTH, "<CANBeacon name=\"%s\" type=\"%s\" description=\"%s\">\n<URL>can://0.0.0.0:%d</URL>", 
                 hostname, BEACON_TYPE, BEACON_DESCRIPTION, PORT);
+
+        for(i=0;i<interface_count;i++) {
+            /* Find \0 in beacon buffer */
+            for(n=0;;n++) {
+                if(buffer[n] == '\0')
+                    break;
+            }
+            chars_left = BEACON_LENGTH - n;
+
+            snprintf(buffer+(n*sizeof(char)), chars_left, "<Bus name=\"%s\"/>", interface_names[i]);
+        }
+        
+        /* Find \0 in beacon buffer */
+        for(n=0;;n++) {
+            if(buffer[n] == '\0')
+                break;
+        }
+        chars_left = BEACON_LENGTH - n;
+
+        snprintf(buffer+(n*sizeof(char)), chars_left, "</CANBeacon>");
 
         sendto(udp_socket, buffer, strlen(buffer), 0, (struct sockaddr *) &s, sizeof(struct sockaddr_in));
         sleep(3);
     }
 
     return NULL;
+}
+
+void print_usage(void) {
 }
