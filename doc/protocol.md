@@ -45,10 +45,11 @@ Delete the cyclic send job from above
 
 ##### Send a single frame #####
 This command is used to send a single CAN frame only once.
+    < interface S can_id can_dlc [data]* >
 
 Example:
 Send a single CAN frame without cyclic transmission
-    < can0 S 0 0 123 0 >
+    < can0 S 123 0 >
 
 ### Commands for reception ###
 The commands for reception are 'R'eceive setup, 'F'ilter ID Setup and 'X' for delete.
