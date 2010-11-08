@@ -86,6 +86,9 @@ void childdied(int i) {
 static int verbose_flag=0;
 char **interface_names;
 int interface_count=0;
+int port=PORT;
+
+int uid;
 
 int main(int argc, char **argv)
 {
@@ -100,7 +103,7 @@ int main(int argc, char **argv)
     socklen_t sin_size = sizeof(clientaddr);
     struct sigaction signalaction;
     sigset_t sigset;
-        pthread_t beacon_thread;
+    pthread_t beacon_thread;
 
     char buf[MAXLEN];
     char rxmsg[50];
@@ -112,6 +115,11 @@ int main(int argc, char **argv)
 
     int c;
 
+    uid = getuid();
+    if(uid != 0) {
+        printf("You are not running socketcand as root. This is highly reccomended because otherwise you won't be able to change bitrate settings, etc.\n");
+    }
+
     /* Parse commandline arguments */
     while (1) {
         /* getopt_long stores the option index here. */
@@ -119,53 +127,58 @@ int main(int argc, char **argv)
         static struct option long_options[] = {
             {"verbose", no_argument, &verbose_flag, 1},
             {"interfaces",  required_argument, 0, 'i'},
+            {"port", required_argument, 0, 'p'},
             {0, 0, 0, 0}
         };
     
-        c = getopt_long (argc, argv, "vi:", long_options, &option_index);
+        c = getopt_long (argc, argv, "vi:p:", long_options, &option_index);
     
         if (c == -1)
             break;
     
         switch (c) {
             case 0:
-            /* If this option set a flag, do nothing else now. */
-            if (long_options[option_index].flag != 0)
-                break;
-            printf ("option %s", long_options[option_index].name);
-            if (optarg)
-                printf (" with arg %s", optarg);
-            printf ("\n");
+                /* If this option set a flag, do nothing else now. */
+                if (long_options[option_index].flag != 0)
+                    break;
+                printf ("option %s", long_options[option_index].name);
+                if (optarg)
+                    printf (" with arg %s", optarg);
+                printf ("\n");
             break;
     
     
             case 'v':
-            puts ("Verbose output activated\n");
-            break;
+                puts ("Verbose output activated\n");
+                break;
     
+            case 'p':
+                port = atoi(optarg);
+                printf("Using Port %d\n", port);
+                break;
     
             case 'i':
-            for(i=0;;i++) {
-                if(optarg[i] == '\0')
-                    break;
-                if(optarg[i] == ',')
-                    interface_count++;
-            }
-            interface_count++;
-
-            interface_names = malloc(sizeof(char *) * interface_count);
-
-            interface_names[0] = strtok(optarg, ",");
-
-            for(i=1;i<interface_count;i++) {
-                interface_names[i] = strtok(NULL, ",");
-            }
-            break; 
+                for(i=0;;i++) {
+                    if(optarg[i] == '\0')
+                        break;
+                    if(optarg[i] == ',')
+                        interface_count++;
+                }
+                interface_count++;
+    
+                interface_names = malloc(sizeof(char *) * interface_count);
+    
+                interface_names[0] = strtok(optarg, ",");
+    
+                for(i=1;i<interface_count;i++) {
+                    interface_names[i] = strtok(NULL, ",");
+                }
+                break; 
             case '?':
-            break;
+                break;
     
             default:
-            abort ();
+                abort ();
         }
     }
 
@@ -182,7 +195,7 @@ int main(int argc, char **argv)
 
     saddr.sin_family = AF_INET;
     saddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    saddr.sin_port = htons(PORT);
+    saddr.sin_port = htons(port);
 
     beacon_thread = pthread_create(&beacon_thread, NULL, beacon_loop, (void*) NULL);
 
@@ -634,7 +647,7 @@ void *beacon_loop(void *ptr) {
         /* Build the beacon */
         gethostname((char *) &hostname, (size_t)  32);
         snprintf(buffer, BEACON_LENGTH, "<CANBeacon name=\"%s\" type=\"%s\" description=\"%s\">\n<URL>can://0.0.0.0:%d</URL>", 
-                hostname, BEACON_TYPE, BEACON_DESCRIPTION, PORT);
+                hostname, BEACON_TYPE, BEACON_DESCRIPTION, port);
 
         for(i=0;i<interface_count;i++) {
             /* Find \0 in beacon buffer */
