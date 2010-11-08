@@ -265,8 +265,10 @@ int main(int argc, char **argv)
         if (FD_ISSET(sa, &readfds)) {
 
             char cmd;
-                        char bus_name[6];
+            char bus_name[6];
+            int found=0;
             int items;
+            int i;
 
             if (read(sa, buf+idx, 1) < 1)
                 exit(1);
@@ -297,262 +299,272 @@ int main(int argc, char **argv)
             /* Extract busname and command */
             sscanf(buf, "< %6s %c ", bus_name, &cmd);
 
-            /* prepare bcm message settings */
-            memset(&msg, 0, sizeof(msg));
-            msg.msg_head.nframes = 1;
+            /* Check if we work on this bus */
+            found = 0;
+            for(i=0;i<interface_count;i++) {
+                if(!strcmp(interface_names[i], bus_name))
+                    found = 1;
+            }
+            if(found == 0) {
+                printf("Wrong bus name was specified!\n");
+            } else {
+                /* prepare bcm message settings */
+                memset(&msg, 0, sizeof(msg));
+                msg.msg_head.nframes = 1;
 
-            switch (cmd) {
-            case 'S': /* Send a single frame */
-                items = sscanf(buf, "< %6s %c %x %hhu "
-                    "%hhx %hhx %hhx %hhx %hhx %hhx "
-                    "%hhx %hhx >",
-                    ifr.ifr_name,
-                    &cmd, 
-                    &msg.msg_head.can_id,
-                    &msg.frame.can_dlc,
-                    &msg.frame.data[0],
-                    &msg.frame.data[1],
-                    &msg.frame.data[2],
-                    &msg.frame.data[3],
-                    &msg.frame.data[4],
-                    &msg.frame.data[5],
-                    &msg.frame.data[6],
-                    &msg.frame.data[7]);
+                switch (cmd) {
+                case 'S': /* Send a single frame */
+                    items = sscanf(buf, "< %6s %c %x %hhu "
+                        "%hhx %hhx %hhx %hhx %hhx %hhx "
+                        "%hhx %hhx >",
+                        ifr.ifr_name,
+                        &cmd, 
+                        &msg.msg_head.can_id,
+                        &msg.frame.can_dlc,
+                        &msg.frame.data[0],
+                        &msg.frame.data[1],
+                        &msg.frame.data[2],
+                        &msg.frame.data[3],
+                        &msg.frame.data[4],
+                        &msg.frame.data[5],
+                        &msg.frame.data[6],
+                        &msg.frame.data[7]);
 
-                if ( (items < 4) ||
-                     (msg.frame.can_dlc > 8) ||
-                     (items != 4 + msg.frame.can_dlc)) {
-                    printf("Syntax error in send command\n");
+                    if ( (items < 4) ||
+                        (msg.frame.can_dlc > 8) ||
+                        (items != 4 + msg.frame.can_dlc)) {
+                        printf("Syntax error in send command\n");
+                    }
+
+                    msg.msg_head.opcode = TX_SEND;
+                    msg.frame.can_id = msg.msg_head.can_id;
+
+                    if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
+                        caddr.can_ifindex = ifr.ifr_ifindex;
+                        sendto(sc, &msg, sizeof(msg), 0,
+                            (struct sockaddr*)&caddr, sizeof(caddr));
+                    }
+
+                    break;
+                case 'A': /* Add a send job */
+                    items = sscanf(buf, "< %6s %c %lu %lu %x %hhu "
+                        "%hhx %hhx %hhx %hhx %hhx %hhx "
+                        "%hhx %hhx >",
+                        ifr.ifr_name,
+                        &cmd, 
+                        &msg.msg_head.ival2.tv_sec,
+                        &msg.msg_head.ival2.tv_usec,
+                        &msg.msg_head.can_id,
+                        &msg.frame.can_dlc,
+                        &msg.frame.data[0],
+                        &msg.frame.data[1],
+                        &msg.frame.data[2],
+                        &msg.frame.data[3],
+                        &msg.frame.data[4],
+                        &msg.frame.data[5],
+                        &msg.frame.data[6],
+                        &msg.frame.data[7]);
+
+                    if (items < 6)
+                        break;
+                    if (msg.frame.can_dlc > 8)
+                        break;
+                    if (items != 6 + msg.frame.can_dlc)
+                        break;
+
+                    msg.msg_head.opcode = TX_SETUP;
+                    msg.msg_head.flags |= SETTIMER | STARTTIMER;
+                    msg.frame.can_id = msg.msg_head.can_id;
+
+                    if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
+                        caddr.can_ifindex = ifr.ifr_ifindex;
+                        sendto(sc, &msg, sizeof(msg), 0,
+                            (struct sockaddr*)&caddr, sizeof(caddr));
+                    }
+
+                    break;
+                case 'U': /* Update send job */
+                    items = sscanf(buf, "< %6s %c %x %hhu "
+                        "%hhx %hhx %hhx %hhx %hhx %hhx "
+                        "%hhx %hhx >",
+                        ifr.ifr_name,
+                        &cmd, 
+                        &msg.msg_head.can_id,
+                        &msg.frame.can_dlc,
+                        &msg.frame.data[0],
+                        &msg.frame.data[1],
+                        &msg.frame.data[2],
+                        &msg.frame.data[3],
+                        &msg.frame.data[4],
+                        &msg.frame.data[5],
+                        &msg.frame.data[6],
+                        &msg.frame.data[7]);
+
+                    if ( (items < 4) ||
+                        (msg.frame.can_dlc > 8) ||
+                        (items != 4 + msg.frame.can_dlc)) {
+                        printf("Syntax error in update send job command\n");
+                    }
+                    
+                    msg.msg_head.opcode = TX_SETUP;
+                    msg.msg_head.flags  = 0;
+                    msg.frame.can_id = msg.msg_head.can_id;
+
+                    if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
+                        caddr.can_ifindex = ifr.ifr_ifindex;
+                        sendto(sc, &msg, sizeof(msg), 0,
+                            (struct sockaddr*)&caddr, sizeof(caddr));
+                    }
+
+                    break;
+                case 'D': /* Delete a send job */
+                    items = sscanf(buf, "< %6s %c %x %hhu "
+                        "%hhx %hhx %hhx %hhx %hhx %hhx "
+                        "%hhx %hhx >",
+                        ifr.ifr_name,
+                        &cmd, 
+                        &msg.msg_head.can_id,
+                        &msg.frame.can_dlc,
+                        &msg.frame.data[0],
+                        &msg.frame.data[1],
+                        &msg.frame.data[2],
+                        &msg.frame.data[3],
+                        &msg.frame.data[4],
+                        &msg.frame.data[5],
+                        &msg.frame.data[6],
+                        &msg.frame.data[7]);
+
+                    if ( (items < 4) ||
+                        (msg.frame.can_dlc > 8) ||
+                        (items != 4 + msg.frame.can_dlc)) {
+                        printf("Syntax error in delete job command\n");
+                    }
+
+                    msg.msg_head.opcode = TX_DELETE;
+                    msg.frame.can_id = msg.msg_head.can_id;
+
+                    if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
+                        caddr.can_ifindex = ifr.ifr_ifindex;
+                        sendto(sc, &msg, sizeof(msg), 0,
+                            (struct sockaddr*)&caddr, sizeof(caddr));
+                    }
+
+                    break;
+
+                case 'R': /* Receive CAN ID with content matching */
+                    items = sscanf(buf, "< %6s %c %lu %lu %x %hhu "
+                        "%hhx %hhx %hhx %hhx %hhx %hhx "
+                        "%hhx %hhx >",
+                        ifr.ifr_name,
+                        &cmd, 
+                        &msg.msg_head.ival2.tv_sec,
+                        &msg.msg_head.ival2.tv_usec,
+                        &msg.msg_head.can_id,
+                        &msg.frame.can_dlc,
+                        &msg.frame.data[0],
+                        &msg.frame.data[1],
+                        &msg.frame.data[2],
+                        &msg.frame.data[3],
+                        &msg.frame.data[4],
+                        &msg.frame.data[5],
+                        &msg.frame.data[6],
+                        &msg.frame.data[7]);
+
+                    if (items < 6)
+                        break;
+                    if (msg.frame.can_dlc > 8)
+                        break;
+                    if (items != 6 + msg.frame.can_dlc)
+                        break;
+
+                    msg.msg_head.opcode = RX_SETUP;
+                    msg.msg_head.flags  = SETTIMER;
+                    msg.frame.can_id = msg.msg_head.can_id;
+
+                    if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
+                        caddr.can_ifindex = ifr.ifr_ifindex;
+                        sendto(sc, &msg, sizeof(msg), 0,
+                            (struct sockaddr*)&caddr, sizeof(caddr));
+                    }
+
+                    break;
+                case 'F': /* Add a filter */
+                    items = sscanf(buf, "< %6s %c %lu %lu %x %hhu "
+                        "%hhx %hhx %hhx %hhx %hhx %hhx "
+                        "%hhx %hhx >",
+                        ifr.ifr_name,
+                        &cmd, 
+                        &msg.msg_head.ival2.tv_sec,
+                        &msg.msg_head.ival2.tv_usec,
+                        &msg.msg_head.can_id,
+                        &msg.frame.can_dlc,
+                        &msg.frame.data[0],
+                        &msg.frame.data[1],
+                        &msg.frame.data[2],
+                        &msg.frame.data[3],
+                        &msg.frame.data[4],
+                        &msg.frame.data[5],
+                        &msg.frame.data[6],
+                        &msg.frame.data[7]);
+
+                    if (items < 6)
+                        break;
+                    if (msg.frame.can_dlc > 8)
+                        break;
+                    if (items != 6 + msg.frame.can_dlc)
+                        break;
+
+                    msg.msg_head.opcode = RX_SETUP;
+                    msg.msg_head.flags  = RX_FILTER_ID | SETTIMER;
+                    msg.frame.can_id = msg.msg_head.can_id;
+
+                    if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
+                        caddr.can_ifindex = ifr.ifr_ifindex;
+                        sendto(sc, &msg, sizeof(msg), 0,
+                            (struct sockaddr*)&caddr, sizeof(caddr));
+                    }
+
+                    break;
+                case 'X': /* Delete filter */
+                    items = sscanf(buf, "< %6s %c %lu %lu %x %hhu "
+                        "%hhx %hhx %hhx %hhx %hhx %hhx "
+                        "%hhx %hhx >",
+                        ifr.ifr_name,
+                        &cmd, 
+                        &msg.msg_head.ival2.tv_sec,
+                        &msg.msg_head.ival2.tv_usec,
+                        &msg.msg_head.can_id,
+                        &msg.frame.can_dlc,
+                        &msg.frame.data[0],
+                        &msg.frame.data[1],
+                        &msg.frame.data[2],
+                        &msg.frame.data[3],
+                        &msg.frame.data[4],
+                        &msg.frame.data[5],
+                        &msg.frame.data[6],
+                        &msg.frame.data[7]);
+
+                    if (items < 6)
+                        break;
+                    if (msg.frame.can_dlc > 8)
+                        break;
+                    if (items != 6 + msg.frame.can_dlc)
+                        break;
+
+                    msg.msg_head.opcode = RX_DELETE;
+                    msg.frame.can_id = msg.msg_head.can_id;
+
+                    if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
+                        caddr.can_ifindex = ifr.ifr_ifindex;
+                        sendto(sc, &msg, sizeof(msg), 0,
+                            (struct sockaddr*)&caddr, sizeof(caddr));
+                    }
+
+                    break;
+                default:
+                    printf("unknown command '%c'.\n", cmd);
+                    exit(1);
                 }
-
-                msg.msg_head.opcode = TX_SEND;
-                msg.frame.can_id = msg.msg_head.can_id;
-
-                if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                    caddr.can_ifindex = ifr.ifr_ifindex;
-                    sendto(sc, &msg, sizeof(msg), 0,
-                           (struct sockaddr*)&caddr, sizeof(caddr));
-                }
-
-                break;
-            case 'A': /* Add a send job */
-                items = sscanf(buf, "< %6s %c %lu %lu %x %hhu "
-                    "%hhx %hhx %hhx %hhx %hhx %hhx "
-                    "%hhx %hhx >",
-                    ifr.ifr_name,
-                    &cmd, 
-                    &msg.msg_head.ival2.tv_sec,
-                    &msg.msg_head.ival2.tv_usec,
-                    &msg.msg_head.can_id,
-                    &msg.frame.can_dlc,
-                    &msg.frame.data[0],
-                    &msg.frame.data[1],
-                    &msg.frame.data[2],
-                    &msg.frame.data[3],
-                    &msg.frame.data[4],
-                    &msg.frame.data[5],
-                    &msg.frame.data[6],
-                    &msg.frame.data[7]);
-
-                if (items < 6)
-                    break;
-                if (msg.frame.can_dlc > 8)
-                    break;
-                if (items != 6 + msg.frame.can_dlc)
-                    break;
-
-                msg.msg_head.opcode = TX_SETUP;
-                msg.msg_head.flags |= SETTIMER | STARTTIMER;
-                msg.frame.can_id = msg.msg_head.can_id;
-
-                if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                    caddr.can_ifindex = ifr.ifr_ifindex;
-                    sendto(sc, &msg, sizeof(msg), 0,
-                           (struct sockaddr*)&caddr, sizeof(caddr));
-                }
-
-                break;
-            case 'U': /* Update send job */
-                items = sscanf(buf, "< %6s %c %x %hhu "
-                    "%hhx %hhx %hhx %hhx %hhx %hhx "
-                    "%hhx %hhx >",
-                    ifr.ifr_name,
-                    &cmd, 
-                    &msg.msg_head.can_id,
-                    &msg.frame.can_dlc,
-                    &msg.frame.data[0],
-                    &msg.frame.data[1],
-                    &msg.frame.data[2],
-                    &msg.frame.data[3],
-                    &msg.frame.data[4],
-                    &msg.frame.data[5],
-                    &msg.frame.data[6],
-                    &msg.frame.data[7]);
-
-                if ( (items < 4) ||
-                     (msg.frame.can_dlc > 8) ||
-                     (items != 4 + msg.frame.can_dlc)) {
-                    printf("Syntax error in update send job command\n");
-                }
-                
-                msg.msg_head.opcode = TX_SETUP;
-                msg.msg_head.flags  = 0;
-                msg.frame.can_id = msg.msg_head.can_id;
-
-                if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                    caddr.can_ifindex = ifr.ifr_ifindex;
-                    sendto(sc, &msg, sizeof(msg), 0,
-                           (struct sockaddr*)&caddr, sizeof(caddr));
-                }
-
-                break;
-            case 'D': /* Delete a send job */
-                items = sscanf(buf, "< %6s %c %x %hhu "
-                    "%hhx %hhx %hhx %hhx %hhx %hhx "
-                    "%hhx %hhx >",
-                    ifr.ifr_name,
-                    &cmd, 
-                    &msg.msg_head.can_id,
-                    &msg.frame.can_dlc,
-                    &msg.frame.data[0],
-                    &msg.frame.data[1],
-                    &msg.frame.data[2],
-                    &msg.frame.data[3],
-                    &msg.frame.data[4],
-                    &msg.frame.data[5],
-                    &msg.frame.data[6],
-                    &msg.frame.data[7]);
-
-                if ( (items < 4) ||
-                     (msg.frame.can_dlc > 8) ||
-                     (items != 4 + msg.frame.can_dlc)) {
-                    printf("Syntax error in delete job command\n");
-                }
-
-                msg.msg_head.opcode = TX_DELETE;
-                msg.frame.can_id = msg.msg_head.can_id;
-
-                if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                    caddr.can_ifindex = ifr.ifr_ifindex;
-                    sendto(sc, &msg, sizeof(msg), 0,
-                           (struct sockaddr*)&caddr, sizeof(caddr));
-                }
-
-                break;
-
-            case 'R': /* Receive CAN ID with content matching */
-                items = sscanf(buf, "< %6s %c %lu %lu %x %hhu "
-                    "%hhx %hhx %hhx %hhx %hhx %hhx "
-                    "%hhx %hhx >",
-                    ifr.ifr_name,
-                    &cmd, 
-                    &msg.msg_head.ival2.tv_sec,
-                    &msg.msg_head.ival2.tv_usec,
-                    &msg.msg_head.can_id,
-                    &msg.frame.can_dlc,
-                    &msg.frame.data[0],
-                    &msg.frame.data[1],
-                    &msg.frame.data[2],
-                    &msg.frame.data[3],
-                    &msg.frame.data[4],
-                    &msg.frame.data[5],
-                    &msg.frame.data[6],
-                    &msg.frame.data[7]);
-
-                if (items < 6)
-                    break;
-                if (msg.frame.can_dlc > 8)
-                    break;
-                if (items != 6 + msg.frame.can_dlc)
-                    break;
-
-                msg.msg_head.opcode = RX_SETUP;
-                msg.msg_head.flags  = SETTIMER;
-                msg.frame.can_id = msg.msg_head.can_id;
-
-                if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                    caddr.can_ifindex = ifr.ifr_ifindex;
-                    sendto(sc, &msg, sizeof(msg), 0,
-                           (struct sockaddr*)&caddr, sizeof(caddr));
-                }
-
-                break;
-            case 'F': /* Add a filter */
-                items = sscanf(buf, "< %6s %c %lu %lu %x %hhu "
-                    "%hhx %hhx %hhx %hhx %hhx %hhx "
-                    "%hhx %hhx >",
-                    ifr.ifr_name,
-                    &cmd, 
-                    &msg.msg_head.ival2.tv_sec,
-                    &msg.msg_head.ival2.tv_usec,
-                    &msg.msg_head.can_id,
-                    &msg.frame.can_dlc,
-                    &msg.frame.data[0],
-                    &msg.frame.data[1],
-                    &msg.frame.data[2],
-                    &msg.frame.data[3],
-                    &msg.frame.data[4],
-                    &msg.frame.data[5],
-                    &msg.frame.data[6],
-                    &msg.frame.data[7]);
-
-                if (items < 6)
-                    break;
-                if (msg.frame.can_dlc > 8)
-                    break;
-                if (items != 6 + msg.frame.can_dlc)
-                    break;
-
-                msg.msg_head.opcode = RX_SETUP;
-                msg.msg_head.flags  = RX_FILTER_ID | SETTIMER;
-                msg.frame.can_id = msg.msg_head.can_id;
-
-                if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                    caddr.can_ifindex = ifr.ifr_ifindex;
-                    sendto(sc, &msg, sizeof(msg), 0,
-                           (struct sockaddr*)&caddr, sizeof(caddr));
-                }
-
-                break;
-            case 'X': /* Delete filter */
-                items = sscanf(buf, "< %6s %c %lu %lu %x %hhu "
-                    "%hhx %hhx %hhx %hhx %hhx %hhx "
-                    "%hhx %hhx >",
-                    ifr.ifr_name,
-                    &cmd, 
-                    &msg.msg_head.ival2.tv_sec,
-                    &msg.msg_head.ival2.tv_usec,
-                    &msg.msg_head.can_id,
-                    &msg.frame.can_dlc,
-                    &msg.frame.data[0],
-                    &msg.frame.data[1],
-                    &msg.frame.data[2],
-                    &msg.frame.data[3],
-                    &msg.frame.data[4],
-                    &msg.frame.data[5],
-                    &msg.frame.data[6],
-                    &msg.frame.data[7]);
-
-                if (items < 6)
-                    break;
-                if (msg.frame.can_dlc > 8)
-                    break;
-                if (items != 6 + msg.frame.can_dlc)
-                    break;
-
-                msg.msg_head.opcode = RX_DELETE;
-                msg.frame.can_id = msg.msg_head.can_id;
-
-                if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                    caddr.can_ifindex = ifr.ifr_ifindex;
-                    sendto(sc, &msg, sizeof(msg), 0,
-                           (struct sockaddr*)&caddr, sizeof(caddr));
-                }
-
-                break;
-            default:
-                printf("unknown command '%c'.\n", cmd);
-                exit(1);
             }
         }
     }
