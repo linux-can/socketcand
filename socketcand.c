@@ -373,13 +373,11 @@ int main(int argc, char **argv)
 
                 break;
             case 'U': /* Update send job */
-                items = sscanf(buf, "< %6s %c %lu %lu %x %hhu "
+                items = sscanf(buf, "< %6s %c %x %hhu "
                     "%hhx %hhx %hhx %hhx %hhx %hhx "
                     "%hhx %hhx >",
                     ifr.ifr_name,
                     &cmd, 
-                    &msg.msg_head.ival2.tv_sec,
-                    &msg.msg_head.ival2.tv_usec,
                     &msg.msg_head.can_id,
                     &msg.frame.can_dlc,
                     &msg.frame.data[0],
@@ -391,13 +389,12 @@ int main(int argc, char **argv)
                     &msg.frame.data[6],
                     &msg.frame.data[7]);
 
-                if (items < 6)
-                    break;
-                if (msg.frame.can_dlc > 8)
-                    break;
-                if (items != 6 + msg.frame.can_dlc)
-                    break;
-
+                if ( (items < 4) ||
+                     (msg.frame.can_dlc > 8) ||
+                     (items != 4 + msg.frame.can_dlc)) {
+                    printf("Syntax error in update send job command\n");
+                }
+                
                 msg.msg_head.opcode = TX_SETUP;
                 msg.msg_head.flags  = 0;
                 msg.frame.can_id = msg.msg_head.can_id;
@@ -410,13 +407,11 @@ int main(int argc, char **argv)
 
                 break;
             case 'D': /* Delete a send job */
-                items = sscanf(buf, "< %6s %c %lu %lu %x %hhu "
+                items = sscanf(buf, "< %6s %c %x %hhu "
                     "%hhx %hhx %hhx %hhx %hhx %hhx "
                     "%hhx %hhx >",
                     ifr.ifr_name,
                     &cmd, 
-                    &msg.msg_head.ival2.tv_sec,
-                    &msg.msg_head.ival2.tv_usec,
                     &msg.msg_head.can_id,
                     &msg.frame.can_dlc,
                     &msg.frame.data[0],
@@ -428,12 +423,11 @@ int main(int argc, char **argv)
                     &msg.frame.data[6],
                     &msg.frame.data[7]);
 
-                if (items < 6)
-                    break;
-                if (msg.frame.can_dlc > 8)
-                    break;
-                if (items != 6 + msg.frame.can_dlc)
-                    break;
+                if ( (items < 4) ||
+                     (msg.frame.can_dlc > 8) ||
+                     (items != 4 + msg.frame.can_dlc)) {
+                    printf("Syntax error in delete job command\n");
+                }
 
                 msg.msg_head.opcode = TX_DELETE;
                 msg.frame.can_id = msg.msg_head.can_id;

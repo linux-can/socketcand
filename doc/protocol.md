@@ -34,14 +34,14 @@ This command updates a frame transmission job that was created via the 'A' comma
 
 Examle:
 Update the CAN frame 123#42424242 with 123#112233 - no change of timers
-    < vcan1 U 0 0 123 3 11 22 33 >
+    < vcan1 U 123 3 11 22 33 >
 
 ##### Delete a send job #####
 A send job can be removed with the 'D' command.
 
 Example:
 Delete the cyclic send job from above
-    < vcan1 D 0 0 123 0 >
+    < vcan1 D 123 0 >
 
 ##### Send a single frame #####
 This command is used to send a single CAN frame only once.
