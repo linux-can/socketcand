@@ -64,8 +64,9 @@
 
 #include <linux/can.h>
 #include <linux/can/bcm.h>
+#include <linux/can/netlink.h>
 
-#include "libsocketcan/libsocketcan.h"
+#include <libsocketcan.h>
 
 #define MAXLEN 100
 #define PORT 28600
@@ -183,7 +184,7 @@ int main(int argc, char **argv)
     saddr.sin_addr.s_addr = htonl(INADDR_ANY);
     saddr.sin_port = htons(PORT);
 
-        beacon_thread = pthread_create(&beacon_thread, NULL, beacon_loop, (void*) NULL);
+    beacon_thread = pthread_create(&beacon_thread, NULL, beacon_loop, (void*) NULL);
 
     while(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
         printf(".");fflush(NULL);
@@ -269,6 +270,7 @@ int main(int argc, char **argv)
             int found=0;
             int items;
             int i;
+            struct can_bittiming timing;
 
             if (read(sa, buf+idx, 1) < 1)
                 exit(1);
@@ -559,6 +561,29 @@ int main(int argc, char **argv)
                         sendto(sc, &msg, sizeof(msg), 0,
                             (struct sockaddr*)&caddr, sizeof(caddr));
                     }
+
+                    break;
+                case 'B': /* Set bitrate */
+                    memset(&timing, 0, sizeof(timing));
+
+                    items = sscanf(buf, "< %6s %c %x %x %x %x %x %x %x %x",
+                        bus_name,
+                        &cmd,
+                        &timing.bitrate,
+                        &timing.sample_point,
+                        &timing.tq,
+                        &timing.prop_seg,
+                        &timing.phase_seg1,
+                        &timing.phase_seg2,
+                        &timing.sjw,
+                        &timing.brp);
+
+                    if (items != 10) {
+                        printf("Syntax error in set bitrate command\n");
+                        break;
+                    }
+
+                    can_set_bittiming(bus_name, &timing);
 
                     break;
                 default:

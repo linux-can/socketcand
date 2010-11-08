@@ -145,7 +145,7 @@ Error frames are sent similar to normal frames only distinguished by the data_ty
 ### Configuration ###
 
 ##### Configure the bittiming #####
-The protocol enables the client to change the bittiming of a given bus as provided by set link. Automatic bitrate configuration by the kernel is not supported because it is not guaranteed that the corresponding option was enabled during compile time (e.g. in Ubuntu 10.10 it isn't). This way it it also easyer to implement the function in a microcontroller based adapter.
+The protocol enables the client to change the bittiming of a given bus as provided by set link. Automatic bitrate configuration by the kernel is not supported because it is not guaranteed that the corresponding option was enabled during compile time (e.g. in Ubuntu 10.10 it isn't). This way it it also easier to implement the function in a microcontroller based adapter.
     < can0 B bitrate sample_point tq prop_seg phase_seg1 phase_seg2 sjw brp >
 
 ##### Set the controlmode #####
