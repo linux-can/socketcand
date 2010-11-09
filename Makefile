@@ -2,7 +2,7 @@ CFLAGS = -O2 -Wall -Wno-parentheses -lpthread -lsocketcan -g
 
 all: socketcand
 
-socketcand:
+socketcand: socketcand.c
 	gcc ${CFLAGS} -o socketcand socketcand.c
 
 clean:
