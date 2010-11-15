@@ -301,8 +301,9 @@ int main(int argc, char **argv)
             char bus_name[6];
             int found=0;
             int items;
-            int i;
+            int i,j,k;
             struct can_bittiming timing;
+            struct can_ctrlmode ctrlmode;
 
             if (read(sa, buf+idx, 1) < 1)
                 exit(1);
@@ -598,7 +599,7 @@ int main(int argc, char **argv)
                 case 'B': /* Set bitrate */
                     memset(&timing, 0, sizeof(timing));
 
-                    items = sscanf(buf, "< %6s %c %x %x %x %x %x %x %x %x",
+                    items = sscanf(buf, "< %6s %c %x %x %x %x %x %x %x %x >",
                         bus_name,
                         &cmd,
                         &timing.bitrate,
@@ -616,6 +617,32 @@ int main(int argc, char **argv)
                     }
 
                     can_set_bittiming(bus_name, &timing);
+
+                    break;
+                case 'C': /* Set control mode */
+                    memset(&ctrlmode, 0, sizeof(ctrlmode));
+                    ctrlmode.mask = CAN_CTRLMODE_LOOPBACK | CAN_CTRLMODE_LISTENONLY | CAN_CTRLMODE_3_SAMPLES;
+
+                    items = sscanf(buf, "< %6s %c %u %u %u >",
+                        bus_name,
+                        &cmd,
+                        &i,
+                        &j,
+                        &k);
+
+                    if (items != 5) {
+                        printf("Syntax error in set controlmode command\n");
+                        break;
+                    }
+
+                    if(i)
+                        ctrlmode.flags |= CAN_CTRLMODE_LISTENONLY;
+                    if(j)
+                        ctrlmode.flags |= CAN_CTRLMODE_LOOPBACK;
+                    if(k)
+                        ctrlmode.flags |= CAN_CTRLMODE_3_SAMPLES;
+
+                    can_set_ctrlmode(bus_name, &ctrlmode);
 
                     break;
                 default:
