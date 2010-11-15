@@ -132,7 +132,7 @@ int main(int argc, char **argv)
             {0, 0, 0, 0}
         };
     
-        c = getopt_long (argc, argv, "vi:p:", long_options, &option_index);
+        c = getopt_long (argc, argv, "vhi:p:", long_options, &option_index);
     
         if (c == -1)
             break;
@@ -142,10 +142,6 @@ int main(int argc, char **argv)
                 /* If this option set a flag, do nothing else now. */
                 if (long_options[option_index].flag != 0)
                     break;
-                printf ("option %s", long_options[option_index].name);
-                if (optarg)
-                    printf (" with arg %s", optarg);
-                printf ("\n");
             break;
     
     
@@ -175,11 +171,18 @@ int main(int argc, char **argv)
                     interface_names[i] = strtok(NULL, ",");
                 }
                 break; 
+
+            case 'h':
+                print_usage();
+                return 0;
+                
             case '?':
-                break;
+                print_usage();
+                return -1;
     
             default:
-                abort ();
+                print_usage();
+                return -1;
         }
     }
 
@@ -723,4 +726,11 @@ void *beacon_loop(void *ptr) {
 }
 
 void print_usage(void) {
+    printf("Socket CAN daemon\n");
+    printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port]\n\n");
+    printf("Options:\n");
+    printf("\t-v activates verbose output to STDOUT\n");
+    printf("\t-i interfaces is used to specify the Socket CAN interfaces the daemon\n\t\tshall provide access to\n");
+    printf("\t-p port changes the default port (28600) the daemon is listening at\n");
+    printf("\t-h prints this message\n");
 }
