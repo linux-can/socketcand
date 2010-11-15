@@ -69,6 +69,8 @@
 
 #include <libsocketcan.h>
 
+#include "statistics.h"
+
 #define MAXLEN 100
 #define PORT 28600
 #define BROADCAST_PORT 42000
