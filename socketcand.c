@@ -86,7 +86,7 @@ void childdied(int i) {
     wait(NULL);
 }
 
-static int verbose_flag=0;
+int verbose_flag=0;
 char **interface_names;
 int interface_count=0;
 int port=PORT;
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
     socklen_t sin_size = sizeof(clientaddr);
     struct sigaction signalaction;
     sigset_t sigset;
-    pthread_t beacon_thread;
+    pthread_t beacon_thread, statistics_thread;
 
     char buf[MAXLEN];
     char rxmsg[50];
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
         /* getopt_long stores the option index here. */
         int option_index = 0;
         static struct option long_options[] = {
-            {"verbose", no_argument, &verbose_flag, 1},
+            {"verbose", no_argument, 0, 'v'},
             {"interfaces",  required_argument, 0, 'i'},
             {"port", required_argument, 0, 'p'},
             {0, 0, 0, 0}
@@ -149,6 +149,7 @@ int main(int argc, char **argv)
     
             case 'v':
                 puts ("Verbose output activated\n");
+                verbose_flag = 1;
                 break;
     
             case 'p':
@@ -203,8 +204,12 @@ int main(int argc, char **argv)
     saddr.sin_addr.s_addr = htonl(INADDR_ANY);
     saddr.sin_port = htons(port);
 
-    beacon_thread = pthread_create(&beacon_thread, NULL, beacon_loop, (void*) NULL);
+    if(verbose_flag)
+        printf("creating broadcast thread...\n");
+    beacon_thread = pthread_create(&beacon_thread, NULL, &beacon_loop, (void*) NULL);
 
+    if(verbose_flag)
+        printf("binding socket...\n");
     while(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
         printf(".");fflush(NULL);
         usleep(100000);
@@ -236,8 +241,10 @@ int main(int argc, char **argv)
         }
     }
 
-    /* open BCM socket */
+    if(verbose_flag)
+        printf("client connected\n");
 
+    /* open BCM socket */
     if ((sc = socket(PF_CAN, SOCK_DGRAM, CAN_BCM)) < 0) {
         perror("bcmsocket");
         return 1;
@@ -246,12 +253,20 @@ int main(int argc, char **argv)
     memset(&caddr, 0, sizeof(caddr));
     caddr.can_family = PF_CAN;
     /* can_ifindex is set to 0 (any device) => need for sendto() */
-
+    
+    if(verbose_flag)
+        printf("connecting BCM socket...\n");
     if (connect(sc, (struct sockaddr *)&caddr, sizeof(caddr)) < 0) {
         perror("connect");
         return 1;
     }
 
+    if(verbose_flag)
+        printf("starting statistics thread...\n");
+    statistics_thread = pthread_create(&statistics_thread, NULL, &statistics_loop, (void*) NULL);
+    sleep(1);
+    set_statistics("vcan0", 100);
+    
     while (1) {
 
         FD_ZERO(&readfds);
