@@ -206,7 +206,6 @@ int main(int argc, char **argv)
 
     if(verbose_flag)
         printf("creating broadcast thread...\n");
-    pthread_mutex_init(&stat_mutex, NULL);
     pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
 
     if(verbose_flag)
@@ -264,8 +263,8 @@ int main(int argc, char **argv)
 
     if(verbose_flag)
         printf("starting statistics thread...\n");
+    pthread_mutex_init(&stat_mutex, NULL);
     pthread_create(&statistics_thread, NULL, &statistics_loop, NULL);
-    usleep(1000);
     set_statistics("vcan0", 100);
     
     while (1) {
