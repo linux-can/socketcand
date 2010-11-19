@@ -206,7 +206,8 @@ int main(int argc, char **argv)
 
     if(verbose_flag)
         printf("creating broadcast thread...\n");
-    beacon_thread = pthread_create(&beacon_thread, NULL, &beacon_loop, (void*) NULL);
+    pthread_mutex_init(&stat_mutex, NULL);
+    pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
 
     if(verbose_flag)
         printf("binding socket...\n");
@@ -263,8 +264,8 @@ int main(int argc, char **argv)
 
     if(verbose_flag)
         printf("starting statistics thread...\n");
-    statistics_thread = pthread_create(&statistics_thread, NULL, &statistics_loop, (void*) NULL);
-    sleep(1);
+    pthread_create(&statistics_thread, NULL, &statistics_loop, NULL);
+    usleep(1000);
     set_statistics("vcan0", 100);
     
     while (1) {
