@@ -265,7 +265,6 @@ int main(int argc, char **argv)
         printf("starting statistics thread...\n");
     pthread_mutex_init(&stat_mutex, NULL);
     pthread_create(&statistics_thread, NULL, &statistics_loop, NULL);
-    set_statistics("vcan0", 100);
     
     while (1) {
 
@@ -663,6 +662,20 @@ int main(int argc, char **argv)
                         ctrlmode.flags |= CAN_CTRLMODE_3_SAMPLES;
 
                     can_set_ctrlmode(bus_name, &ctrlmode);
+
+                    break;
+                case 'E': /* Enable or disable statistics */
+                    items = sscanf(buf, "< %6s %c %u >",
+                        bus_name,
+                        &cmd,
+                        &i);
+
+                    if (items != 3) {
+                        printf("Syntax error in statistics command\n");
+                        break;
+                    }
+
+                    set_statistics(bus_name, i);
 
                     break;
                 default:

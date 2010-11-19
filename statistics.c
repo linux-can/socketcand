@@ -66,6 +66,10 @@ void *statistics_loop(void *ptr) {
         /* loop through all statistics jobs */
         for(i=0;i<stat_entry_cnt;i++) {
             current_entry = stat_entries[i];
+
+            if( current_entry.ival == 0 )
+                continue;
+
             elapsed = ((current_time.tv_sec - current_entry.last_fired->tv_sec) * 1000 
                     + (current_time.tv_usec - current_entry.last_fired->tv_usec)/1000.0) + 0.5;
 

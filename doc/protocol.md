@@ -14,10 +14,10 @@ Two types of data are transmitted:
 * Normal data transfer has a data_type with a sigle lowercase letter, which denotes the type of data (e.g. f, e, s, ...)
 
 ### Commands for transmission ###
-There are a few commands that control the transmission of CAN frames. Most of them are intervall based and the Socket CAN broadcast manager guarantees that the frames are sent cyclic with the given intervalls. To be able to control these transmission jobs they are automatically removed when the BCM server socket is closed.
+There are a few commands that control the transmission of CAN frames. Most of them are interval based and the Socket CAN broadcast manager guarantees that the frames are sent cyclic with the given interval. To be able to control these transmission jobs they are automatically removed when the BCM server socket is closed.
 
 ##### Add a new frame for transmission #####
-This command adds a new frame to the BCM queue. An intervall can be configured to have the frame sent cyclic.
+This command adds a new frame to the BCM queue. An interval can be configured to have the frame sent cyclic.
 
 Examples:
 Send the CAN frame 123#1122334455667788 every second on vcan1
@@ -154,9 +154,9 @@ The control mode controls if the bus is set to listen only, if sent packages are
     < can0 C listen_only loopback three_samples >
 
 ##### Enable or disable statistic transmission #####
-THis command requests the transmission of statistic information in line with the normal information. An intervall must be set to specify how often the transmission should occur. A flag of '1' enables the transmission and a flag of '0' disables it.
+This command requests the transmission of statistic information in line with the normal information. An interval (in ms) must be set to specify how often the transmission should occur. An interval of '0' disables transmission.
 
-    < vcan0 E flag ival_ms >
+    < vcan0 E ival_ms >
 
 
 
