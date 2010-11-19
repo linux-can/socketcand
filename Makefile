@@ -1,4 +1,4 @@
-CFLAGS = -O2 -Wall -Wno-parentheses -lpthread -lsocketcan -g
+CFLAGS = -Wall -Wno-parentheses -lpthread -lsocketcan -g
 
 all: socketcand
 
