@@ -1,5 +1,7 @@
 #include <pthread.h>
 
+#define STAT_BUF_LEN 512
+
 void set_statistics(char *bus_name, int ival);
 void *statistics_loop(void *ptr);
 

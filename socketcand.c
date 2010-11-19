@@ -69,15 +69,9 @@
 
 #include <libsocketcan.h>
 
+#include "socketcand.h"
 #include "statistics.h"
 
-#define MAXLEN 100
-#define PORT 28600
-#define BROADCAST_PORT 42000
-
-#define BEACON_LENGTH 2048
-#define BEACON_TYPE "SocketCAN"
-#define BEACON_DESCRIPTION "socketcand"
 
 
 void *beacon_loop(void *ptr );
@@ -95,7 +89,7 @@ int uid;
 
 int main(int argc, char **argv)
 {
-    int sl, sa, sc;
+    int sl, sc;
     int i, ret;
     int idx = 0;
     struct sockaddr_in  saddr, clientaddr;
@@ -221,11 +215,11 @@ int main(int argc, char **argv)
     }
 
     while (1) { 
-        sa = accept(sl,(struct sockaddr *)&clientaddr, &sin_size);
-        if (sa > 0 ){
+        client_socket = accept(sl,(struct sockaddr *)&clientaddr, &sin_size);
+        if (client_socket > 0 ){
 
             if (fork())
-                close(sa);
+                close(client_socket);
             else
                 break;
         }
@@ -270,9 +264,9 @@ int main(int argc, char **argv)
 
         FD_ZERO(&readfds);
         FD_SET(sc, &readfds);
-        FD_SET(sa, &readfds);
+        FD_SET(client_socket, &readfds);
 
-        ret = select((sc > sa)?sc+1:sa+1, &readfds, NULL, NULL, NULL);
+        ret = select((sc > client_socket)?sc+1:client_socket+1, &readfds, NULL, NULL, NULL);
 
         if (FD_ISSET(sc, &readfds)) {
 
@@ -296,7 +290,7 @@ int main(int argc, char **argv)
 
                     /* delimiter '\0' for Adobe(TM) Flash(TM) XML sockets */
                     strcat(rxmsg, ">\0");
-                    send(sa, rxmsg, strlen(rxmsg) + 1, 0);
+                    send(client_socket, rxmsg, strlen(rxmsg) + 1, 0);
                 }
             } else {
                 sprintf(rxmsg, "< %s f %03X %d ", ifr.ifr_name,
@@ -309,12 +303,12 @@ int main(int argc, char **argv)
                 /* delimiter '\0' for Adobe(TM) Flash(TM) XML sockets */
                 strcat(rxmsg, ">\0");
 
-                send(sa, rxmsg, strlen(rxmsg) + 1, 0);
+                send(client_socket, rxmsg, strlen(rxmsg) + 1, 0);
             }
         }
 
 
-        if (FD_ISSET(sa, &readfds)) {
+        if (FD_ISSET(client_socket, &readfds)) {
 
             char cmd;
             char bus_name[6];
@@ -324,7 +318,7 @@ int main(int argc, char **argv)
             struct can_bittiming timing;
             struct can_ctrlmode ctrlmode;
 
-            if (read(sa, buf+idx, 1) < 1)
+            if (read(client_socket, buf+idx, 1) < 1)
                 exit(1);
 
             if (!idx) {
@@ -687,7 +681,7 @@ int main(int argc, char **argv)
     }
 
     close(sc);
-    close(sa);
+    close(client_socket);
 
     return 0;
 }

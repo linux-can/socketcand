@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <string.h>
+#include <sys/socket.h>
+
+#include "socketcand.h"
 
 struct stat_entry *stat_entries;
 int stat_entries_allocated = 0;
@@ -58,6 +61,7 @@ void *statistics_loop(void *ptr) {
     struct timeval current_time;
     int elapsed;
     struct stat_entry current_entry;
+    char buffer[STAT_BUF_LEN];
 
     while(1) {
         gettimeofday(&current_time, 0);
@@ -74,7 +78,11 @@ void *statistics_loop(void *ptr) {
                     + (current_time.tv_usec - current_entry.last_fired->tv_usec)/1000.0) + 0.5;
 
             if(elapsed >= current_entry.ival) {
-                printf("statistics!!1!\n");
+                
+                snprintf( buffer, STAT_BUF_LEN, "< %6s s >", current_entry.bus_name );
+                /* no lock needed here because POSIX send is thread-safe and does locking itself */
+                send( client_socket, buffer, strlen(buffer), 0 );
+
                 current_entry.last_fired->tv_sec = current_time.tv_sec;
                 current_entry.last_fired->tv_usec = current_time.tv_usec;
             }
