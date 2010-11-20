@@ -63,6 +63,11 @@ void *statistics_loop(void *ptr) {
     struct stat_entry current_entry;
     char buffer[STAT_BUF_LEN];
 
+    /* sync with main thread */
+    pthread_mutex_lock( &stat_mutex );
+    pthread_cond_signal( &stat_condition );
+    pthread_mutex_unlock( &stat_mutex );
+
     while(1) {
         gettimeofday(&current_time, 0);
         pthread_mutex_lock(&stat_mutex);

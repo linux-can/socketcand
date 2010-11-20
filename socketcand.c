@@ -258,8 +258,13 @@ int main(int argc, char **argv)
 
     if(verbose_flag)
         printf("starting statistics thread...\n");
-    pthread_mutex_init(&stat_mutex, NULL);
-    pthread_create(&statistics_thread, NULL, &statistics_loop, NULL);
+    pthread_mutex_init( &stat_mutex, NULL );
+    pthread_cond_init( &stat_condition, NULL );
+    pthread_mutex_lock( &stat_mutex );
+    pthread_create( &statistics_thread, NULL, &statistics_loop, NULL );
+    pthread_cond_wait( &stat_condition, &stat_mutex );
+    pthread_mutex_unlock( &stat_mutex );
+
     
     while (1) {
 

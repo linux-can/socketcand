@@ -12,3 +12,4 @@ struct stat_entry {
 };
 
 pthread_mutex_t stat_mutex;
+pthread_cond_t stat_condition;
