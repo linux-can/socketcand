@@ -4,6 +4,7 @@
  * Authors:
  * Andre Naujoks (the socket server stuff)
  * Oliver Hartkopp (the rest)
+ * Jan-Niklas Meier (extensions for use with kayak)
  *
  * Copyright (c) 2002-2009 Volkswagen Group Electronic Research
  * All rights reserved.
