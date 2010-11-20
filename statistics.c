@@ -58,13 +58,17 @@ void set_statistics(char *bus_name, int ival) {
 }
 
 void *statistics_loop(void *ptr) {
-    int i;
+    int i,j, items, found;
     struct timeval current_time;
     int elapsed;
     struct stat_entry current_entry;
     char buffer[STAT_BUF_LEN];
     int state;
     struct can_berr_counter errorcnt;
+    FILE *proc_net_dev;
+    struct proc_stat_entry proc_entries[PROC_LINECOUNT];
+    int proc_entry_cnt=0;
+    char line[PROC_LINESIZE];
 
     /* sync with main thread */
     pthread_mutex_lock( &stat_mutex );
@@ -72,6 +76,60 @@ void *statistics_loop(void *ptr) {
     pthread_mutex_unlock( &stat_mutex );
 
     while(1) {
+        /* read /proc/net/dev */
+        proc_net_dev = fopen( "/proc/net/dev", "r" );
+        if( proc_net_dev == NULL ) {
+            printf( "could not open /proc/net/dev" );
+            sleep(1);
+            continue;
+        }
+        for( i=0; i<PROC_LINECOUNT; i++ ) {
+            if( fgets( line , PROC_LINESIZE, proc_net_dev ) == NULL )
+                break;
+            
+            items = sscanf( line, " %7s %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u",
+                proc_entries[i].device_name,
+                &proc_entries[i].rbytes,
+                &proc_entries[i].rpackets,
+                &proc_entries[i].rerrs,
+                &proc_entries[i].rdrop,
+                &proc_entries[i].rfifo,
+                &proc_entries[i].rframe,
+                &proc_entries[i].rcompressed,
+                &proc_entries[i].rmulticast,
+                &proc_entries[i].tbytes,
+                &proc_entries[i].tpackets,
+                &proc_entries[i].terrs,
+                &proc_entries[i].tdrop,
+                &proc_entries[i].tfifo,
+                &proc_entries[i].tcolls,
+                &proc_entries[i].tcarrier,
+                &proc_entries[i].tcompressed );
+
+                proc_entries[i].device_name[strlen(proc_entries[i].device_name)-1] = '\0';
+            if( items == 17 ) {
+                /* do we care for this device? */
+                found=0;
+                for ( j=0; j < stat_entry_cnt; j++) {
+                    if( !strcmp( stat_entries[i].bus_name, proc_entries[i].device_name ) ) {
+                        found=1;
+                        break;
+                    }
+                }
+
+                /* if we don't need this device we can overwrite the data of the proc entry
+                 * in the following step.
+                 */
+                if( !found )
+                    i--;
+            }
+            else
+               i--;
+        }
+        proc_entry_cnt = i;
+        printf("proc-enty-cnt %u\n", i);
+        fclose( proc_net_dev );
+
         gettimeofday(&current_time, 0);
         pthread_mutex_lock(&stat_mutex);
 
@@ -86,8 +144,9 @@ void *statistics_loop(void *ptr) {
                     + (current_time.tv_usec - current_entry.last_fired->tv_usec)/1000.0) + 0.5;
 
             if(elapsed >= current_entry.ival) {
+
                 /* get values */
-                if( can_get_state( current_entry.bus_name, &state ) ) {
+                /*if( can_get_state( current_entry.bus_name, &state ) ) {
                     printf( "unable to get state of %s\n", current_entry.bus_name );
                     continue;
                 }
@@ -96,7 +155,7 @@ void *statistics_loop(void *ptr) {
                     continue;
                 }
                 
-                snprintf( buffer, STAT_BUF_LEN, "< %6s s %u %u %u >", current_entry.bus_name, state, errorcnt.txerr, errorcnt.rxerr );
+                snprintf( buffer, STAT_BUF_LEN, "< %6s s %u %u %u >", current_entry.bus_name, state, errorcnt.txerr, errorcnt.rxerr );*/
                 /* no lock needed here because POSIX send is thread-safe and does locking itself */
                 send( client_socket, buffer, strlen(buffer), 0 );
 
