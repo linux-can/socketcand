@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <libsocketcan.h>
 
 #include "socketcand.h"
 
@@ -62,6 +63,8 @@ void *statistics_loop(void *ptr) {
     int elapsed;
     struct stat_entry current_entry;
     char buffer[STAT_BUF_LEN];
+    int state;
+    struct can_berr_counter errorcnt;
 
     /* sync with main thread */
     pthread_mutex_lock( &stat_mutex );
@@ -83,8 +86,17 @@ void *statistics_loop(void *ptr) {
                     + (current_time.tv_usec - current_entry.last_fired->tv_usec)/1000.0) + 0.5;
 
             if(elapsed >= current_entry.ival) {
+                /* get values */
+                if( can_get_state( current_entry.bus_name, &state ) ) {
+                    printf( "unable to get state of %s\n", current_entry.bus_name );
+                    continue;
+                }
+                if( can_get_berr_counter( current_entry.bus_name, &errorcnt ) ) {
+                    printf( "unable to get error count of %s\n", current_entry.bus_name );
+                    continue;
+                }
                 
-                snprintf( buffer, STAT_BUF_LEN, "< %6s s >", current_entry.bus_name );
+                snprintf( buffer, STAT_BUF_LEN, "< %6s s %u %u %u >", current_entry.bus_name, state, errorcnt.txerr, errorcnt.rxerr );
                 /* no lock needed here because POSIX send is thread-safe and does locking itself */
                 send( client_socket, buffer, strlen(buffer), 0 );
 
