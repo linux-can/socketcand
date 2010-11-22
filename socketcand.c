@@ -62,6 +62,7 @@
 #include <sys/uio.h>
 #include <net/if.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <linux/can.h>
 #include <linux/can/bcm.h>
@@ -84,6 +85,7 @@ char **interface_names;
 int interface_count=0;
 int port=PORT;
 int verbose_flag=0;
+struct in_addr laddr;
 
 int uid;
 
@@ -117,6 +119,9 @@ int main(int argc, char **argv)
         printf("You are not running socketcand as root. This is highly reccomended because otherwise you won't be able to change bitrate settings, etc.\n");
     }
 
+    /* default is to listen on 127.0.0.1 only */
+    laddr.s_addr = inet_addr( "127.0.0.1" );
+
     /* Parse commandline arguments */
     while (1) {
         /* getopt_long stores the option index here. */
@@ -125,10 +130,11 @@ int main(int argc, char **argv)
             {"verbose", no_argument, 0, 'v'},
             {"interfaces",  required_argument, 0, 'i'},
             {"port", required_argument, 0, 'p'},
+            {"listen", required_argument, 0, 'l'},
             {0, 0, 0, 0}
         };
     
-        c = getopt_long (argc, argv, "vhi:p:", long_options, &option_index);
+        c = getopt_long (argc, argv, "vhi:p:l:", long_options, &option_index);
     
         if (c == -1)
             break;
@@ -167,7 +173,11 @@ int main(int argc, char **argv)
                 for(i=1;i<interface_count;i++) {
                     interface_names[i] = strtok(NULL, ",");
                 }
-                break; 
+                break;
+
+            case 'l':
+                laddr.s_addr = inet_addr( optarg );
+                break;
 
             case 'h':
                 print_usage();
@@ -195,7 +205,7 @@ int main(int argc, char **argv)
     }
 
     saddr.sin_family = AF_INET;
-    saddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    saddr.sin_addr = laddr;
     saddr.sin_port = htons(port);
 
     if(verbose_flag)
@@ -203,7 +213,7 @@ int main(int argc, char **argv)
     pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
 
     if(verbose_flag)
-        printf("binding socket...\n");
+        printf( "binding socket to %s:%d\n", inet_ntoa( saddr.sin_addr ), ntohs( saddr.sin_port ) );
     while(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
         printf(".");fflush(NULL);
         usleep(100000);
@@ -693,10 +703,11 @@ int main(int argc, char **argv)
 
 void print_usage(void) {
     printf("Socket CAN daemon\n");
-    printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port]\n\n");
+    printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port] [-l ip_addr | --listen ip_addr]\n\n");
     printf("Options:\n");
     printf("\t-v activates verbose output to STDOUT\n");
     printf("\t-i interfaces is used to specify the Socket CAN interfaces the daemon\n\t\tshall provide access to\n");
     printf("\t-p port changes the default port (28600) the daemon is listening at\n");
+    printf("\t-l ip_addr changes the default ip address (127.0.0.1) the daemon will\n\t\tbind to\n");
     printf("\t-h prints this message\n");
 }
