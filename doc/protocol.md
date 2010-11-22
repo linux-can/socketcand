@@ -1,7 +1,7 @@
-BCM server
-==========
+Socketcand protocol
+===================
 
-The BCM server provides a network interface to the Socket CAN broadcast manager of the host. It can be controlled over a single TCP socket and supports transmission and reception of CAN frames. The used protocol is ASCII based and data transmissions have the following structure:
+The socketcand provides a network interface to the Socket CAN broadcast manager of the host. It can be controlled over a single TCP socket and supports transmission and reception of CAN frames. The used protocol is ASCII based and data transmissions have the following structure:
 
 ### Data structure ###
     < interface data_type ival_s ival_us can_id can_dlc [data]* >
@@ -90,47 +90,40 @@ Example:
 when receiving a CAN message from vcan1 with CAN ID 0x123 , data length 4 and data 0x11, 0x22, 0x33 and 0x44
     < vcan1 f 123 4 11 22 33 44 >
 
-Extensions
-----------
 
-If the BCM server is supposed to be a fundament for Kayak it needs to provide a few more features:
 
-### General ###
 
-* It shall be possible to subscribe to all frames that are on the bus. This is necessary if Kayak has no information about the messages on the bus and we simply want to display all frames that drop in. This was implemented, for example, in the cansniffer ( http://svn.berlios.de/wsvn/socketcan/trunk/can-utils/cansniffer.c ) were the BCM subscribes to all 
-2048 (7FFh) 11-Bit identifiers via a for-loop. This is pragmatic solution, but will take longer for 29-Bit identifiers. 
-Alternatively Kayak may use the RAW socket for simple dump functionality, showing the whole CAN bus traffic and the BCM functionality for closer inspection of messages and signals of interest.
+Service discovery
+-----------------
 
-* Error frames shall be reported in line with the normal frames. It is essential that Kayak is informed about error frames
-* The BCM server must provide service discovery, bus configuration and bus statistics. These features are described in the following sections
-
-### Service discovery ###
 Because configuration shall be as easy as possible and the virtual CAN bus and the Kayak instance are not necessarily on the same machine a machanism for service discovery is necessary.
 
 The server sends a UDP broadcast beacon to port 42000 on the subnet where the server port was bound. The interval for these discovery beacons shall not be longer than three seconds. Because the BCM server handles all communication (even for multiple busses) over a single TCP connection the broadcast must provide information about all busses that are accessible through the BCM server.
 
-##### Content #####
+### Content ###
 
 Required:
+
 * Name of the device that provides access to the busses. On linux machines this could be the hostname
 * Name of the busses (in case of socketCAN and embedded this should be the same as the device name)
 * URL with port and IP address. If the server is listening on multiple sockets all of them should be included in the beacon
 * Device type the service is running on
 
 Optional:
+
 * Description of the service in a human readable form
 
-##### Device types ######
+### Device types ####
 
 * SocketCAN - general socketCAN service on a linux machine
 * embedded - embedded linux with access to a bus over socketCAN
 * adapter - e.g. microcontroller driven CAN to ethernet adapter
 
-##### Structure #####
+### Structure ###
 
 For simple parsing and a human readable schema XML is used to structure the information in a CAN beacon.
 
-##### Example #####
+### Example ###
 
     <CANBeacon name="HeartOfGold" type="SocketCAN" description="A human readable description"/>
         <URL>can://127.0.0.1:28600</URL>
@@ -138,30 +131,31 @@ For simple parsing and a human readable schema XML is used to structure the info
         <Bus name="vcan1"/>
     </CANBeacon>
 
-### Error frame transmission ###
+Error frame transmission
+------------------------
+
 Error frames are sent similar to normal frames only distinguished by the data_type 'e'. An error frame always has the length of 8 data bytes. Because of this only the fields can_id and data are necessary (see socketcan/can/error.h for further information):
     < interface e can_id data >
 
-### Configuration ###
+Configuration
+-------------
 
-##### Configure the bittiming #####
+### Configure the bittiming ###
 The protocol enables the client to change the bittiming of a given bus as provided by set link. Automatic bitrate configuration by the kernel is not supported because it is not guaranteed that the corresponding option was enabled during compile time (e.g. in Ubuntu 10.10 it isn't). This way it it also easier to implement the function in a microcontroller based adapter.
     < can0 B bitrate sample_point tq prop_seg phase_seg1 phase_seg2 sjw brp >
 
-##### Set the controlmode #####
+### Set the controlmode ###
 The control mode controls if the bus is set to listen only, if sent packages are looped back and if the controller is configured to take three samples. The following command provides access to these settings. Each field must be set to '0' or '1' to disable or enable the setting.
 
     < can0 C listen_only loopback three_samples >
 
-##### Enable or disable statistic transmission #####
+### Enable or disable statistic transmission ###
 This command requests the transmission of statistic information in line with the normal information. An interval (in ms) must be set to specify how often the transmission should occur. An interval of '0' disables transmission.
 
     < vcan0 E ival_ms >
 
-
-
-### Statistics ###
+Statistics
+----------
 After enabling statistics transmission the data is send inline with normal CAN frames and other data. The daemon takes care of the interval that was specified. The information is transfered in the following format:
     < interface s rbytes rpackets tbytes tpackets >
 The reported bytes and packets are reported as unsigned integers.
-
