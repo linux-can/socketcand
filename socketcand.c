@@ -72,19 +72,18 @@
 
 #include "socketcand.h"
 #include "statistics.h"
+#include "beacon.h"
 
-
-
-void *beacon_loop(void *ptr );
 void print_usage(void);
 void childdied(int i) {
     wait(NULL);
 }
 
-int verbose_flag=0;
+int client_socket;
 char **interface_names;
 int interface_count=0;
 int port=PORT;
+int verbose_flag=0;
 
 int uid;
 
@@ -690,69 +689,6 @@ int main(int argc, char **argv)
     close(client_socket);
 
     return 0;
-}
-
-void *beacon_loop(void *ptr) {
-    int i, n, chars_left;
-    int udp_socket;
-    struct sockaddr_in s;
-    size_t len;
-    int optval;
-    char buffer[BEACON_LENGTH];
-    char hostname[32];
-
-    if ((udp_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
-        printf("Failed to create socket");
-        return NULL;
-    }
-    
-    /* Construct the server sockaddr_in structure */
-    memset(&s, 0, sizeof(s));
-    s.sin_family = AF_INET;
-    s.sin_addr.s_addr = htonl(INADDR_BROADCAST);
-    s.sin_port = htons(BROADCAST_PORT);
-
-    /* Activate broadcast option */
-    optval = 1;
-    setsockopt(udp_socket, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(int));
-
-    /* Bind the socket */
-    len = sizeof(s);
-    if (bind(udp_socket, (struct sockaddr *) &s, len) < 0) {
-        return NULL;    
-    }
-
-    while(1) {
-        /* Build the beacon */
-        gethostname((char *) &hostname, (size_t)  32);
-        snprintf(buffer, BEACON_LENGTH, "<CANBeacon name=\"%s\" type=\"%s\" description=\"%s\">\n<URL>can://0.0.0.0:%d</URL>", 
-                hostname, BEACON_TYPE, BEACON_DESCRIPTION, port);
-
-        for(i=0;i<interface_count;i++) {
-            /* Find \0 in beacon buffer */
-            for(n=0;;n++) {
-                if(buffer[n] == '\0')
-                    break;
-            }
-            chars_left = BEACON_LENGTH - n;
-
-            snprintf(buffer+(n*sizeof(char)), chars_left, "<Bus name=\"%s\"/>", interface_names[i]);
-        }
-        
-        /* Find \0 in beacon buffer */
-        for(n=0;;n++) {
-            if(buffer[n] == '\0')
-                break;
-        }
-        chars_left = BEACON_LENGTH - n;
-
-        snprintf(buffer+(n*sizeof(char)), chars_left, "</CANBeacon>");
-
-        sendto(udp_socket, buffer, strlen(buffer), 0, (struct sockaddr *) &s, sizeof(struct sockaddr_in));
-        sleep(3);
-    }
-
-    return NULL;
 }
 
 void print_usage(void) {

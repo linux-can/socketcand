@@ -1,4 +1,4 @@
-SOURCEFILES = socketcand.c statistics.c
+SOURCEFILES = socketcand.c statistics.c beacon.c
 EXECUTEABLE = socketcand
 CC = gcc
 
