@@ -1,12 +1,20 @@
-CFLAGS = -Wall -Wno-parentheses -lpthread -lsocketcan -g
+SOURCEFILES = socketcand.c statistics.c
+EXECUTEABLE = socketcand
+CC = gcc
+
+ifeq ($(DEBUG), 1)
+	CFLAGS = -Wall -Wno-parentheses -lpthread -lsocketcan -g -DDEBUG
+else
+	CFLAGS = -Wall -Wno-parentheses -lpthread -lsocketcan -O2
+endif
 
 all: socketcand
 
-socketcand: socketcand.c statistics.c
-	gcc ${CFLAGS} -o socketcand socketcand.c statistics.c
+socketcand: $(SOURCEFILES)
+	$(CC) $(CFLAGS) -o $(EXECUTEABLE) $(SOURCEFILES)
 
 clean:
-	rm -f socketcand *.o
+	rm -f $(EXECUTEABLE) *.o
 
 distclean:
-	rm -f socketcand *.o *~
+	rm -f $(EXECUTEABLE) *.o *~
