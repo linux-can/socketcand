@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <net/if.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "socketcand.h"
 #include "beacon.h"
@@ -42,8 +43,8 @@ void *beacon_loop(void *ptr) {
     while(1) {
         /* Build the beacon */
         gethostname((char *) &hostname, (size_t)  32);
-        snprintf(buffer, BEACON_LENGTH, "<CANBeacon name=\"%s\" type=\"%s\" description=\"%s\">\n<URL>can://0.0.0.0:%d</URL>", 
-                hostname, BEACON_TYPE, BEACON_DESCRIPTION, port);
+        snprintf(buffer, BEACON_LENGTH, "<CANBeacon name=\"%s\" type=\"%s\" description=\"%s\">\n<URL>can://%s:%d</URL>", 
+                hostname, BEACON_TYPE, BEACON_DESCRIPTION, inet_ntoa( laddr ), port);
 
         for(i=0;i<interface_count;i++) {
             /* Find \0 in beacon buffer */
