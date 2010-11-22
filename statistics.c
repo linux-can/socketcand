@@ -63,8 +63,8 @@ void *statistics_loop(void *ptr) {
     int elapsed;
     struct stat_entry current_entry;
     char buffer[STAT_BUF_LEN];
-    int state;
-    struct can_berr_counter errorcnt;
+    /*int state;
+    struct can_berr_counter errorcnt;*/
     FILE *proc_net_dev;
     struct proc_stat_entry proc_entries[PROC_LINECOUNT];
     int proc_entry_cnt=0;
@@ -127,7 +127,6 @@ void *statistics_loop(void *ptr) {
                i--;
         }
         proc_entry_cnt = i;
-        printf("proc-enty-cnt %u\n", i);
         fclose( proc_net_dev );
 
         gettimeofday(&current_time, 0);
@@ -144,8 +143,25 @@ void *statistics_loop(void *ptr) {
                     + (current_time.tv_usec - current_entry.last_fired->tv_usec)/1000.0) + 0.5;
 
             if(elapsed >= current_entry.ival) {
-
                 /* get values */
+                found = -1;
+                for(j=0; j<proc_entry_cnt; j++) {
+                    if(!strcmp(current_entry.bus_name, proc_entries[i].device_name)) {
+                        found = j;
+                        break;
+                    }
+                }
+                
+                /* If we didn't find the device there is something wrong. */
+                if(found==-1) {
+                    fprintf(stderr, "could not find device %s in /proc/net/dev\n", current_entry.bus_name);
+                    continue;
+                }
+
+                /*
+                 * TODO this does not work for virtual devices. therefore it is commented out until
+                 * a solution is found to identify virtual CAN devices 
+                 */
                 /*if( can_get_state( current_entry.bus_name, &state ) ) {
                     printf( "unable to get state of %s\n", current_entry.bus_name );
                     continue;
@@ -153,9 +169,15 @@ void *statistics_loop(void *ptr) {
                 if( can_get_berr_counter( current_entry.bus_name, &errorcnt ) ) {
                     printf( "unable to get error count of %s\n", current_entry.bus_name );
                     continue;
-                }
+                }*/
                 
-                snprintf( buffer, STAT_BUF_LEN, "< %6s s %u %u %u >", current_entry.bus_name, state, errorcnt.txerr, errorcnt.rxerr );*/
+                snprintf( buffer, STAT_BUF_LEN, "< %6s s %u %u %u %u >", 
+                        current_entry.bus_name, 
+                        proc_entries[found].rbytes, 
+                        proc_entries[found].rpackets, 
+                        proc_entries[found].tbytes, 
+                        proc_entries[found].tpackets);
+
                 /* no lock needed here because POSIX send is thread-safe and does locking itself */
                 send( client_socket, buffer, strlen(buffer), 0 );
 

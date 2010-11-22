@@ -161,5 +161,7 @@ This command requests the transmission of statistic information in line with the
 
 
 ### Statistics ###
-
+After enabling statistics transmission the data is send inline with normal CAN frames and other data. The daemon takes care of the interval that was specified. The information is transfered in the following format:
+    < interface s rbytes rpackets tbytes tpackets >
+The reported bytes and packets are reported as unsigned integers.
 
