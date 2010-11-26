@@ -481,25 +481,12 @@ int main(int argc, char **argv)
 
                     break;
                 case 'D': /* Delete a send job */
-                    items = sscanf(buf, "< %6s %c %x %hhu "
-                        "%hhx %hhx %hhx %hhx %hhx %hhx "
-                        "%hhx %hhx >",
+                    items = sscanf(buf, "< %6s %c %x >",
                         ifr.ifr_name,
                         &cmd, 
-                        &msg.msg_head.can_id,
-                        &msg.frame.can_dlc,
-                        &msg.frame.data[0],
-                        &msg.frame.data[1],
-                        &msg.frame.data[2],
-                        &msg.frame.data[3],
-                        &msg.frame.data[4],
-                        &msg.frame.data[5],
-                        &msg.frame.data[6],
-                        &msg.frame.data[7]);
+                        &msg.msg_head.can_id);
 
-                    if ( (items < 4) ||
-                        (msg.frame.can_dlc > 8) ||
-                        (items != 4 + msg.frame.can_dlc)) {
+                    if (items != 3)  {
                         printf("Syntax error in delete job command\n");
                     }
 

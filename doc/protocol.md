@@ -41,7 +41,7 @@ A send job can be removed with the 'D' command.
 
 Example:
 Delete the cyclic send job from above
-    < vcan1 D 123 0 >
+    < vcan1 D 123 >
 
 ##### Send a single frame #####
 This command is used to send a single CAN frame only once.
