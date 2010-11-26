@@ -207,6 +207,15 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+#ifdef DEBUG
+    if(verbose_flag)
+        printf("setting SO_REUSEADDR\n");
+    i = 1;
+    if(setsockopt(sl, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) <0) {
+        perror("setting SO_REUSEADDR failed");
+    }
+#endif
+
     saddr.sin_family = AF_INET;
     saddr.sin_addr = laddr;
     saddr.sin_port = htons(port);
@@ -217,9 +226,9 @@ int main(int argc, char **argv)
 
     if(verbose_flag)
         printf( "binding socket to %s:%d\n", inet_ntoa( saddr.sin_addr ), ntohs( saddr.sin_port ) );
-    while(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
-        printf(".");fflush(NULL);
-        usleep(100000);
+    if(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
+        perror("bind");
+        exit(-1);
     }
 
     if (listen(sl,3) != 0) {
@@ -250,6 +259,15 @@ int main(int argc, char **argv)
 
     if(verbose_flag)
         printf("client connected\n");
+    
+#ifdef DEBUG
+    if(verbose_flag)
+        printf("setting SO_REUSEADDR\n");
+    i = 1;
+    if(setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) <0) {
+        perror("setting SO_REUSEADDR failed");
+    }
+#endif
 
     /* open BCM socket */
     if ((sc = socket(PF_CAN, SOCK_DGRAM, CAN_BCM)) < 0) {
@@ -751,6 +769,13 @@ void sigint() {
             printf("closing listening socket\n");
         if(!close(sl))
             sl = -1;
+    }
+
+    if(client_socket != -1) {
+        if(verbose_flag)
+            printf("closing client socket\n");
+        if(!close(client_socket))
+            client_socket = -1;
     }
 
     pthread_cancel(beacon_thread);
