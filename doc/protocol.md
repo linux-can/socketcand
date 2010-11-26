@@ -68,14 +68,16 @@ As above but throttle receive update rate down to 1.5 seconds
     < vcan1 R 1 500000 123 8 FF 00 F8 00 00 00 00 00 >
 
 ##### Filter for CAN ID #####
-Adds a filter for a CAN ID. The frames are sent regardless of their content.
+Adds a filter for a CAN ID. The frames are sent regardless of their content. An interval in seconds or microseconds may be set. The can_id can be set to the values 0xffffffff (all base IDs) or 0xfffffffe (all extended IDs) to subscribe to all IDs that could be present on the bus.
+    < interface F ival_s ival_us can_id >
 
 Example:
 Filter for CAN ID 0x123 from vcan1 without content filtering
     < vcan1 F 0 0 123 >
 
 ##### Delete a filter #####
-This deletes all 'R' or 'F' filters for a specific CAN ID.
+This deletes all 'R' or 'F' filters for a specific CAN ID. As for the filter command the ID may be set to all base IDs or all extended IDs to remove all subscriptions at once.
+    < interface X can_id >
 
 Example:
 Delete receive filter ('R' or 'F') for CAN ID 0x123
