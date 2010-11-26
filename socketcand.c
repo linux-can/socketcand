@@ -76,22 +76,21 @@
 #include "beacon.h"
 
 void print_usage(void);
-void childdied(int i) {
-    wait(NULL);
-}
+void sigint();
+void childdied();
 
-int client_socket;
+int sl, client_socket;
+pthread_t beacon_thread, statistics_thread;
 char **interface_names;
 int interface_count=0;
 int port=PORT;
-int verbose_flag=0;
 struct in_addr laddr;
-
+int verbose_flag=0;
 int uid;
 
 int main(int argc, char **argv)
 {
-    int sl, sc;
+    int sc;
     int i, ret;
     int idx = 0;
     struct sockaddr_in  saddr, clientaddr;
@@ -100,9 +99,8 @@ int main(int argc, char **argv)
     struct ifreq ifr;
     fd_set readfds;
     socklen_t sin_size = sizeof(clientaddr);
-    struct sigaction signalaction;
+    struct sigaction signalaction, sigint_action;
     sigset_t sigset;
-    pthread_t beacon_thread, statistics_thread;
 
     char buf[MAXLEN];
     char rxmsg[50];
@@ -198,6 +196,11 @@ int main(int argc, char **argv)
     signalaction.sa_mask = sigset;
     signalaction.sa_flags = 0;
     sigaction(SIGCHLD, &signalaction, NULL);  /* signal for dying child */
+    
+    sigint_action.sa_handler = &sigint;
+    sigint_action.sa_mask = sigset;
+    sigint_action.sa_flags = 0;
+    sigaction(SIGINT, &sigint_action, NULL);
 
     if((sl = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
         perror("inetsocket");
@@ -733,4 +736,25 @@ void print_usage(void) {
     printf("\t-p port changes the default port (28600) the daemon is listening at\n");
     printf("\t-l ip_addr changes the default ip address (127.0.0.1) the daemon will\n\t\tbind to\n");
     printf("\t-h prints this message\n");
+}
+
+void childdied() {
+    wait(NULL);
+}
+
+void sigint() {
+    if(verbose_flag)
+        printf("received SIGINT\n");
+
+    if(sl != -1) {
+        if(verbose_flag)
+            printf("closing listening socket\n");
+        if(!close(sl))
+            sl = -1;
+    }
+
+    pthread_cancel(beacon_thread);
+    pthread_cancel(statistics_thread);
+
+    exit(0);
 }

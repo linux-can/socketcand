@@ -14,3 +14,4 @@ extern char **interface_names;
 extern int interface_count;
 extern int port;
 extern struct in_addr laddr;
+extern int verbose_flag;
