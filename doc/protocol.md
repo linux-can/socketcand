@@ -72,14 +72,14 @@ Adds a filter for a CAN ID. The frames are sent regardless of their content.
 
 Example:
 Filter for CAN ID 0x123 from vcan1 without content filtering
-    < vcan1 F 0 0 123 0 >
+    < vcan1 F 0 0 123 >
 
 ##### Delete a filter #####
 This deletes all 'R' or 'F' filters for a specific CAN ID.
 
 Example:
 Delete receive filter ('R' or 'F') for CAN ID 0x123
-    < vcan1 X 0 0 123 0 >
+    < vcan1 X 123 >
 
 
 ### Frame transmission ###
