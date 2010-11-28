@@ -11,9 +11,11 @@ The daemon uses a simple UDP beacon mechanism for service discovery. A beacon co
 Usage
 -----
 
-    socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces] [-p port | --port port]
+    socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces] [-p port | --port port] [-l ip_addr | --listen ip_addr] [-h | --help]
 
 ###Description of the options
 * **-v** activates verbose output to STDOUT
 * **-i interfaces** is used to specify the Socket CAN interfaces the daemon shall provide access to
 * **-p port** changes the default port (28600) the daemon is listening at
+* **-l ip_addr** changes the default ip address (127.0.0.1) the daemon will bind to
+* **-h** prints a help message
