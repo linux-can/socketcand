@@ -18,3 +18,7 @@ clean:
 
 distclean:
 	rm -f $(EXECUTEABLE) *.o *~
+
+install: socketcand
+	cp socketcand /usr/local/bin/socketcand
+	cp ./init.d/socketcand /etc/init.d/socketcand
