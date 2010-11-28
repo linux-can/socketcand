@@ -63,6 +63,7 @@
 #include <net/if.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <syslog.h>
 
 #include <linux/can.h>
 #include <linux/can/bcm.h>
@@ -86,6 +87,7 @@ int interface_count=0;
 int port=PORT;
 struct in_addr laddr;
 int verbose_flag=0;
+int daemon_flag=0;
 int uid;
 
 int main(int argc, char **argv)
@@ -129,10 +131,11 @@ int main(int argc, char **argv)
             {"interfaces",  required_argument, 0, 'i'},
             {"port", required_argument, 0, 'p'},
             {"listen", required_argument, 0, 'l'},
+            {"daemon", no_argument, 0, 'd'},
             {0, 0, 0, 0}
         };
     
-        c = getopt_long (argc, argv, "vhi:p:l:", long_options, &option_index);
+        c = getopt_long (argc, argv, "vhi:p:l:d", long_options, &option_index);
     
         if (c == -1)
             break;
@@ -180,6 +183,10 @@ int main(int argc, char **argv)
             case 'h':
                 print_usage();
                 return 0;
+
+            case 'd':
+                daemon_flag=1;
+                break;
                 
             case '?':
                 print_usage();
@@ -190,6 +197,12 @@ int main(int argc, char **argv)
                 return -1;
         }
     }
+
+    /* if daemon mode was activated the syslog must be opened */
+    if(daemon_flag) {
+        openlog("socketcand", 0, LOG_DAEMON);
+    }
+
 
     sigemptyset(&sigset);
     signalaction.sa_handler = &childdied;
@@ -220,12 +233,10 @@ int main(int argc, char **argv)
     saddr.sin_addr = laddr;
     saddr.sin_port = htons(port);
 
-    if(verbose_flag)
-        printf("creating broadcast thread...\n");
+    PRINT_VERBOSE("creating broadcast thread...\n")
     pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
 
-    if(verbose_flag)
-        printf( "binding socket to %s:%d\n", inet_ntoa( saddr.sin_addr ), ntohs( saddr.sin_port ) );
+    PRINT_VERBOSE("binding socket to %s:%d\n", inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port))
     if(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
         perror("bind");
         exit(-1);
@@ -257,12 +268,10 @@ int main(int argc, char **argv)
         }
     }
 
-    if(verbose_flag)
-        printf("client connected\n");
+    PRINT_VERBOSE("client connected\n")
     
 #ifdef DEBUG
-    if(verbose_flag)
-        printf("setting SO_REUSEADDR\n");
+    PRINT_VERBOSE("setting SO_REUSEADDR\n")
     i = 1;
     if(setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) <0) {
         perror("setting SO_REUSEADDR failed");
@@ -279,15 +288,13 @@ int main(int argc, char **argv)
     caddr.can_family = PF_CAN;
     /* can_ifindex is set to 0 (any device) => need for sendto() */
     
-    if(verbose_flag)
-        printf("connecting BCM socket...\n");
+    PRINT_VERBOSE("connecting BCM socket...\n")
     if (connect(sc, (struct sockaddr *)&caddr, sizeof(caddr)) < 0) {
         perror("connect");
         return 1;
     }
 
-    if(verbose_flag)
-        printf("starting statistics thread...\n");
+    PRINT_VERBOSE("starting statistics thread...\n")
     pthread_mutex_init( &stat_mutex, NULL );
     pthread_cond_init( &stat_condition, NULL );
     pthread_mutex_lock( &stat_mutex );
@@ -315,7 +322,7 @@ int main(int argc, char **argv)
             /* Check if this is an error frame */
             if(msg.msg_head.can_id & 0x20000000) {
                 if(msg.frame.can_dlc != CAN_ERR_DLC) {
-                    printf("Error frame has a wrong DLC!\n");
+                    PRINT_ERROR("Error frame has a wrong DLC!\n")
                 } else {
                     sprintf(rxmsg, "< %s e %03X ", ifr.ifr_name,
                         msg.msg_head.can_id);
@@ -377,8 +384,7 @@ int main(int argc, char **argv)
             buf[idx+1] = 0;
             idx = 0;
 
-            if(verbose_flag)
-                printf("Received '%s'\n", buf);
+            PRINT_VERBOSE("Received '%s'\n", buf)
 
             /* Extract busname and command */
             sscanf(buf, "< %6s %c ", bus_name, &cmd);
@@ -390,7 +396,7 @@ int main(int argc, char **argv)
                     found = 1;
             }
             if(found == 0) {
-                printf("Wrong bus name was specified!\n");
+                PRINT_ERROR("Wrong bus name was specified!\n")
             } else {
                 /* prepare bcm message settings */
                 memset(&msg, 0, sizeof(msg));
@@ -417,7 +423,7 @@ int main(int argc, char **argv)
                     if ( (items < 4) ||
                         (msg.frame.can_dlc > 8) ||
                         (items != 4 + msg.frame.can_dlc)) {
-                        printf("Syntax error in send command\n");
+                        PRINT_ERROR("Syntax error in send command\n")
                         break;
                     }
 
@@ -488,7 +494,7 @@ int main(int argc, char **argv)
                     if ( (items < 4) ||
                         (msg.frame.can_dlc > 8) ||
                         (items != 4 + msg.frame.can_dlc)) {
-                        printf("Syntax error in update send job command\n");
+                        PRINT_ERROR("Syntax error in update send job command\n")
                         break;
                     }
                     
@@ -510,7 +516,7 @@ int main(int argc, char **argv)
                         &msg.msg_head.can_id);
 
                     if (items != 3)  {
-                        printf("Syntax error in delete job command\n");
+                        PRINT_ERROR("Syntax error in delete job command\n")
                         break;
                     }
 
@@ -571,7 +577,7 @@ int main(int argc, char **argv)
                         &msg.msg_head.can_id);
 
                     if (items != 5) {
-                        fprintf(stderr, "syntax error in add filter command\n");
+                        PRINT_ERROR("syntax error in add filter command\n")
                         break;
                     }
 
@@ -624,7 +630,7 @@ int main(int argc, char **argv)
                         &msg.msg_head.can_id);
 
                     if (items != 3) {
-                        fprintf(stderr, "syntax error in delete filter command\n");
+                        PRINT_ERROR("syntax error in delete filter command\n")
                         break;
                     }
 
@@ -684,7 +690,7 @@ int main(int argc, char **argv)
                         &timing.brp);
 
                     if (items != 10) {
-                        printf("Syntax error in set bitrate command\n");
+                        PRINT_ERROR("Syntax error in set bitrate command\n")
                         break;
                     }
 
@@ -703,7 +709,7 @@ int main(int argc, char **argv)
                         &k);
 
                     if (items != 5) {
-                        printf("Syntax error in set controlmode command\n");
+                        PRINT_ERROR("Syntax error in set controlmode command\n")
                         break;
                     }
 
@@ -724,7 +730,7 @@ int main(int argc, char **argv)
                         &i);
 
                     if (items != 3) {
-                        printf("Syntax error in statistics command\n");
+                        PRINT_ERROR("Syntax error in statistics command\n")
                         break;
                     }
 
@@ -732,7 +738,7 @@ int main(int argc, char **argv)
 
                     break;
                 default:
-                    printf("unknown command '%c'.\n", cmd);
+                    PRINT_ERROR("unknown command '%c'.\n", cmd)
                     exit(1);
                 }
             }
@@ -762,24 +768,26 @@ void childdied() {
 
 void sigint() {
     if(verbose_flag)
-        printf("received SIGINT\n");
+        PRINT_ERROR("received SIGINT\n")
 
     if(sl != -1) {
         if(verbose_flag)
-            printf("closing listening socket\n");
+            PRINT_INFO("closing listening socket\n")
         if(!close(sl))
             sl = -1;
     }
 
     if(client_socket != -1) {
         if(verbose_flag)
-            printf("closing client socket\n");
+            PRINT_INFO("closing client socket\n")
         if(!close(client_socket))
             client_socket = -1;
     }
 
     pthread_cancel(beacon_thread);
     pthread_cancel(statistics_thread);
+
+    closelog();
 
     exit(0);
 }
