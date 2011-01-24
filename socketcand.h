@@ -1,13 +1,11 @@
 #define MAXLEN 100
+#define MAX_BUSNAME 16+1
 #define PORT 28600
 
-/*
- * these values are used to subscribe to all possible
- * identifiers on a bus with normal or extended
- * identifier length.
- */
-#define CANID_BASE_ALL 0xffffffff
-#define CANID_EXTENDED_ALL 0xfffffffe
+#define STATE_NO_BUS 0
+#define STATE_BCM 1
+#define STATE_RAW 2
+#define STATE_SHUTDOWN 3
 
 #define PRINT_INFO(...) if(daemon_flag) syslog(LOG_INFO, __VA_ARGS__); else printf(__VA_ARGS__);
 #define PRINT_ERROR(...) if(daemon_flag) syslog(LOG_ERR, __VA_ARGS__); else fprintf(stderr, __VA_ARGS__);

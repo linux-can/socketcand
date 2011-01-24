@@ -617,41 +617,10 @@ int main(int argc, char **argv)
                             msg.msg_head.flags  = RX_FILTER_ID | SETTIMER;
                             msg.frame.can_id = msg.msg_head.can_id;
 
-                            /*
-                            * if the ID is one of the special values for multiple IDs
-                            * a subscription to all of these IDs is initiated.
-                            */
-                            if(msg.msg_head.can_id == CANID_BASE_ALL) {
-                                for(i=0;i<0x7ff;i++) {
-                                    msg.msg_head.can_id = i;
-                                    msg.frame.can_id = i;
-                                    if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                                        caddr.can_ifindex = ifr.ifr_ifindex;
-                                        sendto(sc, &msg, sizeof(msg), 0,
-                                            (struct sockaddr*)&caddr, sizeof(caddr));
-                                    }
-                                }
-                            /*
-                            * TODO this solution is suboptimal because it takes a REALLY
-                            * long time to subscribe to all IDs.
-                            */
-                            } else if(msg.msg_head.can_id == CANID_EXTENDED_ALL) {
-                                for(i=0;i<0x1fffffff;i++) {
-                                    msg.msg_head.can_id = i;
-                                    msg.frame.can_id = i;
-                                    if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                                        caddr.can_ifindex = ifr.ifr_ifindex;
-                                        sendto(sc, &msg, sizeof(msg), 0,
-                                            (struct sockaddr*)&caddr, sizeof(caddr));
-                                    }
-                                }
-                            /* normal subscription to a single id */
-                            } else {
-                                if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                                    caddr.can_ifindex = ifr.ifr_ifindex;
-                                    sendto(sc, &msg, sizeof(msg), 0,
-                                        (struct sockaddr*)&caddr, sizeof(caddr));
-                                }
+                            if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
+                                caddr.can_ifindex = ifr.ifr_ifindex;
+                                sendto(sc, &msg, sizeof(msg), 0,
+                                    (struct sockaddr*)&caddr, sizeof(caddr));
                             }
 
                             break;
@@ -669,40 +638,10 @@ int main(int argc, char **argv)
                             msg.msg_head.opcode = RX_DELETE;
                             msg.frame.can_id = msg.msg_head.can_id;
                             
-                            /*
-                            * if the ID is one of the special values for multiple IDs
-                            * a subscription to all of these IDs is initiated.
-                            */
-                            if(msg.msg_head.can_id == CANID_BASE_ALL) {
-                                for(i=0;i<0x7ff;i++) {
-                                    msg.msg_head.can_id = i;
-                                    msg.frame.can_id = i;
-                                    if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                                        caddr.can_ifindex = ifr.ifr_ifindex;
-                                        sendto(sc, &msg, sizeof(msg), 0,
-                                            (struct sockaddr*)&caddr, sizeof(caddr));
-                                    }
-                                }
-                            /*
-                            * TODO this solution is suboptimal because it takes a REALLY
-                            * long time to subscribe to all IDs.
-                            */
-                            } else if(msg.msg_head.can_id == CANID_EXTENDED_ALL) {
-                                for(i=0;i<0x1fffffff;i++) {
-                                    msg.msg_head.can_id = i;
-                                    msg.frame.can_id = i;
-                                    if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                                        caddr.can_ifindex = ifr.ifr_ifindex;
-                                        sendto(sc, &msg, sizeof(msg), 0,
-                                            (struct sockaddr*)&caddr, sizeof(caddr));
-                                    }
-                                }
-                            } else {
-                                if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
-                                    caddr.can_ifindex = ifr.ifr_ifindex;
-                                    sendto(sc, &msg, sizeof(msg), 0,
-                                        (struct sockaddr*)&caddr, sizeof(caddr));
-                                }
+                            if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
+                                caddr.can_ifindex = ifr.ifr_ifindex;
+                                sendto(sc, &msg, sizeof(msg), 0,
+                                    (struct sockaddr*)&caddr, sizeof(caddr));
                             }
 
                             break;
