@@ -285,7 +285,7 @@ int main(int argc, char **argv)
                 /* client has to start with a command */
                 receive_command(client_socket, buf);
 
-                if(strcmp("< open ", buf)) {
+                if(!strcmp("< open ", buf)) {
                     sscanf(buf, "< open %s>", bus_name);
 
                     /* check if access to this bus is allowed */
@@ -303,6 +303,55 @@ int main(int argc, char **argv)
                         strcpy(buf, "< error could not open bus >");
                         send(client_socket, buf, strlen(buf), 0);
                         state = STATE_SHUTDOWN;
+                    }
+                } else if(!strcmp("< bittiming", buf)) {
+                    struct can_bittiming timing;
+                    char bus_name[IFNAMSIZ];
+                    int items;
+
+                    memset(&timing, 0, sizeof(timing));
+
+                    items = sscanf(buf, "< %*s %s %x %x %x %x %x %x %x %x >",
+                        bus_name,
+                        &timing.bitrate,
+                        &timing.sample_point,
+                        &timing.tq,
+                        &timing.prop_seg,
+                        &timing.phase_seg1,
+                        &timing.phase_seg2,
+                        &timing.sjw,
+                        &timing.brp);
+
+                    if (items != 9) {
+                        PRINT_ERROR("Syntax error in set bitrate command\n")
+                    } else {
+                        can_set_bittiming(bus_name, &timing);
+                    }
+                } else if(!strcmp(buf, "< controlmode")) {
+                    int i,j,k;
+                    struct can_ctrlmode ctrlmode;
+                    int items;
+
+                    memset(&ctrlmode, 0, sizeof(ctrlmode));
+                    ctrlmode.mask = CAN_CTRLMODE_LOOPBACK | CAN_CTRLMODE_LISTENONLY | CAN_CTRLMODE_3_SAMPLES;
+
+                    items = sscanf(buf, "< %*s %s %u %u %u >",
+                        bus_name,
+                        &i,
+                        &j,
+                        &k);
+
+                    if (items != 4) {
+                        PRINT_ERROR("Syntax error in set controlmode command\n")
+                    } else {
+                        if(i)
+                            ctrlmode.flags |= CAN_CTRLMODE_LISTENONLY;
+                        if(j)
+                            ctrlmode.flags |= CAN_CTRLMODE_LOOPBACK;
+                        if(k)
+                            ctrlmode.flags |= CAN_CTRLMODE_3_SAMPLES;
+
+                        can_set_ctrlmode(bus_name, &ctrlmode);
                     }
                 }
                 break;
