@@ -98,7 +98,6 @@ int main(int argc, char **argv)
 {
     int sc = -1;
     int i, ret, found;
-    int idx = 0;
     struct sockaddr_in  saddr, clientaddr;
     struct sockaddr_can caddr;
     socklen_t caddrlen = sizeof(caddr);
@@ -287,15 +286,15 @@ int main(int argc, char **argv)
         switch(state) {
             case STATE_NO_BUS:
                 if(previous_state != STATE_NO_BUS) {
-                    strcpy(buf, "<hi>");
+                    strcpy(buf, "< hi >");
                     send(client_socket, buf, strlen(buf), 0);
                     previous_state = STATE_NO_BUS;
                 }
                 /* client has to start with a command */
                 receive_command(client_socket, buf);
 
-                if(strcmp("<open ", buf)) {
-                    sscanf("<open %s>", buf, bus_name);
+                if(strcmp("< open ", buf)) {
+                    sscanf(buf, "< open %s>", bus_name);
 
                     /* check if access to this bus is allowed */
                     found = 0;
@@ -309,7 +308,7 @@ int main(int argc, char **argv)
                         break;
                     } else {
                         PRINT_INFO("client tried to access unauthorized bus.\n");
-                        strcpy(buf, "<error could not open bus>");
+                        strcpy(buf, "< error could not open bus >");
                         send(client_socket, buf, strlen(buf), 0);
                         state = STATE_SHUTDOWN;
                     }
@@ -393,28 +392,7 @@ int main(int argc, char **argv)
                     struct can_bittiming timing;
                     struct can_ctrlmode ctrlmode;
 
-                    if (read(client_socket, buf+idx, 1) < 1)
-                        exit(1);
-
-                    if (!idx) {
-                        if (buf[0] == '<')
-                            idx = 1;
-
-                        continue;
-                    }
-
-                    if (idx > MAXLEN-2) {
-                        idx = 0;
-                        continue;
-                    }
-
-                    if (buf[idx] != '>') {
-                        idx++;
-                        continue;
-                    }
-
-                    buf[idx+1] = 0;
-                    idx = 0;
+                    receive_command(client_socket, buf);
 
                     PRINT_VERBOSE("Received '%s'\n", buf)
 
