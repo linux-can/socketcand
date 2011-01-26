@@ -1,3 +1,5 @@
+#include <pthread.h>
+
 #define MAXLEN 100
 #define MAX_BUSNAME 16+1
 #define PORT 28600
@@ -18,3 +20,9 @@ extern int port;
 extern struct in_addr laddr;
 extern int verbose_flag;
 extern int daemon_flag;
+extern int state;
+extern int previous_state;
+extern char bus_name[];
+extern pthread_t statistics_thread;
+
+int receive_command(int socket, char *buf);
