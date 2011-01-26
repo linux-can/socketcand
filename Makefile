@@ -22,3 +22,4 @@ distclean:
 install: socketcand
 	cp socketcand /usr/local/bin/socketcand
 	cp ./init.d/socketcand /etc/init.d/socketcand
+	cp ./socketcand.1 /usr/share/man/man1/
