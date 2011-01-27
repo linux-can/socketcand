@@ -28,11 +28,15 @@
 int raw_socket;
 struct ifreq ifr;
 struct sockaddr_can addr;
+fd_set readfds;
+struct msghdr msg;
+struct can_frame frame;
+struct iovec iov;
 
 inline void state_raw() {
     char buf[MAXLEN];
     int items;
-    int i;
+    int i, ret;
 
     if(previous_state != STATE_RAW) {
         PRINT_VERBOSE("starting statistics thread...\n")
@@ -65,29 +69,73 @@ inline void state_raw() {
             return;
         }
 
+        iov.iov_base = &frame;
+        msg.msg_name = &addr;
+        msg.msg_iov = &iov;
+        msg.msg_iovlen = 1;
+        iov.iov_len = sizeof(frame);
+        msg.msg_namelen = sizeof(addr);
+        msg.msg_flags = 0;
+
         previous_state = STATE_RAW;
     }
             
-    receive_command(client_socket, buf);
+    FD_ZERO(&readfds);
+    FD_SET(raw_socket, &readfds);
+    FD_SET(client_socket, &readfds);
 
-    if(!strncmp("< statistics ", buf, 13)) {
-        items = sscanf(buf, "< %*s %u >",
-            &i);
+    ret = select((raw_socket > client_socket)?raw_socket+1:client_socket+1, &readfds, NULL, NULL, NULL);
+    if(ret < 0) {
+        PRINT_ERROR("Error in select()\n")
+        state = STATE_SHUTDOWN;
+        return;
+    }
 
-        if (items != 1) {
-            PRINT_ERROR("Syntax error in statistics command\n")
+    if(FD_ISSET(raw_socket, &readfds)) {
+        printf("hallo\n");
+        ret = recvmsg(raw_socket, &msg, 0);
+        if(ret < sizeof(struct can_frame)) {
+            PRINT_ERROR("Error reading frame from RAW socket\n")
         } else {
-            set_statistics(bus_name, i);
+            if(frame.can_id & CAN_ERR_FLAG) {
+                /* TODO implement */
+            } else if(frame.can_id & CAN_RTR_FLAG) {
+                /* TODO implement */
+            } else {
+                ret = sprintf(buf, "< frame %X %u", frame.can_id, frame.can_dlc);
+                for(i=0;i<frame.can_dlc;i++) {
+                    ret += sprintf(buf+ret, " %X", frame.data[i]);
+                }
+                sprintf(buf+ret, " >");
+                send(client_socket, buf, strlen(buf), 0);
+            }
         }
-    } else if(!strcmp("< bcmmode >", buf)) {
-        pthread_cancel(statistics_thread);
-        close(raw_socket);
-        state = STATE_BCM; 
-        strcpy(buf, "< ok >");
-        send(client_socket, buf, strlen(buf), 0);
-    }else {
-        PRINT_ERROR("unknown command '%s'\n", buf);
-        strcpy(buf, "< error unknown command >");
-        send(client_socket, buf, strlen(buf), 0);
+    }
+
+    if(FD_ISSET(client_socket, &readfds)) {
+        ret = receive_command(client_socket, (char *) &buf);
+
+        if(ret == 0) {
+            if(!strncmp("< statistics ", buf, 13)) {
+                items = sscanf(buf, "< %*s %u >",
+                    &i);
+
+                if (items != 1) {
+                    PRINT_ERROR("Syntax error in statistics command\n")
+                } else {
+                    set_statistics(bus_name, i);
+                }
+            } else if(!strcmp("< bcmmode >", buf)) {
+                pthread_cancel(statistics_thread);
+                close(raw_socket);
+                state = STATE_BCM; 
+                strcpy(buf, "< ok >");
+                send(client_socket, buf, strlen(buf), 0);
+            }else {
+                PRINT_ERROR("unknown command '%s'\n", buf);
+                strcpy(buf, "< error unknown command >");
+                send(client_socket, buf, strlen(buf), 0);
+            }
+        }
     }
 }

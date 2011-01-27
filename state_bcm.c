@@ -61,15 +61,19 @@ inline void state_bcm() {
             state = STATE_SHUTDOWN;
             return;
         }
-    
-        FD_ZERO(&readfds);
-        FD_SET(sc, &readfds);
-        FD_SET(client_socket, &readfds);
-
         previous_state = STATE_BCM;
     }
 
+    FD_ZERO(&readfds);
+    FD_SET(sc, &readfds);
+    FD_SET(client_socket, &readfds);
+
     ret = select((sc > client_socket)?sc+1:client_socket+1, &readfds, NULL, NULL, NULL);
+    if(ret < 0) {
+        PRINT_ERROR("Error in select()\n")
+        state = STATE_SHUTDOWN;
+        return;
+    }
 
     if (FD_ISSET(sc, &readfds)) {
 
@@ -115,7 +119,10 @@ inline void state_bcm() {
         char cmd;
         int items;
 
-        receive_command(client_socket, buf);
+        ret = receive_command(client_socket, (char *) &buf);
+
+        if(ret != 0)
+            return;
 
         PRINT_VERBOSE("Received '%s'\n", buf)
 

@@ -95,6 +95,8 @@ int uid;
 int state = STATE_NO_BUS;
 int previous_state = -1;
 char bus_name[MAX_BUSNAME];
+char cmd_buffer[MAXLEN];
+int cmd_index=0;
 
 int main(int argc, char **argv)
 {
@@ -283,7 +285,9 @@ int main(int argc, char **argv)
                     previous_state = STATE_NO_BUS;
                 }
                 /* client has to start with a command */
-                receive_command(client_socket, buf);
+                i = receive_command(client_socket, (char *) &buf);
+                if(i != 0)
+                    break;
 
                 if(!strncmp("< open ", buf, 7)) {
                     sscanf(buf, "< open %s>", bus_name);
@@ -381,34 +385,78 @@ int main(int argc, char **argv)
     return 0;
 }
 
-int receive_command(int socket, char *buf) {
-    int idx = 0;
-    while(1) {
-        if (read(socket, buf+idx, 1) < 1)
-            return -1;
+/* reads all available data from the socket into the command buffer. 
+ * returns '-1' if no command could be received.
+ */
+int receive_command(int socket, char *buffer) {
+    int i, start, stop;
 
-        if (!idx) {
-            if (buf[0] == '<')
-                idx = 1;
+    /* read what we can get */
+    cmd_index += read(socket, cmd_buffer+cmd_index, MAXLEN-cmd_index);
 
-            continue;
+    /* find first '<' in string */
+    start = -1;
+    for(i=0;i<cmd_index;i++) {
+        if(cmd_buffer[i] == '<') {
+            start = i;
+            break;
         }
-
-        if (idx > MAXLEN-2) {
-            idx = 0;
-            continue;
-        }
-
-        if (buf[idx] != '>') {
-            idx++;
-            continue;
-        }
-
-        buf[idx+1] = 0;
-        break;
     }
 
-    return idx;
+    /* 
+     * if there is no '<' in string it makes no sense to keep data because
+     * we will never be able to construct a command of it
+     */
+    if(start == -1) {
+        cmd_index = 0;
+        return -1;
+    }
+
+    /* check whether the command is completely in the buffer */
+    stop = -1;
+    for(i=1;i<cmd_index;i++) {
+        if(cmd_buffer[i] == '>') {
+            stop = i;
+            break;
+        }
+    }
+
+    /* if no '>' is in the string we have to wait for more data */
+    if(stop == -1)
+        return -1;
+
+    /* copy string to new destination and correct cmd_buffer */
+    for(i=start;i<=stop;i++) {
+        buffer[i] = cmd_buffer[i+start];
+    }
+    buffer[i] = '\0';
+
+    /* if only this message was in the buffer we're done */
+    if(stop == cmd_index-1) {
+        cmd_index = 0;
+    } else {
+        /* check if there is a '<' after the stop */
+        start = -1;
+        for(i=stop;i<cmd_index;i++) {
+            if(cmd_buffer[i] == '<') {
+                start = i;
+                break;
+            }
+        }
+
+        /* if there is none it is only garbage we can remove */
+        if(start == -1) {
+            cmd_index = 0;
+            return 0;
+        /* otherwise we copy the valid data to the beginning of the buffer */
+        } else {
+            for(i=start;i<cmd_index;i++) {
+                cmd_buffer[i-start] = cmd_buffer[i];
+            }
+            cmd_index -= start;
+        }
+    }
+    return 0;
 }
 
 void print_usage(void) {
