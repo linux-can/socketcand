@@ -285,7 +285,7 @@ int main(int argc, char **argv)
                 /* client has to start with a command */
                 receive_command(client_socket, buf);
 
-                if(!strcmp("< open ", buf)) {
+                if(!strncmp("< open ", buf, 7)) {
                     sscanf(buf, "< open %s>", bus_name);
 
                     /* check if access to this bus is allowed */
@@ -296,6 +296,8 @@ int main(int argc, char **argv)
                     }
 
                     if(found) {
+                        strcpy(buf, "< ok >");
+                        send(client_socket, buf, strlen(buf), 0);
                         state = STATE_BCM;
                         break;
                     } else {
@@ -304,7 +306,7 @@ int main(int argc, char **argv)
                         send(client_socket, buf, strlen(buf), 0);
                         state = STATE_SHUTDOWN;
                     }
-                } else if(!strcmp("< bittiming", buf)) {
+                } else if(!strncmp("< bittiming", buf, 11)) {
                     struct can_bittiming timing;
                     char bus_name[IFNAMSIZ];
                     int items;
@@ -326,8 +328,10 @@ int main(int argc, char **argv)
                         PRINT_ERROR("Syntax error in set bitrate command\n")
                     } else {
                         can_set_bittiming(bus_name, &timing);
+                        strcpy(buf, "< ok >");
+                        send(client_socket, buf, strlen(buf), 0);
                     }
-                } else if(!strcmp(buf, "< controlmode")) {
+                } else if(!strncmp(buf, "< controlmode ", 14)) {
                     int i,j,k;
                     struct can_ctrlmode ctrlmode;
                     int items;
@@ -352,7 +356,13 @@ int main(int argc, char **argv)
                             ctrlmode.flags |= CAN_CTRLMODE_3_SAMPLES;
 
                         can_set_ctrlmode(bus_name, &ctrlmode);
+                        strcpy(buf, "< ok >");
+                        send(client_socket, buf, strlen(buf), 0);
                     }
+                } else {
+                    PRINT_ERROR("unknown command '%s'.\n", buf)
+                    strcpy(buf, "< error unknown command >");
+                    send(client_socket, buf, strlen(buf), 0);
                 }
                 break;
 

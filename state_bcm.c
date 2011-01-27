@@ -325,23 +325,11 @@ inline void state_bcm() {
                 }
 
                 break;
-            case 'E': /* Enable or disable statistics */
-                items = sscanf(buf, "< %6s %c %u >",
-                    bus_name,
-                    &cmd,
-                    &i);
-
-                if (items != 3) {
-                    PRINT_ERROR("Syntax error in statistics command\n")
-                    break;
-                }
-
-                set_statistics(bus_name, i);
-
-                break;
             default:
                 PRINT_ERROR("unknown command '%c'.\n", cmd)
-                exit(1);
+                strcpy(buf, "< error unknown command >");
+                send(client_socket, buf, strlen(buf), 0);
+                break;
         }
         
     }
