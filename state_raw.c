@@ -79,7 +79,13 @@ inline void state_raw() {
         } else {
             set_statistics(bus_name, i);
         }
-    } else {
+    } else if(!strcmp("< bcmmode >", buf)) {
+        pthread_cancel(statistics_thread);
+        close(raw_socket);
+        state = STATE_BCM; 
+        strcpy(buf, "< ok >");
+        send(client_socket, buf, strlen(buf), 0);
+    }else {
         PRINT_ERROR("unknown command '%s'\n", buf);
         strcpy(buf, "< error unknown command >");
         send(client_socket, buf, strlen(buf), 0);

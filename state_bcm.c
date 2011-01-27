@@ -119,6 +119,13 @@ inline void state_bcm() {
 
         PRINT_VERBOSE("Received '%s'\n", buf)
 
+        if(!strcmp("< rawmode >", buf)) {
+            close(sc);
+            state = STATE_RAW;        
+            strcpy(buf, "< ok >");
+            send(client_socket, buf, strlen(buf), 0);
+            return;
+        }
         /* Extract command */
         sscanf(buf, "< %c ", &cmd);
 
