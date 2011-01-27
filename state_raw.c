@@ -131,6 +131,8 @@ inline void state_raw() {
                 state = STATE_BCM; 
                 strcpy(buf, "< ok >");
                 send(client_socket, buf, strlen(buf), 0);
+            } else if(!strcmp("< echo >", buf)) {
+                send(client_socket, buf, strlen(buf), 0);
             }else {
                 PRINT_ERROR("unknown command '%s'\n", buf);
                 strcpy(buf, "< error unknown command >");
