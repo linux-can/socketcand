@@ -1,17 +1,15 @@
 Socketcand protocol
 ===================
 
-The socketcand provides a network interface to the Socket CAN broadcast manager of the host. It can be controlled over a single TCP socket and supports transmission and reception of CAN frames. The used protocol is ASCII based and data transmissions have the following structure:
+The socketcand provides a network interface to a number of CAN busses on the host. It can be controlled over a single TCP socket and supports transmission and reception of CAN frames. The used protocol is ASCII based and has some states in which different commandy may be used.
 
-### Data structure ###
-    < interface data_type ival_s ival_us can_id can_dlc [data]* >
+## Mode NO_BUS ##
+After connecting to the socket the client is greeted with '< hi >'. The only valid command in this mode is the open command. It is used to select one of the CAN busses that were announced in the broadcast beacon. The syntax is:
+    < open canbus >
+where canbus may be at maximum 16 characters long. If the client is allowed to access the bus the server will respond with '< ok >'. Otherwise an error is returned and the connection is terminated.
 
-### Data types ###
-The field data_type must be present in every transmitted piece of data. This makes it easy to separate relevant from irellevant data. If the receiver does not understand a specific command or data transmission he can simply ignore it.
-Two types of data are transmitted:
-
-* Commands have a data_type with a single uppercase letter (e.g. A, U, D, ...)
-* Normal data transfer has a data_type with a sigle lowercase letter, which denotes the type of data (e.g. f, e, s, ...)
+## Mode BCM ##
+After the client has successfully opened a bus the mode is switched to BCM mode. In this mode a BCM socket to the bus will be opened and can be controlled over the connection. The following commands are understood:
 
 ### Commands for transmission ###
 There are a few commands that control the transmission of CAN frames. Most of them are interval based and the Socket CAN broadcast manager guarantees that the frames are sent cyclic with the given interval. To be able to control these transmission jobs they are automatically removed when the BCM server socket is closed.
@@ -20,79 +18,82 @@ There are a few commands that control the transmission of CAN frames. Most of th
 This command adds a new frame to the BCM queue. An interval can be configured to have the frame sent cyclic.
 
 Examples:
-Send the CAN frame 123#1122334455667788 every second on vcan1
-    < vcan1 A 1 0 123 8 11 22 33 44 55 66 77 88 >
+Send the CAN frame 123#1122334455667788 every second
+    < add 1 0 123 8 11 22 33 44 55 66 77 88 >
 
-Send the CAN frame 123#1122334455667788 every 10 usecs on vcan1
-    < vcan1 A 0 10 123 8 11 22 33 44 55 66 77 88 >
+Send the CAN frame 123#1122334455667788 every 10 usecs
+    < add 0 10 123 8 11 22 33 44 55 66 77 88 >
 
-Send the CAN frame 123#42424242 every 20 msecs on vcan1
-    < vcan1 A 0 20000 123 4 42 42 42 42 >
+Send the CAN frame 123#42424242 every 20 msecs
+    < add 0 20000 123 4 42 42 42 42 >
 
 ##### Update a frame #####
-This command updates a frame transmission job that was created via the 'A' command with new content. The transmission timers are not touched
+This command updates a frame transmission job that was created via the 'add' command with new content. The transmission timers are not touched
 
 Examle:
 Update the CAN frame 123#42424242 with 123#112233 - no change of timers
-    < vcan1 U 123 3 11 22 33 >
+    < update 123 3 11 22 33 >
 
 ##### Delete a send job #####
-A send job can be removed with the 'D' command.
+A send job can be removed with the 'delete' command.
 
 Example:
 Delete the cyclic send job from above
-    < vcan1 D 123 >
+    < delete 123 >
 
 ##### Send a single frame #####
-This command is used to send a single CAN frame only once.
-    < interface S can_id can_dlc [data]* >
+This command is used to send a single CAN frame.
+    < send can_id can_dlc [data]* >
 
 Example:
 Send a single CAN frame without cyclic transmission
-    < can0 S 123 0 >
+    < send 123 0 >
 
 ### Commands for reception ###
-The commands for reception are 'R'eceive setup, 'F'ilter ID Setup and 'X' for delete.
+The commands for reception are 'subscribe' , 'unsubscribe' and 'filter'.
 
 ##### Content filtering #####
 This command is used to configure the broadcast manager for reception of frames with a given CAN ID. Frames are only sent when they match the pattern that is provided.
 
 Examples: 
-Receive CAN ID 0x123 from vcan1 and check for changes in the first byte
-    < vcan1 R 0 0 123 1 FF >
+Receive CAN ID 0x123 and check for changes in the first byte
+    < filter 0 0 123 1 FF >
 
-Receive CAN ID 0x123 from vcan1 and check for changes in given mask
-    < vcan1 R 0 0 123 8 FF 00 F8 00 00 00 00 00 >
+Receive CAN ID 0x123 and check for changes in given mask
+    < filter 0 0 123 8 FF 00 F8 00 00 00 00 00 >
 
 As above but throttle receive update rate down to 1.5 seconds
-    < vcan1 R 1 500000 123 8 FF 00 F8 00 00 00 00 00 >
+    < filter 1 500000 123 8 FF 00 F8 00 00 00 00 00 >
 
-##### Filter for CAN ID #####
-Adds a filter for a CAN ID. The frames are sent regardless of their content. An interval in seconds or microseconds may be set. The can_id can be set to the values 0xffffffff (all base IDs) or 0xfffffffe (all extended IDs) to subscribe to all IDs that could be present on the bus.
-    < interface F ival_s ival_us can_id >
+##### Subscribe to CAN ID #####
+Adds a subscription a CAN ID. The frames are sent regardless of their content. An interval in seconds or microseconds may be set.
+    < subscribe ival_s ival_us can_id >
 
 Example:
-Filter for CAN ID 0x123 from vcan1 without content filtering
-    < vcan1 F 0 0 123 >
+Subscribe to CAN ID 0x123 without content filtering
+    < subscribe 0 0 123 >
 
-##### Delete a filter #####
-This deletes all 'R' or 'F' filters for a specific CAN ID. As for the filter command the ID may be set to all base IDs or all extended IDs to remove all subscriptions at once.
-    < interface X can_id >
+##### Delete a subscription or filter #####
+This deletes all subscriptions or filters for a specific CAN ID.
+    < unsubscribe can_id >
 
 Example:
 Delete receive filter ('R' or 'F') for CAN ID 0x123
-    < vcan1 X 123 >
+    < unsubscribe 123 >
 
+##### Echo command #####
+After the server receives an '< echo >' it immediately returns the same string. This can be used to see if the connection is still up and to measure latencies.
+
+##### Switch to RAW mode #####
+A mode switch to RAW mode can be initiated by sending '< rawmode >'.
 
 ### Frame transmission ###
 CAN messages received by the given filters are send in the format:
-    < interface f can_id can_dlc [data]* >
+    < frame can_id can_dlc [data]* >
 
 Example:
-when receiving a CAN message from vcan1 with CAN ID 0x123 , data length 4 and data 0x11, 0x22, 0x33 and 0x44
-    < vcan1 f 123 4 11 22 33 44 >
-
-
+when receiving a CAN message with CAN ID 0x123 , data length 4 and data 0x11, 0x22, 0x33 and 0x44
+    < frame 123 4 11 22 33 44 >
 
 
 Service discovery
