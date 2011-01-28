@@ -6,6 +6,7 @@
 #include <net/if.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <syslog.h>
 
 #include "socketcand.h"
 #include "beacon.h"
@@ -20,7 +21,7 @@ void *beacon_loop(void *ptr) {
     char hostname[32];
 
     if ((udp_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
-        printf("Failed to create socket");
+        PRINT_ERROR("Failed to create broadcast socket");
         return NULL;
     }
     
@@ -37,6 +38,7 @@ void *beacon_loop(void *ptr) {
     /* Bind the socket */
     len = sizeof(s);
     if (bind(udp_socket, (struct sockaddr *) &s, len) < 0) {
+        PRINT_ERROR("Failed to bind broadcast socket");
         return NULL;    
     }
 

@@ -105,15 +105,12 @@ int main(int argc, char **argv)
     socklen_t sin_size = sizeof(clientaddr);
     struct sigaction signalaction, sigint_action;
     sigset_t sigset;
-
     char buf[MAXLEN];
-
-
     int c;
 
     uid = getuid();
     if(uid != 0) {
-        printf("You are not running socketcand as root. This is highly reccomended because otherwise you won't be able to change bitrate settings, etc.\n");
+        printf("You are not running socketcand as root. This is highly recommended because otherwise you won't be able to change bitrate settings, etc.\n");
     }
 
     /* default is to listen on 127.0.0.1 only */
@@ -231,7 +228,9 @@ int main(int argc, char **argv)
     saddr.sin_port = htons(port);
 
     PRINT_VERBOSE("creating broadcast thread...\n")
-    pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
+    i = pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
+    if(i)
+        PRINT_ERROR("could not create broadcast thread.\n");
 
     PRINT_VERBOSE("binding socket to %s:%d\n", inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port))
     if(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
