@@ -171,8 +171,7 @@ void *statistics_loop(void *ptr) {
                     continue;
                 }*/
                 
-                snprintf( buffer, STAT_BUF_LEN, "< %6s s %u %u %u %u >", 
-                        current_entry.bus_name, 
+                snprintf( buffer, STAT_BUF_LEN, "< stat %u %u %u %u >", 
                         proc_entries[found].rbytes, 
                         proc_entries[found].rpackets, 
                         proc_entries[found].tbytes, 

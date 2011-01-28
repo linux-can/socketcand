@@ -92,7 +92,6 @@ inline void state_raw() {
     }
 
     if(FD_ISSET(raw_socket, &readfds)) {
-        printf("hallo\n");
         ret = recvmsg(raw_socket, &msg, 0);
         if(ret < sizeof(struct can_frame)) {
             PRINT_ERROR("Error reading frame from RAW socket\n")

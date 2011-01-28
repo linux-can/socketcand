@@ -4,9 +4,19 @@ Socketcand protocol
 The socketcand provides a network interface to a number of CAN busses on the host. It can be controlled over a single TCP socket and supports transmission and reception of CAN frames. The used protocol is ASCII based and has some states in which different commandy may be used.
 
 ## Mode NO_BUS ##
-After connecting to the socket the client is greeted with '< hi >'. The only valid command in this mode is the open command. It is used to select one of the CAN busses that were announced in the broadcast beacon. The syntax is:
+After connecting to the socket the client is greeted with '< hi >'. The open command is used to select one of the CAN busses that were announced in the broadcast beacon. The syntax is:
     < open canbus >
 where canbus may be at maximum 16 characters long. If the client is allowed to access the bus the server will respond with '< ok >'. Otherwise an error is returned and the connection is terminated.
+After a bus was opened the mode is switched to BCM mode. The Mode NO_BUS is the only mode where bittimings or other bus configuration settings may be done.
+
+##### Configure the bittiming #####
+The protocol enables the client to change the bittiming of a given bus as provided by set link. Automatic bitrate configuration by the kernel is not supported because it is not guaranteed that the corresponding option was enabled during compile time (e.g. in Ubuntu 10.10 it is not). This way it it also easier to implement the function in a microcontroller based adapter.
+    < can0 B bitrate sample_point tq prop_seg phase_seg1 phase_seg2 sjw brp >
+
+##### Set the controlmode #####
+The control mode controls if the bus is set to listen only, if sent packages are looped back and if the controller is configured to take three samples. The following command provides access to these settings. Each field must be set to '0' or '1' to disable or enable the setting.
+
+    < can0 C listen_only loopback three_samples >
 
 ## Mode BCM ##
 After the client has successfully opened a bus the mode is switched to BCM mode. In this mode a BCM socket to the bus will be opened and can be controlled over the connection. The following commands are understood:
@@ -95,6 +105,20 @@ Example:
 when receiving a CAN message with CAN ID 0x123 , data length 4 and data 0x11, 0x22, 0x33 and 0x44
     < frame 123 4 11 22 33 44 >
 
+## Mode RAW ##
+After switching to RAW mode the BCM socket is closed and a RAW socket is opened. Now every frame on the bus will immediately be received. Therefore no commands to control which frames are received are supported. Frames may not be sent in this mode.
+
+##### Switch to BCM mode #####
+With '< bcmmode >' it is possible to switch back to BCM mode.
+
+##### Echo command #####
+The echo command is supported and works as described under mode BCM.
+
+##### Statistics #####
+In RAW mode it is possible to receive bus statistics. Transmission is enabled by the '< statistics ival >' command. Ival is the interval between two statistics transmissions in milliseconds. The ival may be set to '0' to deactivate transmission.
+After enabling statistics transmission the data is send inline with normal CAN frames and other data. The daemon takes care of the interval that was specified. The information is transfered in the following format:
+    < stat rbytes rpackets tbytes tpackets >
+The reported bytes and packets are reported as unsigned integers.
 
 Service discovery
 -----------------
@@ -140,25 +164,3 @@ Error frame transmission
 Error frames are sent similar to normal frames only distinguished by the data_type 'e'. An error frame always has the length of 8 data bytes. Because of this only the fields can_id and data are necessary (see socketcan/can/error.h for further information):
     < interface e can_id data >
 
-Configuration
--------------
-
-### Configure the bittiming ###
-The protocol enables the client to change the bittiming of a given bus as provided by set link. Automatic bitrate configuration by the kernel is not supported because it is not guaranteed that the corresponding option was enabled during compile time (e.g. in Ubuntu 10.10 it isn't). This way it it also easier to implement the function in a microcontroller based adapter.
-    < can0 B bitrate sample_point tq prop_seg phase_seg1 phase_seg2 sjw brp >
-
-### Set the controlmode ###
-The control mode controls if the bus is set to listen only, if sent packages are looped back and if the controller is configured to take three samples. The following command provides access to these settings. Each field must be set to '0' or '1' to disable or enable the setting.
-
-    < can0 C listen_only loopback three_samples >
-
-### Enable or disable statistic transmission ###
-This command requests the transmission of statistic information in line with the normal information. An interval (in ms) must be set to specify how often the transmission should occur. An interval of '0' disables transmission.
-
-    < vcan0 E ival_ms >
-
-Statistics
-----------
-After enabling statistics transmission the data is send inline with normal CAN frames and other data. The daemon takes care of the interval that was specified. The information is transfered in the following format:
-    < interface s rbytes rpackets tbytes tpackets >
-The reported bytes and packets are reported as unsigned integers.
