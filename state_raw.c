@@ -137,6 +137,15 @@ inline void state_raw() {
                 strcpy(buf, "< error unknown command >");
                 send(client_socket, buf, strlen(buf), 0);
             }
+        } else {
+            state = STATE_SHUTDOWN;
+            return;
+        }
+    } else {
+        ret = read(client_socket, &buf, 0);
+        if(ret==-1) {
+            state = STATE_SHUTDOWN;
+            return;
         }
     }
 }

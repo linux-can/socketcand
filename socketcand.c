@@ -377,6 +377,7 @@ int main(int argc, char **argv)
                 break;
 
             case STATE_SHUTDOWN:
+                PRINT_VERBOSE("Closing client connection.\n");
                 close(client_socket);
                 return 0;
         }

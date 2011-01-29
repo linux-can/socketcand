@@ -69,6 +69,7 @@ inline void state_bcm() {
     FD_SET(client_socket, &readfds);
 
     ret = select((sc > client_socket)?sc+1:client_socket+1, &readfds, NULL, NULL, NULL);
+    
     if(ret < 0) {
         PRINT_ERROR("Error in select()\n")
         state = STATE_SHUTDOWN;
@@ -111,11 +112,13 @@ inline void state_bcm() {
     
     if (FD_ISSET(client_socket, &readfds)) {
         int items;
-
+        
         ret = receive_command(client_socket, (char *) &buf);
 
-        if(ret != 0)
+        if(ret != 0) {
+            state = STATE_SHUTDOWN;
             return;
+        }
 
         /* prepare bcm message settings */
         memset(&msg, 0, sizeof(msg));
