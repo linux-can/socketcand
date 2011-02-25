@@ -288,8 +288,11 @@ int main(int argc, char **argv)
                 }
                 /* client has to start with a command */
                 i = receive_command(client_socket, (char *) &buf);
-                if(i != 0)
+                if(i != 0) {
+                    PRINT_ERROR("Connection terminated while waiting for command.\n");
+                    state = STATE_SHUTDOWN;
                     break;
+                }
 
                 if(!strncmp("< open ", buf, 7)) {
                     sscanf(buf, "< open %s>", bus_name);
