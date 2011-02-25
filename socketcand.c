@@ -62,6 +62,7 @@
 #include <sys/uio.h>
 #include <net/if.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <syslog.h>
 
@@ -246,7 +247,9 @@ int main(int argc, char **argv)
     while (1) { 
         client_socket = accept(sl,(struct sockaddr *)&clientaddr, &sin_size);
         if (client_socket > 0 ){
-
+            int flag;
+            flag = 1;
+            setsockopt(client_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(flag));
             if (fork())
                 close(client_socket);
             else
