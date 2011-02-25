@@ -35,10 +35,10 @@ void *beacon_loop(void *ptr) {
     optval = 1;
     setsockopt(udp_socket, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(int));
 
-    /* Bind the socket */
+    /* Connect the socket */
     len = sizeof(s);
-    if (bind(udp_socket, (struct sockaddr *) &s, len) < 0) {
-        PRINT_ERROR("Failed to bind broadcast socket");
+    if (connect(udp_socket, (struct sockaddr *) &s, len) < 0) {
+        PRINT_ERROR("Failed to connect broadcast socket");
         return NULL;    
     }
 
