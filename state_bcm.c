@@ -1,4 +1,5 @@
 #include "socketcand.h"
+#include "state_bcm.h"
 #include "statistics.h"
 
 #include <stdio.h>
@@ -35,7 +36,7 @@ inline void state_bcm() {
     struct sockaddr_can caddr;
     socklen_t caddrlen = sizeof(caddr);
     struct ifreq ifr;
-    char rxmsg[50];
+    char rxmsg[RXLEN];
     char buf[MAXLEN];
 
     struct {
@@ -89,23 +90,25 @@ inline void state_bcm() {
             if(msg.frame.can_dlc != CAN_ERR_DLC) {
                 PRINT_ERROR("Error frame has a wrong DLC!\n")
             } else {
-                sprintf(rxmsg, "< %s e %03X ", ifr.ifr_name,
+                snprintf(rxmsg, RXLEN, "< %s e %03X ", ifr.ifr_name,
                     msg.msg_head.can_id);
 
                 for ( i = 0; i < msg.frame.can_dlc; i++)
-                    sprintf(rxmsg + strlen(rxmsg), "%02X ",
+                    snprintf(rxmsg + strlen(rxmsg), RXLEN - strlen(rxmsg), "%02X ",
                         msg.frame.data[i]);
 
+                snprintf(rxmsg + strlen(rxmsg), RXLEN - strlen(rxmsg), " >");
                 send(client_socket, rxmsg, strlen(rxmsg), 0);
             }
         } else {
-            sprintf(rxmsg, "< frame %03X %d ",
+            snprintf(rxmsg, RXLEN, "< frame %03X %d ",
                 msg.msg_head.can_id, msg.frame.can_dlc);
 
             for ( i = 0; i < msg.frame.can_dlc; i++)
-                sprintf(rxmsg + strlen(rxmsg), "%02X ",
+                snprintf(rxmsg + strlen(rxmsg), RXLEN - strlen(rxmsg), "%02X ",
                     msg.frame.data[i]);
 
+            snprintf(rxmsg + strlen(rxmsg), RXLEN - strlen(rxmsg), " >");
             send(client_socket, rxmsg, strlen(rxmsg), 0);
         }
     }
