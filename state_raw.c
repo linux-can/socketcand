@@ -101,9 +101,9 @@ inline void state_raw() {
             } else if(frame.can_id & CAN_RTR_FLAG) {
                 /* TODO implement */
             } else {
-                ret = sprintf(buf, "< frame %X %u", frame.can_id, frame.can_dlc);
+                ret = sprintf(buf, "< frame %X ", frame.can_id);
                 for(i=0;i<frame.can_dlc;i++) {
-                    ret += sprintf(buf+ret, " %X", frame.data[i]);
+                    ret += sprintf(buf+ret, "%02X", frame.data[i]);
                 }
                 sprintf(buf+ret, " >");
                 send(client_socket, buf, strlen(buf), 0);
