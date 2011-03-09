@@ -23,6 +23,7 @@ extern int daemon_flag;
 extern int state;
 extern int previous_state;
 extern char bus_name[];
+extern char* description;
 extern pthread_t statistics_thread;
 
 int receive_command(int socket, char *buf);

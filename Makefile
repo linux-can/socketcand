@@ -3,9 +3,9 @@ EXECUTEABLE = socketcand
 CC = gcc
 
 ifeq ($(DEBUG), 1)
-	CFLAGS = -Wall -Wno-parentheses -lpthread -lsocketcan -g -DDEBUG
+	CFLAGS = -Wall -Wno-parentheses -lpthread -lsocketcan -lconfig -g -DDEBUG
 else
-	CFLAGS = -Wall -Wno-parentheses -lpthread -lsocketcan -O2
+	CFLAGS = -Wall -Wno-parentheses -lpthread -lsocketcan -lconfig -O2
 endif
 
 all: socketcand
@@ -23,3 +23,4 @@ install: socketcand
 	cp socketcand /usr/local/bin/socketcand
 	cp ./init.d/socketcand /etc/init.d/socketcand
 	cp ./socketcand.1 /usr/share/man/man1/
+	cp -n ./etc/socketcand.conf /etc/

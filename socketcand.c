@@ -65,6 +65,7 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <syslog.h>
+#include <libconfig.h>
 
 #include <linux/can.h>
 #include <linux/can/bcm.h>
@@ -88,7 +89,7 @@ int sl, client_socket;
 pthread_t beacon_thread, statistics_thread;
 char **interface_names;
 int interface_count=0;
-int port=PORT;
+int port;
 struct in_addr laddr;
 int verbose_flag=0;
 int daemon_flag=0;
@@ -98,6 +99,7 @@ int previous_state = -1;
 char bus_name[MAX_BUSNAME];
 char cmd_buffer[MAXLEN];
 int cmd_index=0;
+char* description;
 
 int main(int argc, char **argv)
 {
@@ -108,14 +110,36 @@ int main(int argc, char **argv)
     sigset_t sigset;
     char buf[MAXLEN];
     int c;
+    char* busses_string;
+    char* interface_string;
+    config_t config;
 
     uid = getuid();
     if(uid != 0) {
         printf("You are not running socketcand as root. This is highly recommended because otherwise you won't be able to change bitrate settings, etc.\n");
     }
 
-    /* default is to listen on 127.0.0.1 only */
-    laddr.s_addr = inet_addr( "127.0.0.1" );
+
+    /* set default config settings */
+    port = PORT;
+    description = malloc(sizeof(BEACON_DESCRIPTION));
+    strcpy(description, BEACON_DESCRIPTION);
+    interface_string = malloc(sizeof("127.0.0.1"));
+    strcpy(interface_string, "127.0.0.1");
+    busses_string = malloc(sizeof("vcan0"));
+    strcpy(busses_string, "vcan0");
+
+
+    /* Read config file before parsing commandline arguments */
+    config_init(&config);
+    if(CONFIG_TRUE == config_read_file(&config, "/etc/socketcand.conf")) {
+        config_lookup_int(&config, "port", (long int*) &port);
+        config_lookup_string(&config, "description", (const char**) &description);
+        config_lookup_string(&config, "busses", (const char**) &busses_string);
+        config_lookup_string(&config, "listen", (const char**) &interface_string);
+    }
+
+    laddr.s_addr = inet_addr(interface_string);
 
     /* Parse commandline arguments */
     while (1) {
@@ -150,29 +174,15 @@ int main(int argc, char **argv)
     
             case 'p':
                 port = atoi(optarg);
-                printf("Using Port %d\n", port);
                 break;
     
             case 'i':
-                for(i=0;;i++) {
-                    if(optarg[i] == '\0')
-                        break;
-                    if(optarg[i] == ',')
-                        interface_count++;
-                }
-                interface_count++;
-    
-                interface_names = malloc(sizeof(char *) * interface_count);
-    
-                interface_names[0] = strtok(optarg, ",");
-    
-                for(i=1;i<interface_count;i++) {
-                    interface_names[i] = strtok(NULL, ",");
-                }
+                busses_string = malloc(sizeof(optarg));
+                strcpy(busses_string, optarg);
                 break;
 
             case 'l':
-                laddr.s_addr = inet_addr( optarg );
+                laddr.s_addr = inet_addr(optarg);
                 break;
 
             case 'h':
@@ -191,6 +201,23 @@ int main(int argc, char **argv)
                 print_usage();
                 return -1;
         }
+    }
+
+    /* parse busses */
+    for(i=0;;i++) {
+        if(busses_string[i] == '\0')
+            break;
+        if(busses_string[i] == ',')
+            interface_count++;
+    }
+    interface_count++;
+
+    interface_names = malloc(sizeof(char *) * interface_count);
+
+    interface_names[0] = strtok(busses_string, ",");
+
+    for(i=1;i<interface_count;i++) {
+        interface_names[i] = strtok(NULL, ",");
     }
 
     /* if daemon mode was activated the syslog must be opened */

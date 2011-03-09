@@ -5,6 +5,7 @@ To build and run socketcand make sure you have the following tools and packets i
 * a kernel that includes the Socket CAN modules
 * the headers for your kernel version
 * the libsocketcan (with headers)
+* the libconfig (with headers)
 * an init system if you want to run the socketcand as a daemon
 
 To compile the socketcand simply run
