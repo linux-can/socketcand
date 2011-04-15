@@ -79,6 +79,7 @@
 #include "beacon.h"
 #include "state_bcm.h"
 #include "state_raw.h"
+#include "state_control.h"
 
 void print_usage(void);
 void sigint();
@@ -119,7 +120,6 @@ int main(int argc, char **argv)
         printf("You are not running socketcand as root. This is highly recommended because otherwise you won't be able to change bitrate settings, etc.\n");
     }
 
-
     /* set default config settings */
     port = PORT;
     description = malloc(sizeof(BEACON_DESCRIPTION));
@@ -151,6 +151,7 @@ int main(int argc, char **argv)
             {"port", required_argument, 0, 'p'},
             {"listen", required_argument, 0, 'l'},
             {"daemon", no_argument, 0, 'd'},
+            {"version", no_argument, 0, 'z'},
             {0, 0, 0, 0}
         };
     
@@ -192,10 +193,14 @@ int main(int argc, char **argv)
             case 'd':
                 daemon_flag=1;
                 break;
-                
+
+            case 'z':
+                printf("socketcand version '%s'\n", VERSION_STRING);
+                return 0;
+
             case '?':
                 print_usage();
-                return -1;
+                return 0;
     
             default:
                 print_usage();
@@ -408,6 +413,9 @@ int main(int argc, char **argv)
             case STATE_RAW:
                 state_raw();
                 break;
+            case STATE_CONTROL:
+                state_control();
+                break;
 
             case STATE_SHUTDOWN:
                 PRINT_VERBOSE("Closing client connection.\n");
@@ -500,6 +508,7 @@ void print_usage(void) {
     printf("\t-i interfaces is used to specify the Socket CAN interfaces the daemon\n\t\tshall provide access to\n");
     printf("\t-p port changes the default port (28600) the daemon is listening at\n");
     printf("\t-l ip_addr changes the default ip address (127.0.0.1) the daemon will\n\t\tbind to\n");
+    printf("\t-d set this flag if you want log to syslog instead of STDOUT\n");
     printf("\t-h prints this message\n");
 }
 

@@ -35,17 +35,9 @@ struct iovec iov;
 
 inline void state_raw() {
     char buf[MAXLEN];
-    int items;
     int i, ret;
 
     if(previous_state != STATE_RAW) {
-        PRINT_VERBOSE("starting statistics thread...\n")
-        pthread_mutex_init( &stat_mutex, NULL );
-        pthread_cond_init( &stat_condition, NULL );
-        pthread_mutex_lock( &stat_mutex );
-        pthread_create( &statistics_thread, NULL, &statistics_loop, NULL );
-        pthread_cond_wait( &stat_condition, &stat_mutex );
-        pthread_mutex_unlock( &stat_mutex );
 
         if((raw_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
             PRINT_ERROR("Error while creating RAW socket %s\n", strerror(errno));
@@ -79,7 +71,7 @@ inline void state_raw() {
 
         previous_state = STATE_RAW;
     }
-            
+
     FD_ZERO(&readfds);
     FD_SET(raw_socket, &readfds);
     FD_SET(client_socket, &readfds);
@@ -115,16 +107,7 @@ inline void state_raw() {
         ret = receive_command(client_socket, (char *) &buf);
 
         if(ret == 0) {
-            if(!strncmp("< statistics ", buf, 13)) {
-                items = sscanf(buf, "< %*s %u >",
-                    &i);
-
-                if (items != 1) {
-                    PRINT_ERROR("Syntax error in statistics command\n")
-                } else {
-                    set_statistics(bus_name, i);
-                }
-            } else if(!strcmp("< bcmmode >", buf)) {
+            if(!strcmp("< bcmmode >", buf)) {
                 pthread_cancel(statistics_thread);
                 close(raw_socket);
                 state = STATE_BCM; 
@@ -132,7 +115,13 @@ inline void state_raw() {
                 send(client_socket, buf, strlen(buf), 0);
             } else if(!strcmp("< echo >", buf)) {
                 send(client_socket, buf, strlen(buf), 0);
-            }else {
+            } else if(!strcmp("< controlmode >", buf)) {
+                close(raw_socket);
+                state = STATE_CONTROL;
+                strcpy(buf, "< ok >");
+                send(client_socket, buf, strlen(buf), 0);
+                return;
+            } else {
                 PRINT_ERROR("unknown command '%s'\n", buf);
                 strcpy(buf, "< error unknown command >");
                 send(client_socket, buf, strlen(buf), 0);
