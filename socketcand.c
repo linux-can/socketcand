@@ -500,6 +500,7 @@ void print_usage(void) {
     printf("\t-i interfaces is used to specify the Socket CAN interfaces the daemon\n\t\tshall provide access to\n");
     printf("\t-p port changes the default port (28600) the daemon is listening at\n");
     printf("\t-l ip_addr changes the default ip address (127.0.0.1) the daemon will\n\t\tbind to\n");
+    printf("\t-d set this flag if you want log to syslog instead of STDOUT\n");
     printf("\t-h prints this message\n");
 }
 
