@@ -39,14 +39,7 @@ inline void state_raw() {
     int i, ret;
 
     if(previous_state != STATE_RAW) {
-        PRINT_VERBOSE("starting statistics thread...\n")
-        pthread_mutex_init( &stat_mutex, NULL );
-        pthread_cond_init( &stat_condition, NULL );
-        pthread_mutex_lock( &stat_mutex );
-        pthread_create( &statistics_thread, NULL, &statistics_loop, NULL );
-        pthread_cond_wait( &stat_condition, &stat_mutex );
-        pthread_mutex_unlock( &stat_mutex );
-
+        
         if((raw_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
             PRINT_ERROR("Error while creating RAW socket %s\n", strerror(errno));
             state = STATE_SHUTDOWN;
