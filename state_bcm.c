@@ -137,6 +137,12 @@ inline void state_bcm() {
             strcpy(buf, "< ok >");
             send(client_socket, buf, strlen(buf), 0);
             return;
+        } else if(!strcmp("< controlmode >", buf)) {
+            close(sc);
+            state = STATE_CONTROL;        
+            strcpy(buf, "< ok >");
+            send(client_socket, buf, strlen(buf), 0);
+            return;
         /* Send a single frame */
         } else if(!strncmp("< send ", buf, 7)) { 
             items = sscanf(buf, "< %*s %x %hhu "
