@@ -14,6 +14,10 @@
 #define PRINT_ERROR(...) if(daemon_flag) syslog(LOG_ERR, __VA_ARGS__); else fprintf(stderr, __VA_ARGS__);
 #define PRINT_VERBOSE(...) if(verbose_flag && !daemon_flag) printf(__VA_ARGS__);
 
+#ifndef VERSION_STRING
+    #define VERSION_STRING "SNAPSHOT"
+#endif
+
 extern int client_socket;
 extern char **interface_names;
 extern int interface_count;

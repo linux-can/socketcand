@@ -120,7 +120,6 @@ int main(int argc, char **argv)
         printf("You are not running socketcand as root. This is highly recommended because otherwise you won't be able to change bitrate settings, etc.\n");
     }
 
-
     /* set default config settings */
     port = PORT;
     description = malloc(sizeof(BEACON_DESCRIPTION));
@@ -152,6 +151,7 @@ int main(int argc, char **argv)
             {"port", required_argument, 0, 'p'},
             {"listen", required_argument, 0, 'l'},
             {"daemon", no_argument, 0, 'd'},
+            {"version", no_argument, 0, 'z'},
             {0, 0, 0, 0}
         };
     
@@ -193,10 +193,14 @@ int main(int argc, char **argv)
             case 'd':
                 daemon_flag=1;
                 break;
-                
+
+            case 'z':
+                printf("socketcand version '%s'\n", VERSION_STRING);
+                return 0;
+
             case '?':
                 print_usage();
-                return -1;
+                return 0;
     
             default:
                 print_usage();
