@@ -58,5 +58,21 @@ inline void state_control() {
         } else {
             set_statistics(bus_name, i);
         }
+    } else if(!strcmp("< rawmode >", buf)) {
+        pthread_cancel(statistics_thread);
+        state = STATE_RAW;
+        strcpy(buf, "< ok >");
+        send(client_socket, buf, strlen(buf), 0);
+        return;
+    } else if(!strcmp("< bcmmode >", buf)) {
+        pthread_cancel(statistics_thread);
+        state = STATE_BCM;
+        strcpy(buf, "< ok >");
+        send(client_socket, buf, strlen(buf), 0);
+        return;
+    } else {
+        PRINT_ERROR("unknown command '%s'.\n", buf)
+        strcpy(buf, "< error unknown command >");
+        send(client_socket, buf, strlen(buf), 0);
     }
 }

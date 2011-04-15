@@ -133,13 +133,13 @@ inline void state_bcm() {
 
         if(!strcmp("< rawmode >", buf)) {
             close(sc);
-            state = STATE_RAW;        
+            state = STATE_RAW;
             strcpy(buf, "< ok >");
             send(client_socket, buf, strlen(buf), 0);
             return;
         } else if(!strcmp("< controlmode >", buf)) {
             close(sc);
-            state = STATE_CONTROL;        
+            state = STATE_CONTROL;
             strcpy(buf, "< ok >");
             send(client_socket, buf, strlen(buf), 0);
             return;
