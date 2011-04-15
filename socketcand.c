@@ -79,6 +79,7 @@
 #include "beacon.h"
 #include "state_bcm.h"
 #include "state_raw.h"
+#include "state_control.h"
 
 void print_usage(void);
 void sigint();
@@ -407,6 +408,9 @@ int main(int argc, char **argv)
                 break;
             case STATE_RAW:
                 state_raw();
+                break;
+            case STATE_CONTROL:
+                state_control();
                 break;
 
             case STATE_SHUTDOWN:
