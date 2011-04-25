@@ -93,7 +93,6 @@ int port;
 struct in_addr laddr;
 int verbose_flag=0;
 int daemon_flag=0;
-int uid;
 int state = STATE_NO_BUS;
 int previous_state = -1;
 char bus_name[MAX_BUSNAME];
@@ -113,11 +112,6 @@ int main(int argc, char **argv)
     char* busses_string;
     char* interface_string;
     config_t config;
-
-    uid = getuid();
-    if(uid != 0) {
-        printf("You are not running socketcand as root. This is highly recommended because otherwise you won't be able to change bitrate settings, etc.\n");
-    }
 
     /* set default config settings */
     port = PORT;
