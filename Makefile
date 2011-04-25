@@ -1,12 +1,12 @@
 SOURCEFILES = socketcand.c statistics.c beacon.c state_bcm.c state_raw.c state_control.c
 EXECUTEABLE = socketcand
 CC = gcc
-VERSION_STRING = \"0.1.0\"
+VERSION_STRING = \"0.1.1\"
 
 ifeq ($(DEBUG), 1)
-	CFLAGS = -Wall -Wno-parentheses -lpthread -lsocketcan -lconfig -g -DDEBUG -DVERSION_STRING=$(VERSION_STRING)
+	CFLAGS = -Wall -Wno-parentheses -lpthread -lconfig -g -DDEBUG -DVERSION_STRING=$(VERSION_STRING)
 else
-	CFLAGS = -Wall -Wno-parentheses -lpthread -lsocketcan -lconfig -O2 -DVERSION_STRING=$(VERSION_STRING)
+	CFLAGS = -Wall -Wno-parentheses -lpthread -lconfig -O2 -DVERSION_STRING=$(VERSION_STRING)
 endif
 
 all: socketcand
