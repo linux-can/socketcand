@@ -6,7 +6,6 @@
 #include <pthread.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <libsocketcan.h>
 
 #include "socketcand.h"
 

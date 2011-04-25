@@ -26,8 +26,6 @@
 #include <linux/can/error.h>
 #include <linux/can/netlink.h>
 
-#include <libsocketcan.h>
-
 int sc = -1;
 fd_set readfds;
 
