@@ -72,7 +72,6 @@
 #include <linux/can/error.h>
 #include <linux/can/netlink.h>
 
-#include <libsocketcan.h>
 
 #include "socketcand.h"
 #include "statistics.h"
@@ -94,7 +93,6 @@ int port;
 struct in_addr laddr;
 int verbose_flag=0;
 int daemon_flag=0;
-int uid;
 int state = STATE_NO_BUS;
 int previous_state = -1;
 char bus_name[MAX_BUSNAME];
@@ -114,11 +112,6 @@ int main(int argc, char **argv)
     char* busses_string;
     char* interface_string;
     config_t config;
-
-    uid = getuid();
-    if(uid != 0) {
-        printf("You are not running socketcand as root. This is highly recommended because otherwise you won't be able to change bitrate settings, etc.\n");
-    }
 
     /* set default config settings */
     port = PORT;
@@ -346,59 +339,6 @@ int main(int argc, char **argv)
                         strcpy(buf, "< error could not open bus >");
                         send(client_socket, buf, strlen(buf), 0);
                         state = STATE_SHUTDOWN;
-                    }
-                } else if(!strncmp("< bittiming", buf, 11)) {
-                    struct can_bittiming timing;
-                    char bus_name[IFNAMSIZ];
-                    int items;
-
-                    memset(&timing, 0, sizeof(timing));
-
-                    items = sscanf(buf, "< %*s %s %x %x %x %x %x %x %x %x >",
-                        bus_name,
-                        &timing.bitrate,
-                        &timing.sample_point,
-                        &timing.tq,
-                        &timing.prop_seg,
-                        &timing.phase_seg1,
-                        &timing.phase_seg2,
-                        &timing.sjw,
-                        &timing.brp);
-
-                    if (items != 9) {
-                        PRINT_ERROR("Syntax error in set bitrate command\n")
-                    } else {
-                        can_set_bittiming(bus_name, &timing);
-                        strcpy(buf, "< ok >");
-                        send(client_socket, buf, strlen(buf), 0);
-                    }
-                } else if(!strncmp(buf, "< controlmode ", 14)) {
-                    int i,j,k;
-                    struct can_ctrlmode ctrlmode;
-                    int items;
-
-                    memset(&ctrlmode, 0, sizeof(ctrlmode));
-                    ctrlmode.mask = CAN_CTRLMODE_LOOPBACK | CAN_CTRLMODE_LISTENONLY | CAN_CTRLMODE_3_SAMPLES;
-
-                    items = sscanf(buf, "< %*s %s %u %u %u >",
-                        bus_name,
-                        &i,
-                        &j,
-                        &k);
-
-                    if (items != 4) {
-                        PRINT_ERROR("Syntax error in set controlmode command\n")
-                    } else {
-                        if(i)
-                            ctrlmode.flags |= CAN_CTRLMODE_LISTENONLY;
-                        if(j)
-                            ctrlmode.flags |= CAN_CTRLMODE_LOOPBACK;
-                        if(k)
-                            ctrlmode.flags |= CAN_CTRLMODE_3_SAMPLES;
-
-                        can_set_ctrlmode(bus_name, &ctrlmode);
-                        strcpy(buf, "< ok >");
-                        send(client_socket, buf, strlen(buf), 0);
                     }
                 } else {
                     PRINT_ERROR("unknown command '%s'.\n", buf)
