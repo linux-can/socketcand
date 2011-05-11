@@ -1,7 +1,7 @@
 SOURCEFILES = socketcand.c statistics.c beacon.c state_bcm.c state_raw.c state_control.c
 EXECUTABLE = socketcand
 CC = gcc
-VERSION_STRING = \"0.1.2\"
+VERSION_STRING = \"0.1.5\"
 DESTDIR =
 PREFIX = /usr/local
 BINDIR = $(PREFIX)/bin
@@ -26,7 +26,7 @@ distclean:
 	rm -f $(EXECUTEABLE) *.o *~
 
 install: socketcand
-	cp socketcand $(DESTDIR)$(BINDIR)
+	cp socketcand $(DESTDIR)$(BINDIR)/
 	cp ./socketcand.1 $(DESTDIR)$(MANDIR)/
 	cp -n ./etc/socketcand.conf $(DESTDIR)/etc/
 	if [ $(SCRIPT) = init ]; then cp ./init.d/socketcand $(DESTDIR)/etc/init.d/socketcand; fi
