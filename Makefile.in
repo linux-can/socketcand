@@ -1,21 +1,21 @@
 #
-# Makefile.  Generated from Makefile.in by configure.
+# @configure_input@
 #
 
 sourcefiles = socketcand.c statistics.c beacon.c state_bcm.c state_raw.c state_control.c
 executable = socketcand
 VERSION_STRING = \"0.1.5\"
-srcdir = .
-prefix = /usr/local
-datarootdir = ${prefix}/share
-bindir = ${exec_prefix}/bin
-mandir = ${datarootdir}/man
-sysconfdir = ${prefix}/etc
+srcdir = @srcdir@
+prefix = @prefix@
+datarootdir = @datarootdir@
+bindir = @bindir@
+mandir = @mandir@
+sysconfdir = @sysconfdir@
 SCRIPT = "init"
-CFLAGS = -g -O2
-LIBS = -lpthread -lconfig 
-init_script = yes
-rc_script = no
+CFLAGS = @CFLAGS@
+LIBS = @LIBS@
+init_script = @init_script@
+rc_script = @rc_script@
 
 all: socketcand
 

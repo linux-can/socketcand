@@ -46,6 +46,7 @@
  *
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -188,7 +189,7 @@ int main(int argc, char **argv)
                 break;
 
             case 'z':
-                printf("socketcand version '%s'\n", VERSION_STRING);
+                printf("socketcand version '%s'\n", PACKAGE_VERSION);
                 return 0;
 
             case '?':

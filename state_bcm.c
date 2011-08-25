@@ -1,3 +1,4 @@
+#include "config.h"
 #include "socketcand.h"
 #include "state_bcm.h"
 #include "statistics.h"
