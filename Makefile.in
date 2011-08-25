@@ -4,7 +4,6 @@
 
 sourcefiles = socketcand.c statistics.c beacon.c state_bcm.c state_raw.c state_control.c
 executable = socketcand
-VERSION_STRING = \"0.1.5\"
 srcdir = @srcdir@
 prefix = @prefix@
 datarootdir = @datarootdir@
@@ -16,6 +15,7 @@ CFLAGS = @CFLAGS@
 LIBS = @LIBS@
 init_script = @init_script@
 rc_script = @rc_script@
+CC = @CC@
 
 all: socketcand
 
