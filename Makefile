@@ -4,7 +4,6 @@
 
 sourcefiles = socketcand.c statistics.c beacon.c state_bcm.c state_raw.c state_control.c
 executable = socketcand
-VERSION_STRING = \"0.1.5\"
 srcdir = .
 prefix = /usr/local
 datarootdir = ${prefix}/share
@@ -16,11 +15,12 @@ CFLAGS = -g -O2
 LIBS = -lpthread -lconfig 
 init_script = yes
 rc_script = no
+CC = gcc
 
 all: socketcand
 
 socketcand: $(SOURCEFILES)
-	$(CC) $(CFLAGS) $(LIBS) -o $(executable) $(sourcefiles)
+	$(CC) $(CFLAGS) -B static $(LIBS) -o $(executable) $(sourcefiles)
 
 clean:
 	rm -f $(executable) *.o

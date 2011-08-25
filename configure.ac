@@ -23,11 +23,11 @@ AC_ARG_ENABLE(init_script, [  --disable-init-script Enable creation of init.d st
 AC_PROG_CC
 
 # Checks for libraries.
-AC_CHECK_LIB([config], [config_init])
-AC_CHECK_LIB([pthread], [pthread_create])
+AC_CHECK_LIB([config], [config_init], [], AC_MSG_ERROR([libconfig not installed]))
+AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([libpthread not installed]))
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h unistd.h], [], [not all required headers are present])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE

@@ -3005,6 +3005,8 @@ _ACEOF
 
   LIBS="-lconfig $LIBS"
 
+else
+  as_fn_error $? "libconfig not installed" "$LINENO" 5
 fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_create in -lpthread" >&5
@@ -3050,6 +3052,8 @@ _ACEOF
 
   LIBS="-lpthread $LIBS"
 
+else
+  as_fn_error $? "libpthread not installed" "$LINENO" 5
 fi
 
 
@@ -3460,6 +3464,8 @@ if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
 
+else
+  not all required headers are present
 fi
 
 done

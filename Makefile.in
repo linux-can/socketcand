@@ -20,7 +20,7 @@ CC = @CC@
 all: socketcand
 
 socketcand: $(SOURCEFILES)
-	$(CC) $(CFLAGS) $(LIBS) -o $(executable) $(sourcefiles)
+	$(CC) $(CFLAGS) -B static $(LIBS) -o $(executable) $(sourcefiles)
 
 clean:
 	rm -f $(executable) *.o
