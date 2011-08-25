@@ -71,8 +71,6 @@
 #include <linux/can.h>
 #include <linux/can/bcm.h>
 #include <linux/can/error.h>
-#include <linux/can/netlink.h>
-
 
 #include "socketcand.h"
 #include "statistics.h"

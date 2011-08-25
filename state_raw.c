@@ -24,7 +24,6 @@
 #include <linux/can.h>
 #include <linux/can/bcm.h>
 #include <linux/can/error.h>
-#include <linux/can/netlink.h>
 
 int raw_socket;
 struct ifreq ifr;
