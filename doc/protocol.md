@@ -99,11 +99,11 @@ A mode switch to RAW mode can be initiated by sending '< rawmode >'.
 
 ### Frame transmission ###
 CAN messages received by the given filters are send in the format:
-    < frame can_id can_dlc [data]* >
+    < frame can_id seconds.useconds [data]* >
 
 Example:
-when receiving a CAN message with CAN ID 0x123 , data length 4 and data 0x11, 0x22, 0x33 and 0x44
-    < frame 123 4 11 22 33 44 >
+Reception of a CAN frame with CAN ID 0x123 , data length 4 and data 0x11, 0x22, 0x33 and 0x44 at time 23.424242>
+    < frame 123 23.424242 11 22 33 44 >
 
 ## Mode RAW ##
 After switching to RAW mode the BCM socket is closed and a RAW socket is opened. Now every frame on the bus will immediately be received. Therefore no commands to control which frames are received are supported. Frames may not be sent in this mode.
@@ -152,7 +152,7 @@ For simple parsing and a human readable schema XML is used to structure the info
 
 ### Example ###
 
-    <CANBeacon name="HeartOfGold" type="SocketCAN" description="A human readable description"/>
+    <CANBeacon name="HeartOfGold" type="SocketCAN" description="A human readable description">
         <URL>can://127.0.0.1:28600</URL>
         <Bus name="vcan0"/>
         <Bus name="vcan1"/>
@@ -161,6 +161,6 @@ For simple parsing and a human readable schema XML is used to structure the info
 Error frame transmission
 ------------------------
 
-Error frames are sent similar to normal frames only distinguished by the data_type 'e'. An error frame always has the length of 8 data bytes. Because of this only the fields can_id and data are necessary (see socketcan/can/error.h for further information):
-    < interface e can_id data >
+Error frames are sent inline with regular frames. 'data' is an integer with the encoded error data (see socketcan/can/error.h for further information):
+    < error data >
 

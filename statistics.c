@@ -1,3 +1,4 @@
+#include "config.h"
 #include "statistics.h"
 #include <stdlib.h>
 #include <unistd.h>

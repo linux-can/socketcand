@@ -1,3 +1,4 @@
+#include "config.h"
 #include "socketcand.h"
 #include "statistics.h"
 
@@ -23,7 +24,6 @@
 #include <linux/can.h>
 #include <linux/can/bcm.h>
 #include <linux/can/error.h>
-#include <linux/can/netlink.h>
 
 inline void state_control() {
     char buf[MAXLEN];

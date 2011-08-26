@@ -1,3 +1,4 @@
+#include "config.h"
 #include "socketcand.h"
 #include "state_bcm.h"
 #include "statistics.h"
@@ -24,10 +25,10 @@
 #include <linux/can.h>
 #include <linux/can/bcm.h>
 #include <linux/can/error.h>
-#include <linux/can/netlink.h>
 
 int sc = -1;
 fd_set readfds;
+struct timeval tv;
 
 inline void state_bcm() {
     int i, ret;
@@ -53,7 +54,7 @@ inline void state_bcm() {
         memset(&caddr, 0, sizeof(caddr));
         caddr.can_family = PF_CAN;
         /* can_ifindex is set to 0 (any device) => need for sendto() */
-        
+
         PRINT_VERBOSE("connecting BCM socket...\n")
         if (connect(sc, (struct sockaddr *)&caddr, sizeof(caddr)) < 0) {
             PRINT_ERROR("Error while connecting BCM socket %s\n", strerror(errno));
@@ -68,7 +69,7 @@ inline void state_bcm() {
     FD_SET(client_socket, &readfds);
 
     ret = select((sc > client_socket)?sc+1:client_socket+1, &readfds, NULL, NULL, NULL);
-    
+
     if(ret < 0) {
         PRINT_ERROR("Error in select()\n")
         state = STATE_SHUTDOWN;
@@ -80,16 +81,17 @@ inline void state_bcm() {
         ret = recvfrom(sc, &msg, sizeof(msg), 0,
                 (struct sockaddr*)&caddr, &caddrlen);
 
-        ifr.ifr_ifindex = caddr.can_ifindex;
-        ioctl(sc, SIOCGIFNAME, &ifr);
+        /* read timestamp data */
+        if(ioctl(sc, SIOCGSTAMP, &tv) < 0) {
+            PRINT_ERROR("Could not receive timestamp\n");
+        }
 
         /* Check if this is an error frame */
-        if(msg.msg_head.can_id & 0x20000000) {
+        if(msg.msg_head.can_id & CAN_ERR_FLAG) {
             if(msg.frame.can_dlc != CAN_ERR_DLC) {
                 PRINT_ERROR("Error frame has a wrong DLC!\n")
             } else {
-                snprintf(rxmsg, RXLEN, "< %s e %03X ", ifr.ifr_name,
-                    msg.msg_head.can_id);
+                snprintf(rxmsg, RXLEN, "< error %03X %ld.%06ld ", msg.msg_head.can_id, tv.tv_sec, tv.tv_usec);
 
                 for ( i = 0; i < msg.frame.can_dlc; i++)
                     snprintf(rxmsg + strlen(rxmsg), RXLEN - strlen(rxmsg), "%02X ",
@@ -99,8 +101,8 @@ inline void state_bcm() {
                 send(client_socket, rxmsg, strlen(rxmsg), 0);
             }
         } else {
-            snprintf(rxmsg, RXLEN, "< frame %03X %d ",
-                msg.msg_head.can_id, msg.frame.can_dlc);
+            snprintf(rxmsg, RXLEN, "< frame %03X %ld.%06ld ",
+                msg.msg_head.can_id, tv.tv_sec, tv.tv_usec);
 
             for ( i = 0; i < msg.frame.can_dlc; i++)
                 snprintf(rxmsg + strlen(rxmsg), RXLEN - strlen(rxmsg), "%02X ",

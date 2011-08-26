@@ -46,6 +46,7 @@
  *
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -70,8 +71,6 @@
 #include <linux/can.h>
 #include <linux/can/bcm.h>
 #include <linux/can/error.h>
-#include <linux/can/netlink.h>
-
 
 #include "socketcand.h"
 #include "statistics.h"
@@ -126,7 +125,7 @@ int main(int argc, char **argv)
     /* Read config file before parsing commandline arguments */
     config_init(&config);
     if(CONFIG_TRUE == config_read_file(&config, "/etc/socketcand.conf")) {
-        config_lookup_int(&config, "port", (long int*) &port);
+        config_lookup_int(&config, "port", (int*) &port);
         config_lookup_string(&config, "description", (const char**) &description);
         config_lookup_string(&config, "busses", (const char**) &busses_string);
         config_lookup_string(&config, "listen", (const char**) &interface_string);
@@ -188,7 +187,7 @@ int main(int argc, char **argv)
                 break;
 
             case 'z':
-                printf("socketcand version '%s'\n", VERSION_STRING);
+                printf("socketcand version '%s'\n", PACKAGE_VERSION);
                 return 0;
 
             case '?':
@@ -441,11 +440,12 @@ int receive_command(int socket, char *buffer) {
 }
 
 void print_usage(void) {
-    printf("Socket CAN daemon\n");
+    printf("%s Version %s\n", PACKAGE_NAME, PACKAGE_VERSION);
+    printf("Report bugs to %s\n\n", PACKAGE_BUGREPORT);
     printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port] [-l ip_addr | --listen ip_addr]\n\n");
     printf("Options:\n");
     printf("\t-v activates verbose output to STDOUT\n");
-    printf("\t-i interfaces is used to specify the Socket CAN interfaces the daemon\n\t\tshall provide access to\n");
+    printf("\t-i interfaces is used to specify the SocketCAN interfaces the daemon\n\t\tshall provide access to\n");
     printf("\t-p port changes the default port (28600) the daemon is listening at\n");
     printf("\t-l ip_addr changes the default ip address (127.0.0.1) the daemon will\n\t\tbind to\n");
     printf("\t-d set this flag if you want log to syslog instead of STDOUT\n");
@@ -473,9 +473,6 @@ void sigint() {
         if(!close(client_socket))
             client_socket = -1;
     }
-
-    pthread_cancel(beacon_thread);
-    pthread_cancel(statistics_thread);
 
     closelog();
 
