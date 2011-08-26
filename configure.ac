@@ -1,8 +1,8 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.68])
-AC_INIT([socketcand], [0.1.5], [https://github.com/dschanoeh/socketcand/issues])
+AC_PREREQ([2.61])
+AC_INIT([socketcand], [0.2.0], [https://github.com/dschanoeh/socketcand/issues])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([state_bcm.c])
 
