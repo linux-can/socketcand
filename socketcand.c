@@ -473,9 +473,6 @@ void sigint() {
             client_socket = -1;
     }
 
-    pthread_cancel(beacon_thread);
-    pthread_cancel(statistics_thread);
-
     closelog();
 
     exit(0);
