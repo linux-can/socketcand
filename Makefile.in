@@ -25,7 +25,7 @@ clean:
 	rm -f $(executable) *.o
 
 distclean:
-	rm -f $(executable) *.o *~
+	rm -f $(executable) *.o *~ Makefile config.h
 
 install: socketcand
 	cp $(srcdir)/socketcand $(bindir)/
