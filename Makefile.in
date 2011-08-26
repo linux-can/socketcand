@@ -10,7 +10,6 @@ datarootdir = @datarootdir@
 bindir = @bindir@
 mandir = @mandir@
 sysconfdir = @sysconfdir@
-SCRIPT = "init"
 CFLAGS = @CFLAGS@
 LIBS = @LIBS@
 init_script = @init_script@

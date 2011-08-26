@@ -15,9 +15,12 @@ To build and run socketcand make sure you have the following tools installed:
 * the libconfig (with headers)
 
 First run
+
     $ ./configure
+
 to check your system and create the Makefile. If you want to install scripts for a init system other than SysVinit check the available settings with './configure -h'.
 To compile and install the socketcand run
+
     $ make
     $ make install
 
