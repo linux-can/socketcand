@@ -29,7 +29,17 @@ AC_CHECK_LIB([config], [config_init], [], AC_MSG_ERROR([libconfig not installed]
 AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([libpthread not installed]))
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h unistd.h pthread.h], [], [not all required headers are present])
+AC_CHECK_HEADERS([arpa/inet.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h unistd.h pthread.h], [], AC_MSG_ERROR([not all required headers are present]))
+
+# Check for kernel headers
+AC_CHECK_HEADERS([linux/can.h linux/can/bcm.h linux/can/error.h ], [], AC_MSG_ERROR([kernel headers are not present]),
+[[#if HAVE_LINUX_TYPES_H
+ # include <linux/types.h>
+ #endif
+ #if HAVE_LINUX_SOCKETS_H
+ # include <linux/sockets.h>
+ #endif
+ ]])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
