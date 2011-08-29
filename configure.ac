@@ -6,6 +6,8 @@ AC_INIT([socketcand], [0.2.0], [https://github.com/dschanoeh/socketcand/issues])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([state_bcm.c])
 
+CFLAGS="${CFLAGS} -Wall"
+
 # Enable debug mode option
 AC_ARG_ENABLE(debug, [  --enable-debug Enable debug mode], AC_DEFINE(DEBUG, 1, [Debug mode]))
 
@@ -27,7 +29,7 @@ AC_CHECK_LIB([config], [config_init], [], AC_MSG_ERROR([libconfig not installed]
 AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([libpthread not installed]))
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h unistd.h], [], [not all required headers are present])
+AC_CHECK_HEADERS([arpa/inet.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h unistd.h pthread.h], [], [not all required headers are present])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE

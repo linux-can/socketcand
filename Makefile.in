@@ -15,11 +15,14 @@ LIBS = @LIBS@
 init_script = @init_script@
 rc_script = @rc_script@
 CC = @CC@
+LDFLAGS = @LDFLAGS@
+DEFS = @DEFS@
+CPPFLAGS = @CPPFLAGS@
 
 all: socketcand
 
 socketcand: $(SOURCEFILES)
-	$(CC) $(CFLAGS) -B static $(LIBS) -o $(executable) $(sourcefiles)
+	$(CC) $(CFLAGS) $(DEFS) $(CPPFLAGS) -I . -o $(executable) $(sourcefiles) $(LIBS)
 
 clean:
 	rm -f $(executable) *.o
