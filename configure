@@ -2136,7 +2136,7 @@ ac_config_headers="$ac_config_headers config.h"
 
 
 
-CFLAGS="${CFLAGS} -Wall"
+CFLAGS="${CFLAGS} -Wall -Wno-parentheses"
 
 # Enable debug mode option
 # Check whether --enable-debug was given.
@@ -3468,30 +3468,6 @@ _ACEOF
 
 else
   as_fn_error $? "not all required headers are present" "$LINENO" 5
-fi
-
-done
-
-
-# Check for kernel headers
-for ac_header in linux/can.h linux/can/bcm.h linux/can/error.h
-do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "#if HAVE_LINUX_TYPES_H
- # include <linux/types.h>
- #endif
- #if HAVE_LINUX_SOCKETS_H
- # include <linux/sockets.h>
- #endif
-
-"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
-_ACEOF
-
-else
-  as_fn_error $? "kernel headers are not present" "$LINENO" 5
 fi
 
 done
