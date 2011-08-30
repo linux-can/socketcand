@@ -56,7 +56,7 @@ inline void state_control() {
         if (items != 1) {
             PRINT_ERROR("Syntax error in statistics command\n")
         } else {
-            set_statistics(bus_name, i);
+            statistics_ival = i;
         }
     } else if(!strcmp("< rawmode >", buf)) {
         pthread_cancel(statistics_thread);

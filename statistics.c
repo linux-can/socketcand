@@ -10,64 +10,19 @@
 
 #include "socketcand.h"
 
-struct stat_entry *stat_entries;
-int stat_entries_allocated = 0;
-int stat_entry_cnt = 0;
+int statistics_ival = 0;
 
-/*
- * activate statistics for a given bus name. Ival must be specified in ms.
- * if ival is zero a statistics job will be deactivated
- */
-void set_statistics(char *bus_name, int ival) {
-    struct timeval *current_time;
-    struct stat_entry *our_entry = NULL;
-    int i;
-
-    pthread_mutex_lock(&stat_mutex);
-
-    /* check if we need to create a new entry or update the old one */
-    for( i=0; i<stat_entry_cnt; i++ ) {
-        if( !strcmp(bus_name, stat_entries[i].bus_name) )
-            our_entry = &stat_entries[i];
-    }
-
-    /* entry was not found. create a new one */
-    if( our_entry == NULL ) {
-        if( stat_entries_allocated == 0 ) {
-            stat_entries = (struct stat_entry *) malloc( 5 * sizeof( struct stat_entry ) );
-            stat_entries_allocated = 5;
-        }
-
-        if( stat_entries_allocated == stat_entry_cnt ) {
-            stat_entries = (struct stat_entry *) realloc( &stat_entries, sizeof( struct stat_entry ) * ( stat_entry_cnt+5 ) );
-            stat_entries_allocated += 5;
-        }
-
-        our_entry = &stat_entries[stat_entry_cnt];
-        stat_entry_cnt++;
-    }
-
-    /* fill entry with data */
-    current_time = malloc( sizeof( struct timeval ) );
-    gettimeofday(current_time, 0);
-    our_entry->bus_name = bus_name;
-    our_entry->ival = ival;
-    our_entry->last_fired = current_time;
-
-    pthread_mutex_unlock( &stat_mutex );
-}
+struct timeval *last_fired;
 
 void *statistics_loop(void *ptr) {
-    int i,j, items, found;
+    int items, found;
     struct timeval current_time;
     int elapsed;
-    struct stat_entry current_entry;
     char buffer[STAT_BUF_LEN];
     /*int state;
     struct can_berr_counter errorcnt;*/
     FILE *proc_net_dev;
-    struct proc_stat_entry proc_entries[PROC_LINECOUNT];
-    int proc_entry_cnt=0;
+    struct proc_stat_entry proc_entry;
     char line[PROC_LINESIZE];
 
     /* sync with main thread */
@@ -83,106 +38,83 @@ void *statistics_loop(void *ptr) {
             sleep(1);
             continue;
         }
-        for( i=0; i<PROC_LINECOUNT; i++ ) {
+
+        while(1) {
             if( fgets( line , PROC_LINESIZE, proc_net_dev ) == NULL )
                 break;
-            
-            items = sscanf( line, " %7s %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u",
-                proc_entries[i].device_name,
-                &proc_entries[i].rbytes,
-                &proc_entries[i].rpackets,
-                &proc_entries[i].rerrs,
-                &proc_entries[i].rdrop,
-                &proc_entries[i].rfifo,
-                &proc_entries[i].rframe,
-                &proc_entries[i].rcompressed,
-                &proc_entries[i].rmulticast,
-                &proc_entries[i].tbytes,
-                &proc_entries[i].tpackets,
-                &proc_entries[i].terrs,
-                &proc_entries[i].tdrop,
-                &proc_entries[i].tfifo,
-                &proc_entries[i].tcolls,
-                &proc_entries[i].tcarrier,
-                &proc_entries[i].tcompressed );
 
-                proc_entries[i].device_name[strlen(proc_entries[i].device_name)-1] = '\0';
+            items = sscanf( line, " %7s %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u",
+                proc_entry.device_name,
+                &proc_entry.rbytes,
+                &proc_entry.rpackets,
+                &proc_entry.rerrs,
+                &proc_entry.rdrop,
+                &proc_entry.rfifo,
+                &proc_entry.rframe,
+                &proc_entry.rcompressed,
+                &proc_entry.rmulticast,
+                &proc_entry.tbytes,
+                &proc_entry.tpackets,
+                &proc_entry.terrs,
+                &proc_entry.tdrop,
+                &proc_entry.tfifo,
+                &proc_entry.tcolls,
+                &proc_entry.tcarrier,
+                &proc_entry.tcompressed );
+
+            proc_entry.device_name[strlen(proc_entry.device_name)-1] = '\0';
+
             if( items == 17 ) {
                 /* do we care for this device? */
                 found=0;
-                for ( j=0; j < stat_entry_cnt; j++) {
-                    if( !strcmp( stat_entries[i].bus_name, proc_entries[i].device_name ) ) {
-                        found=1;
-                        break;
-                    }
+                if( !strcmp( bus_name, proc_entry.device_name ) ) {
+                    found=1;
+                    break;
                 }
-
-                /* if we don't need this device we can overwrite the data of the proc entry
-                 * in the following step.
-                 */
-                if( !found )
-                    i--;
             }
-            else
-               i--;
         }
-        proc_entry_cnt = i;
         fclose( proc_net_dev );
 
         gettimeofday(&current_time, 0);
         pthread_mutex_lock(&stat_mutex);
 
-        /* loop through all statistics jobs */
-        for(i=0;i<stat_entry_cnt;i++) {
-            current_entry = stat_entries[i];
+        if( statistics_ival == 0 )
+            continue;
 
-            if( current_entry.ival == 0 )
+        elapsed = ((current_time.tv_sec - last_fired->tv_sec) * 1000 
+                + (current_time.tv_usec - last_fired->tv_usec)/1000.0) + 0.5;
+
+        if(elapsed >= statistics_ival) {
+            /* If we didn't find the device there is something wrong. */
+            if(found) {
+                fprintf(stderr, "could not find device %s in /proc/net/dev\n", bus_name);
                 continue;
-
-            elapsed = ((current_time.tv_sec - current_entry.last_fired->tv_sec) * 1000 
-                    + (current_time.tv_usec - current_entry.last_fired->tv_usec)/1000.0) + 0.5;
-
-            if(elapsed >= current_entry.ival) {
-                /* get values */
-                found = -1;
-                for(j=0; j<proc_entry_cnt; j++) {
-                    if(!strcmp(current_entry.bus_name, proc_entries[i].device_name)) {
-                        found = j;
-                        break;
-                    }
-                }
-                
-                /* If we didn't find the device there is something wrong. */
-                if(found==-1) {
-                    fprintf(stderr, "could not find device %s in /proc/net/dev\n", current_entry.bus_name);
-                    continue;
-                }
-
-                /*
-                 * TODO this does not work for virtual devices. therefore it is commented out until
-                 * a solution is found to identify virtual CAN devices 
-                 */
-                /*if( can_get_state( current_entry.bus_name, &state ) ) {
-                    printf( "unable to get state of %s\n", current_entry.bus_name );
-                    continue;
-                }
-                if( can_get_berr_counter( current_entry.bus_name, &errorcnt ) ) {
-                    printf( "unable to get error count of %s\n", current_entry.bus_name );
-                    continue;
-                }*/
-                
-                snprintf( buffer, STAT_BUF_LEN, "< stat %u %u %u %u >", 
-                        proc_entries[found].rbytes, 
-                        proc_entries[found].rpackets, 
-                        proc_entries[found].tbytes, 
-                        proc_entries[found].tpackets);
-
-                /* no lock needed here because POSIX send is thread-safe and does locking itself */
-                send( client_socket, buffer, strlen(buffer), 0 );
-
-                current_entry.last_fired->tv_sec = current_time.tv_sec;
-                current_entry.last_fired->tv_usec = current_time.tv_usec;
             }
+
+            /*
+                * TODO this does not work for virtual devices. therefore it is commented out until
+                * a solution is found to identify virtual CAN devices 
+                */
+            /*if( can_get_state( current_entry.bus_name, &state ) ) {
+                printf( "unable to get state of %s\n", current_entry.bus_name );
+                continue;
+            }
+            if( can_get_berr_counter( current_entry.bus_name, &errorcnt ) ) {
+                printf( "unable to get error count of %s\n", current_entry.bus_name );
+                continue;
+            }*/
+            
+            snprintf( buffer, STAT_BUF_LEN, "< stat %u %u %u %u >", 
+                    proc_entry.rbytes, 
+                    proc_entry.rpackets, 
+                    proc_entry.tbytes, 
+                    proc_entry.tpackets);
+
+            /* no lock needed here because POSIX send is thread-safe and does locking itself */
+            send( client_socket, buffer, strlen(buffer), 0 );
+
+            last_fired->tv_sec = current_time.tv_sec;
+            last_fired->tv_usec = current_time.tv_usec;
         }
         pthread_mutex_unlock(&stat_mutex);
 
