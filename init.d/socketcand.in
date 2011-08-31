@@ -14,7 +14,9 @@
 
 [ -f /etc/default/rcS ] && . /etc/default/rcS
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
-DAEMON=/usr/local/bin/socketcand
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+DAEMON=@bindir@/socketcand
 DESC="SocketCAN daemon"
 NAME="socketcand"
 PIDFILE=/var/run/socketcand.pid

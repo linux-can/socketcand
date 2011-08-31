@@ -42,4 +42,5 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([gethostname gettimeofday inet_ntoa memset select socket strerror])
 
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([init.d/socketcand])
 AC_OUTPUT

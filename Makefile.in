@@ -6,6 +6,7 @@ sourcefiles = socketcand.c statistics.c beacon.c state_bcm.c state_raw.c state_c
 executable = socketcand
 srcdir = @srcdir@
 prefix = @prefix@
+exec_prefix = @exec_prefix@
 datarootdir = @datarootdir@
 bindir = @bindir@
 mandir = @mandir@
@@ -34,5 +35,5 @@ install: socketcand
 	cp $(srcdir)/socketcand $(bindir)/
 	cp $(srcdir)/socketcand.1 $(mandir)/
 	cp -n $(srcdir)/etc/socketcand.conf $(sysconfdir)/
-	if [ $(init_script) = yes ]; then cp $(srcdir)/init.d/socketcand $(prefix)/etc/init.d/socketcand; fi
-	if [ $(rc_script) = yes ]; then cp $(srcdir)/rc.d/socketcand $(prefix)/etc/rc.d/socketcand; fi
+	if [ $(init_script) = yes ]; then install --mode=755 $(srcdir)/init.d/socketcand /etc/init.d/socketcand; fi
+	if [ $(rc_script) = yes ]; then install --mode=755 $(srcdir)/rc.d/socketcand /etc/rc.d/socketcand; fi
