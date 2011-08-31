@@ -3902,6 +3902,8 @@ done
 
 ac_config_files="$ac_config_files Makefile"
 
+ac_config_files="$ac_config_files init.d/socketcand"
+
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -4605,6 +4607,7 @@ do
   case $ac_config_target in
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+    "init.d/socketcand") CONFIG_FILES="$CONFIG_FILES init.d/socketcand" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
