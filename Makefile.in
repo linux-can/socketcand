@@ -23,7 +23,7 @@ CPPFLAGS = @CPPFLAGS@
 all: socketcand
 
 socketcand: $(SOURCEFILES)
-	$(CC) $(CFLAGS) $(DEFS) $(CPPFLAGS) -I . -o $(executable) $(sourcefiles) $(LIBS)
+	$(CC) $(CFLAGS) $(DEFS) $(CPPFLAGS) $(LDFLAGS) -I . -o $(executable) $(sourcefiles) $(LIBS)
 
 clean:
 	rm -f $(executable) *.o

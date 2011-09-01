@@ -6,7 +6,7 @@ AC_INIT([socketcand], [0.2.0], [https://github.com/dschanoeh/socketcand/issues])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([state_bcm.c])
 
-CFLAGS="${CFLAGS} -Wall -Wno-parentheses"
+CFLAGS="${CFLAGS} -Wall -Wno-parentheses -DPF_CAN=29 -DAF_CAN=PF_CAN"
 
 # Enable debug mode option
 AC_ARG_ENABLE(debug, [  --enable-debug Enable debug mode], AC_DEFINE(DEBUG, 1, [Debug mode]))
@@ -37,8 +37,6 @@ AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_FUNC_FORK
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
 AC_CHECK_FUNCS([gethostname gettimeofday inet_ntoa memset select socket strerror])
 
 AC_CONFIG_FILES([Makefile])
