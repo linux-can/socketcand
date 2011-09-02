@@ -19,6 +19,7 @@ CC = @CC@
 LDFLAGS = @LDFLAGS@
 DEFS = @DEFS@
 CPPFLAGS = @CPPFLAGS@
+sysroot = @sysroot@
 
 all: socketcand
 
@@ -32,8 +33,8 @@ distclean:
 	rm -f $(executable) *.o *~ Makefile config.h
 
 install: socketcand
-	cp $(srcdir)/socketcand $(bindir)/
-	cp $(srcdir)/socketcand.1 $(mandir)/
-	cp -n $(srcdir)/etc/socketcand.conf $(sysconfdir)/
-	if [ $(init_script) = yes ]; then install --mode=755 $(srcdir)/init.d/socketcand /etc/init.d/socketcand; fi
-	if [ $(rc_script) = yes ]; then install --mode=755 $(srcdir)/rc.d/socketcand /etc/rc.d/socketcand; fi
+	cp $(srcdir)/socketcand $(sysroot)$(bindir)/
+	cp $(srcdir)/socketcand.1 $(sysroot)$(mandir)/
+	cp -n $(srcdir)/etc/socketcand.conf $(sysroot)/etc/
+	if [ $(init_script) = yes ]; then install --mode=755 $(srcdir)/init.d/socketcand $(sysroot)/etc/init.d/socketcand; fi
+	if [ $(rc_script) = yes ]; then install --mode=755 $(srcdir)/rc.d/socketcand $(sysroot)/etc/rc.d/socketcand; fi

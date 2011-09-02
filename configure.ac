@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.61])
-AC_INIT([socketcand], [0.2.0], [https://github.com/dschanoeh/socketcand/issues])
+AC_INIT([socketcand], [0.2.1], [https://github.com/dschanoeh/socketcand/issues])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([state_bcm.c])
 
@@ -14,6 +14,7 @@ AC_ARG_ENABLE(debug, [  --enable-debug Enable debug mode], AC_DEFINE(DEBUG, 1, [
 # init scripts. default is only to create an init.d script
 AC_SUBST(init_script, "yes")
 AC_SUBST(rc_script, "no")
+AC_SUBST(sysroot, $sysroot)
 
 AC_ARG_ENABLE(rc_script, [  --enable-rc-script Enable creation of rc.d start script], 
               AC_SUBST(rc_script, "yes"))
