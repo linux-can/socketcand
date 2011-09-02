@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <syslog.h>
 
 #define MAXLEN 100
 #define MAX_BUSNAME 16+1

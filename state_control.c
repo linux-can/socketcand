@@ -19,7 +19,6 @@
 #include <net/if.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <syslog.h>
 
 #include <linux/can.h>
 #include <linux/can/bcm.h>
@@ -31,12 +30,7 @@ inline void state_control() {
 
     if(previous_state != STATE_CONTROL) {
         PRINT_VERBOSE("starting statistics thread...\n")
-        pthread_mutex_init(&stat_mutex, NULL);
-        pthread_cond_init(&stat_condition, NULL);
-        pthread_mutex_lock(&stat_mutex);
         pthread_create(&statistics_thread, NULL, &statistics_loop, NULL);
-        pthread_cond_wait(&stat_condition, &stat_mutex);
-        pthread_mutex_unlock(&stat_mutex);
 
         previous_state = STATE_CONTROL;
     }
@@ -56,7 +50,7 @@ inline void state_control() {
         if (items != 1) {
             PRINT_ERROR("Syntax error in statistics command\n")
         } else {
-            set_statistics(bus_name, i);
+            statistics_ival = i;
         }
     } else if(!strcmp("< rawmode >", buf)) {
         pthread_cancel(statistics_thread);

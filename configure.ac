@@ -2,9 +2,11 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.61])
-AC_INIT([socketcand], [0.2.0], [https://github.com/dschanoeh/socketcand/issues])
+AC_INIT([socketcand], [0.2.1], [https://github.com/dschanoeh/socketcand/issues])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([state_bcm.c])
+
+CFLAGS="${CFLAGS} -Wall -Wno-parentheses -DPF_CAN=29 -DAF_CAN=PF_CAN"
 
 # Enable debug mode option
 AC_ARG_ENABLE(debug, [  --enable-debug Enable debug mode], AC_DEFINE(DEBUG, 1, [Debug mode]))
@@ -12,6 +14,7 @@ AC_ARG_ENABLE(debug, [  --enable-debug Enable debug mode], AC_DEFINE(DEBUG, 1, [
 # init scripts. default is only to create an init.d script
 AC_SUBST(init_script, "yes")
 AC_SUBST(rc_script, "no")
+AC_SUBST(sysroot, $sysroot)
 
 AC_ARG_ENABLE(rc_script, [  --enable-rc-script Enable creation of rc.d start script], 
               AC_SUBST(rc_script, "yes"))
@@ -27,7 +30,7 @@ AC_CHECK_LIB([config], [config_init], [], AC_MSG_ERROR([libconfig not installed]
 AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([libpthread not installed]))
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h unistd.h], [], [not all required headers are present])
+AC_CHECK_HEADERS([arpa/inet.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h unistd.h pthread.h], [], AC_MSG_ERROR([not all required headers are present]))
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
@@ -35,9 +38,8 @@ AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_FUNC_FORK
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
 AC_CHECK_FUNCS([gethostname gettimeofday inet_ntoa memset select socket strerror])
 
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([init.d/socketcand])
 AC_OUTPUT
