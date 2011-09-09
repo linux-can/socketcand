@@ -84,11 +84,20 @@ inline void state_raw() {
     FD_SET(raw_socket, &readfds);
     FD_SET(client_socket, &readfds);
 
-    ret = select((raw_socket > client_socket)?raw_socket+1:client_socket+1, &readfds, NULL, NULL, NULL);
-    if(ret < 0) {
-        PRINT_ERROR("Error in select()\n")
-        state = STATE_SHUTDOWN;
-        return;
+    /* 
+     * Check if there are more elements in the element buffer before calling select() and
+     * blocking for new packets.
+     */
+    if(more_elements) {
+        FD_SET(client_socket, &readfds);
+    } else {
+        ret = select((raw_socket > client_socket)?raw_socket+1:client_socket+1, &readfds, NULL, NULL, NULL);
+
+        if(ret < 0) {
+            PRINT_ERROR("Error in select()\n")
+            state = STATE_SHUTDOWN;
+            return;
+        }
     }
 
     if(FD_ISSET(raw_socket, &readfds)) {

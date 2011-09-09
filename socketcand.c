@@ -375,8 +375,18 @@ int receive_command(int socket, char *buffer) {
     /* if there are no more elements in the buffer read more data from the
      * socket.
      */
-    if(!more_elements)
+    if(!more_elements) {
         cmd_index += read(socket, cmd_buffer+cmd_index, MAXLEN-cmd_index);
+#ifdef DEBUG_RECEPTION
+        PRINT_VERBOSE("\tRead from socket\n");
+#endif
+    }
+
+#ifdef DEBUG_RECEPTION
+    PRINT_VERBOSE("\tcmd_index now %d\n", cmd_index);
+#endif
+
+    more_elements = 0;
 
     /* find first '<' in string */
     start = -1;
@@ -393,6 +403,9 @@ int receive_command(int socket, char *buffer) {
      */
     if(start == -1) {
         cmd_index = 0;
+#ifdef DEBUG_RECEPTION
+        PRINT_VERBOSE("\tBad data. No element found\n");
+#endif
         return -1;
     }
 
@@ -406,14 +419,26 @@ int receive_command(int socket, char *buffer) {
     }
 
     /* if no '>' is in the string we have to wait for more data */
-    if(stop == -1)
+    if(stop == -1) {
+#ifdef DEBUG_RECEPTION
+        PRINT_VERBOSE("\tNo full element in the buffer\n");
+#endif
         return -1;
+    }
 
+#ifdef DEBUG_RECEPTION
+    PRINT_VERBOSE("\tElement between %d and %d\n", start, stop);
+#endif
+    
     /* copy string to new destination and correct cmd_buffer */
     for(i=start;i<=stop;i++) {
         buffer[i-start] = cmd_buffer[i];
     }
-    buffer[i] = '\0';
+    buffer[i-start] = '\0';
+
+#ifdef DEBUG_RECEPTION
+    PRINT_VERBOSE("\tElement is '%s'\n", buffer);
+#endif
 
     /* if only this message was in the buffer we're done */
     if(stop == cmd_index-1) {
@@ -431,7 +456,9 @@ int receive_command(int socket, char *buffer) {
         /* if there is none it is only garbage we can remove */
         if(start == -1) {
             cmd_index = 0;
-            PRINT_VERBOSE("Garbage after the first element in the buffer\n");
+#ifdef DEBUG_RECEPTION
+            PRINT_VERBOSE("\tGarbage after the first element in the buffer\n");
+#endif
             return 0;
         /* otherwise we copy the valid data to the beginning of the buffer */
         } else {
@@ -451,7 +478,9 @@ int receive_command(int socket, char *buffer) {
 
             if(stop != -1) {
                 more_elements = 1;
-                PRINT_VERBOSE("More than one full element in the buffer.\n");
+#ifdef DEBUG_RECEPTION
+                PRINT_VERBOSE("\tMore than one full element in the buffer.\n");
+#endif
             }
         }
     }
