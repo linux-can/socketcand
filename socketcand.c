@@ -98,6 +98,7 @@ char bus_name[MAX_BUSNAME];
 char cmd_buffer[MAXLEN];
 int cmd_index=0;
 char* description;
+int more_elements = 0;
 
 int main(int argc, char **argv)
 {
@@ -371,8 +372,11 @@ int main(int argc, char **argv)
 int receive_command(int socket, char *buffer) {
     int i, start, stop;
 
-    /* read what we can get */
-    cmd_index += read(socket, cmd_buffer+cmd_index, MAXLEN-cmd_index);
+    /* if there are no more elements in the buffer read more data from the
+     * socket.
+     */
+    if(!more_elements)
+        cmd_index += read(socket, cmd_buffer+cmd_index, MAXLEN-cmd_index);
 
     /* find first '<' in string */
     start = -1;
@@ -427,6 +431,7 @@ int receive_command(int socket, char *buffer) {
         /* if there is none it is only garbage we can remove */
         if(start == -1) {
             cmd_index = 0;
+            PRINT_VERBOSE("Garbage after the first element in the buffer\n");
             return 0;
         /* otherwise we copy the valid data to the beginning of the buffer */
         } else {
@@ -434,6 +439,20 @@ int receive_command(int socket, char *buffer) {
                 cmd_buffer[i-start] = cmd_buffer[i];
             }
             cmd_index -= start;
+
+            /* check if there is at least one full element in the buffer */
+            stop = -1;
+            for(i=1;i<cmd_index;i++) {
+                if(cmd_buffer[i] == '>') {
+                    stop = i;
+                    break;
+                }
+            }
+
+            if(stop != -1) {
+                more_elements = 1;
+                PRINT_VERBOSE("More than one full element in the buffer.\n");
+            }
         }
     }
     return 0;

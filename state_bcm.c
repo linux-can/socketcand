@@ -300,7 +300,7 @@ inline void state_bcm() {
                 &msg.msg_head.can_id);
 
             if (items != 3) {
-                PRINT_ERROR("syntax error in add filter command\n")
+                PRINT_ERROR("syntax error in subscribe command\n")
                 return;
             }
 
@@ -319,7 +319,7 @@ inline void state_bcm() {
                 &msg.msg_head.can_id);
 
             if (items != 1) {
-                PRINT_ERROR("syntax error in delete filter command\n")
+                PRINT_ERROR("syntax error in unsubscribe command\n")
                 return;
             }
 
