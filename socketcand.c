@@ -411,7 +411,7 @@ int receive_command(int socket, char *buffer) {
 
     /* copy string to new destination and correct cmd_buffer */
     for(i=start;i<=stop;i++) {
-        buffer[i] = cmd_buffer[i+start];
+        buffer[i-start] = cmd_buffer[i];
     }
     buffer[i] = '\0';
 
