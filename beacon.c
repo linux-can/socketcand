@@ -18,11 +18,6 @@ void *beacon_loop(void *ptr) {
     int optval;
     char buffer[BEACON_LENGTH];
     char hostname[32];
-    struct sockaddr_in bind_adress;
-    
-    bind_adress.sin_family = AF_INET;
-    bind_adress.sin_addr = saddr.sin_addr;
-    bind_adress.sin_port = htons(BROADCAST_PORT);
 
     if ((udp_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
         PRINT_ERROR("Failed to create broadcast socket");
@@ -37,12 +32,8 @@ void *beacon_loop(void *ptr) {
     }
 
     /* Connect the socket */
-    /*if (connect(udp_socket, (struct sockaddr *) &broadcast_addr.sin_addr, sizeof(broadcast_addr.sin_addr)) < 0) {
+    if(connect(udp_socket, (struct sockaddr *) &broadcast_addr.sin_addr, sizeof(broadcast_addr.sin_addr)) < 0) {
         PRINT_ERROR("Failed to connect broadcast socket");
-        return NULL;
-    }*/
-    if(bind(udp_socket, (struct sockaddr *) &bind_adress, sizeof(bind_adress)) < 0) {
-        PRINT_ERROR("Failed to bind broadcast socket");
         return NULL;
     }
 
@@ -72,7 +63,10 @@ void *beacon_loop(void *ptr) {
 
         snprintf(buffer+(n*sizeof(char)), chars_left, "</CANBeacon>");
 
-        sendto(udp_socket, buffer, strlen(buffer), 0, (struct sockaddr *) &broadcast_addr.sin_addr, sizeof(struct sockaddr_in));
+        ret = send(udp_socket, buffer, strlen(buffer), 0);
+        if(ret == -1) {
+            PRINT_ERROR("Error in beacon send()\n");
+        }
         sleep(3);
     }
 
