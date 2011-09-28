@@ -32,7 +32,7 @@ void *beacon_loop(void *ptr) {
     }
 
     /* Connect the socket */
-    if(connect(udp_socket, (struct sockaddr *) &broadcast_addr.sin_addr, sizeof(broadcast_addr.sin_addr)) < 0) {
+    if(connect(udp_socket, (struct sockaddr *) &broadcast_addr, sizeof(broadcast_addr)) < 0) {
         PRINT_ERROR("Failed to connect broadcast socket");
         return NULL;
     }
