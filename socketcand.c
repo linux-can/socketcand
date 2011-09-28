@@ -90,7 +90,6 @@ pthread_t beacon_thread, statistics_thread;
 char **interface_names;
 int interface_count=0;
 int port;
-struct in_addr laddr;
 int verbose_flag=0;
 int daemon_flag=0;
 int state = STATE_NO_BUS;

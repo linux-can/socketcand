@@ -13,13 +13,16 @@
 #include "beacon.h"
 
 void *beacon_loop(void *ptr) {
-    int i, n, chars_left;
+    int i, n, chars_left, ret;
     int udp_socket;
-    struct sockaddr_in s;
-    size_t len;
     int optval;
     char buffer[BEACON_LENGTH];
     char hostname[32];
+    struct sockaddr_in bind_adress;
+    
+    bind_adress.sin_family = AF_INET;
+    bind_adress.sin_addr = saddr.sin_addr;
+    bind_adress.sin_port = htons(BROADCAST_PORT);
 
     if ((udp_socket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
         PRINT_ERROR("Failed to create broadcast socket");
@@ -28,12 +31,18 @@ void *beacon_loop(void *ptr) {
 
     /* Activate broadcast option */
     optval = 1;
-    setsockopt(udp_socket, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(int));
+    ret = setsockopt(udp_socket, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(int));
+    if(ret) {
+        PRINT_ERROR("Could not activate SO_BROADCAST\n");
+    }
 
     /* Connect the socket */
-    len = sizeof(broadcast_addr);
-    if (connect(udp_socket, (struct sockaddr *) &broadcast_addr, len) < 0) {
+    /*if (connect(udp_socket, (struct sockaddr *) &broadcast_addr.sin_addr, sizeof(broadcast_addr.sin_addr)) < 0) {
         PRINT_ERROR("Failed to connect broadcast socket");
+        return NULL;
+    }*/
+    if(bind(udp_socket, (struct sockaddr *) &bind_adress, sizeof(bind_adress)) < 0) {
+        PRINT_ERROR("Failed to bind broadcast socket");
         return NULL;
     }
 
@@ -41,7 +50,7 @@ void *beacon_loop(void *ptr) {
         /* Build the beacon */
         gethostname((char *) &hostname, (size_t)  32);
         snprintf(buffer, BEACON_LENGTH, "<CANBeacon name=\"%s\" type=\"%s\" description=\"%s\">\n<URL>can://%s:%d</URL>", 
-                hostname, BEACON_TYPE, description, inet_ntoa( laddr ), port);
+                hostname, BEACON_TYPE, description, inet_ntoa( saddr.sin_addr ), port);
 
         for(i=0;i<interface_count;i++) {
             /* Find \0 in beacon buffer */
@@ -63,7 +72,7 @@ void *beacon_loop(void *ptr) {
 
         snprintf(buffer+(n*sizeof(char)), chars_left, "</CANBeacon>");
 
-        sendto(udp_socket, buffer, strlen(buffer), 0, (struct sockaddr *) &s, sizeof(struct sockaddr_in));
+        sendto(udp_socket, buffer, strlen(buffer), 0, (struct sockaddr *) &broadcast_addr.sin_addr, sizeof(struct sockaddr_in));
         sleep(3);
     }
 
