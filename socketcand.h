@@ -34,5 +34,6 @@ extern char bus_name[];
 extern char* description;
 extern pthread_t statistics_thread;
 extern int more_elements;
+extern struct sockaddr_in broadcast_addr;
 
 int receive_command(int socket, char *buf);

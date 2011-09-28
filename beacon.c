@@ -25,22 +25,16 @@ void *beacon_loop(void *ptr) {
         PRINT_ERROR("Failed to create broadcast socket");
         return NULL;
     }
-    
-    /* Construct the server sockaddr_in structure */
-    memset(&s, 0, sizeof(s));
-    s.sin_family = AF_INET;
-    s.sin_addr.s_addr = htonl(INADDR_BROADCAST);
-    s.sin_port = htons(BROADCAST_PORT);
 
     /* Activate broadcast option */
     optval = 1;
     setsockopt(udp_socket, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(int));
 
     /* Connect the socket */
-    len = sizeof(s);
-    if (connect(udp_socket, (struct sockaddr *) &s, len) < 0) {
+    len = sizeof(broadcast_addr);
+    if (connect(udp_socket, (struct sockaddr *) &broadcast_addr, len) < 0) {
         PRINT_ERROR("Failed to connect broadcast socket");
-        return NULL;    
+        return NULL;
     }
 
     while(1) {

@@ -82,6 +82,7 @@
 void print_usage(void);
 void sigint();
 void childdied();
+void determine_adress();
 int receive_command(int socket, char *buf);
 
 int sl, client_socket;
@@ -99,26 +100,28 @@ char cmd_buffer[MAXLEN];
 int cmd_index=0;
 char* description;
 int more_elements = 0;
+struct sockaddr_in saddr, broadcast_addr;
+char* interface_string;
+struct ifreq ifr, ifr_brd;
 
 int main(int argc, char **argv)
 {
     int i, found;
-    struct sockaddr_in  saddr, clientaddr;
+    struct sockaddr_in clientaddr;
     socklen_t sin_size = sizeof(clientaddr);
     struct sigaction signalaction, sigint_action;
     sigset_t sigset;
     char buf[MAXLEN];
     int c;
     char* busses_string;
-    char* interface_string;
     config_t config;
 
     /* set default config settings */
     port = PORT;
     description = malloc(sizeof(BEACON_DESCRIPTION));
     strcpy(description, BEACON_DESCRIPTION);
-    interface_string = malloc(strlen("127.0.0.1"));
-    strcpy(interface_string, "127.0.0.1");
+    interface_string = malloc(strlen("eth0"));
+    strcpy(interface_string, "eth0");
     busses_string = malloc(strlen("vcan0"));
     strcpy(busses_string, "vcan0");
 
@@ -131,8 +134,6 @@ int main(int argc, char **argv)
         config_lookup_string(&config, "busses", (const char**) &busses_string);
         config_lookup_string(&config, "listen", (const char**) &interface_string);
     }
-
-    laddr.s_addr = inet_addr(interface_string);
 
     /* Parse commandline arguments */
     while (1) {
@@ -176,7 +177,8 @@ int main(int argc, char **argv)
                 break;
 
             case 'l':
-                laddr.s_addr = inet_addr(optarg);
+                interface_string = realloc(interface_string, strlen(optarg));
+                strcpy(interface_string, optarg);
                 break;
 
             case 'h':
@@ -200,6 +202,8 @@ int main(int argc, char **argv)
                 return -1;
         }
     }
+
+
 
     /* parse busses */
     for(i=0;;i++) {
@@ -249,9 +253,7 @@ int main(int argc, char **argv)
     }
 #endif
 
-    saddr.sin_family = AF_INET;
-    saddr.sin_addr = laddr;
-    saddr.sin_port = htons(port);
+    determine_adress();
 
     PRINT_VERBOSE("creating broadcast thread...\n")
     i = pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
@@ -485,6 +487,39 @@ int receive_command(int socket, char *buffer) {
         }
     }
     return 0;
+}
+
+void determine_adress() {
+    int probe_socket = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if(probe_socket < 0) {
+        PRINT_ERROR("Could not create socket!\n");
+        exit(-1);
+    }
+
+    PRINT_VERBOSE("Using network interface '%s'\n", interface_string);
+
+    ifr.ifr_addr.sa_family = AF_INET;
+    strncpy(ifr.ifr_name, interface_string, IFNAMSIZ-1);
+    ioctl(probe_socket, SIOCGIFADDR, &ifr);
+
+    ifr_brd.ifr_addr.sa_family = AF_INET;
+    strncpy(ifr_brd.ifr_name, interface_string, IFNAMSIZ-1);
+    ioctl(probe_socket, SIOCGIFBRDADDR, &ifr_brd);
+    close(probe_socket);
+
+    PRINT_VERBOSE("Listen adress is %s\n", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
+    PRINT_VERBOSE("Broadcast adress is %s\n", inet_ntoa(((struct sockaddr_in *)&ifr_brd.ifr_broadaddr)->sin_addr));
+
+    /* set listen adress */
+    saddr.sin_family = AF_INET;
+    saddr.sin_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
+    saddr.sin_port = htons(port);
+    
+    /* set broadcast adress */
+    broadcast_addr.sin_family = AF_INET;
+    broadcast_addr.sin_addr = ((struct sockaddr_in *) &ifr_brd.ifr_broadaddr)->sin_addr;
+    broadcast_addr.sin_port = htons(BROADCAST_PORT);
 }
 
 void print_usage(void) {

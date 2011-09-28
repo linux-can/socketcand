@@ -13,7 +13,7 @@ socketcand \- The Socket CAN daemon
 .B ] [-l 
 .I ip_addr 
 .B | --listen 
-.I ip_addr
+.I interface
 .B ] [-d | --daemon ]
 .SH DESCRIPTION
 .B socketcand
@@ -26,7 +26,7 @@ comma separated list of SocketCAN interfaces the daemon shall provide access to 
 .IP -p
 port changes the default port (28600) the daemon is listening at
 .IP -l
-ip_addr changes the default ip address (127.0.0.1) the daemon will bind to
+interface changes the default interface (eth0) the daemon will bind to
 .IP -d
 set this flag if you want log to syslog instead of STDOUT
 .IP -h
