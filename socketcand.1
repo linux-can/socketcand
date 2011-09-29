@@ -11,10 +11,10 @@ socketcand \- The Socket CAN daemon
 .B | --port 
 .I port
 .B ] [-l 
-.I ip_addr 
+.I interface 
 .B | --listen 
 .I interface
-.B ] [-d | --daemon ]
+.B ] [-d | --daemon ] [-n | --no-beacon]
 .SH DESCRIPTION
 .B socketcand
 is a daemon that provides access to CAN interfaces on a machine via a network interface. The communication protocol uses a TCP/IP connection and a specific protocol to transfer CAN frames and control commands.
@@ -29,5 +29,7 @@ port changes the default port (28600) the daemon is listening at
 interface changes the default interface (eth0) the daemon will bind to
 .IP -d
 set this flag if you want log to syslog instead of STDOUT
+.IP -n
+disables the discovery beacon
 .IP -h
 prints a help message

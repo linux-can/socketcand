@@ -92,6 +92,7 @@ int interface_count=0;
 int port;
 int verbose_flag=0;
 int daemon_flag=0;
+int disable_beacon=0;
 int state = STATE_NO_BUS;
 int previous_state = -1;
 char bus_name[MAX_BUSNAME];
@@ -145,10 +146,11 @@ int main(int argc, char **argv)
             {"listen", required_argument, 0, 'l'},
             {"daemon", no_argument, 0, 'd'},
             {"version", no_argument, 0, 'z'},
+            {"no-beacon", no_argument, 0, 'n'},
             {0, 0, 0, 0}
         };
     
-        c = getopt_long (argc, argv, "vhi:p:l:d", long_options, &option_index);
+        c = getopt_long (argc, argv, "vhni:p:l:d", long_options, &option_index);
     
         if (c == -1)
             break;
@@ -191,6 +193,10 @@ int main(int argc, char **argv)
             case 'z':
                 printf("socketcand version '%s'\n", PACKAGE_VERSION);
                 return 0;
+
+            case 'n':
+                disable_beacon=1;
+                break;
 
             case '?':
                 print_usage();
@@ -254,10 +260,14 @@ int main(int argc, char **argv)
 
     determine_adress();
 
-    PRINT_VERBOSE("creating broadcast thread...\n")
-    i = pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
-    if(i)
-        PRINT_ERROR("could not create broadcast thread.\n");
+    if(!disable_beacon) {
+        PRINT_VERBOSE("creating broadcast thread...\n")
+        i = pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
+        if(i)
+            PRINT_ERROR("could not create broadcast thread.\n");
+    } else {
+        PRINT_VERBOSE("Discovery beacon disabled\n");
+    }
 
     PRINT_VERBOSE("binding socket to %s:%d\n", inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port))
     if(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
@@ -524,13 +534,14 @@ void determine_adress() {
 void print_usage(void) {
     printf("%s Version %s\n", PACKAGE_NAME, PACKAGE_VERSION);
     printf("Report bugs to %s\n\n", PACKAGE_BUGREPORT);
-    printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port] [-l ip_addr | --listen ip_addr]\n\n");
+    printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port] [-l ip_addr | --listen interface]\n\t\t[-n | --no-beacon]\n\n");
     printf("Options:\n");
     printf("\t-v activates verbose output to STDOUT\n");
     printf("\t-i comma separated list of SocketCAN interfaces the daemon shall\n\t\tprovide access to (e.g. -i can0,vcan1)\n");
     printf("\t-p port changes the default port (28600) the daemon is listening at\n");
-    printf("\t-l ip_addr changes the default ip address (127.0.0.1) the daemon will\n\t\tbind to\n");
+    printf("\t-l interface changes the default network interface the daemon will\n\t\tbind to\n");
     printf("\t-d set this flag if you want log to syslog instead of STDOUT\n");
+    printf("\t-n deactivates the discovery beacon\n");
     printf("\t-h prints this message\n");
 }
 
