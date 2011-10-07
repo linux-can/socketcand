@@ -13,10 +13,8 @@
 #include "beacon.h"
 
 void *beacon_loop(void *ptr) {
-    int i, n, chars_left;
+    int i, n, chars_left, ret;
     int udp_socket;
-    struct sockaddr_in s;
-    size_t len;
     int optval;
     char buffer[BEACON_LENGTH];
     char hostname[32];
@@ -25,29 +23,25 @@ void *beacon_loop(void *ptr) {
         PRINT_ERROR("Failed to create broadcast socket");
         return NULL;
     }
-    
-    /* Construct the server sockaddr_in structure */
-    memset(&s, 0, sizeof(s));
-    s.sin_family = AF_INET;
-    s.sin_addr.s_addr = htonl(INADDR_BROADCAST);
-    s.sin_port = htons(BROADCAST_PORT);
 
     /* Activate broadcast option */
     optval = 1;
-    setsockopt(udp_socket, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(int));
+    ret = setsockopt(udp_socket, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(int));
+    if(ret) {
+        PRINT_ERROR("Could not activate SO_BROADCAST\n");
+    }
 
     /* Connect the socket */
-    len = sizeof(s);
-    if (connect(udp_socket, (struct sockaddr *) &s, len) < 0) {
+    if(connect(udp_socket, (struct sockaddr *) &broadcast_addr, sizeof(broadcast_addr)) < 0) {
         PRINT_ERROR("Failed to connect broadcast socket");
-        return NULL;    
+        return NULL;
     }
 
     while(1) {
         /* Build the beacon */
         gethostname((char *) &hostname, (size_t)  32);
         snprintf(buffer, BEACON_LENGTH, "<CANBeacon name=\"%s\" type=\"%s\" description=\"%s\">\n<URL>can://%s:%d</URL>", 
-                hostname, BEACON_TYPE, description, inet_ntoa( laddr ), port);
+                hostname, BEACON_TYPE, description, inet_ntoa( saddr.sin_addr ), port);
 
         for(i=0;i<interface_count;i++) {
             /* Find \0 in beacon buffer */
@@ -69,7 +63,10 @@ void *beacon_loop(void *ptr) {
 
         snprintf(buffer+(n*sizeof(char)), chars_left, "</CANBeacon>");
 
-        sendto(udp_socket, buffer, strlen(buffer), 0, (struct sockaddr *) &s, sizeof(struct sockaddr_in));
+        ret = send(udp_socket, buffer, strlen(buffer), 0);
+        if(ret == -1) {
+            PRINT_ERROR("Error in beacon send()\n");
+        }
         sleep(3);
     }
 

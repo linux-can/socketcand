@@ -68,12 +68,20 @@ inline void state_bcm() {
     FD_SET(sc, &readfds);
     FD_SET(client_socket, &readfds);
 
-    ret = select((sc > client_socket)?sc+1:client_socket+1, &readfds, NULL, NULL, NULL);
+    /* 
+     * Check if there are more elements in the element buffer before calling select() and
+     * blocking for new packets.
+     */
+    if(more_elements) {
+        FD_SET(client_socket, &readfds);
+    } else {
+        ret = select((sc > client_socket)?sc+1:client_socket+1, &readfds, NULL, NULL, NULL);
 
-    if(ret < 0) {
-        PRINT_ERROR("Error in select()\n")
-        state = STATE_SHUTDOWN;
-        return;
+        if(ret < 0) {
+            PRINT_ERROR("Error in select()\n")
+            state = STATE_SHUTDOWN;
+            return;
+        }
     }
 
     if (FD_ISSET(sc, &readfds)) {
@@ -128,8 +136,6 @@ inline void state_bcm() {
         msg.msg_head.nframes = 1;
 
         strncpy(ifr.ifr_name, bus_name, IFNAMSIZ);
-
-        PRINT_VERBOSE("Received '%s'\n", buf)
 
         if(!strcmp("< rawmode >", buf)) {
             close(sc);
@@ -300,7 +306,7 @@ inline void state_bcm() {
                 &msg.msg_head.can_id);
 
             if (items != 3) {
-                PRINT_ERROR("syntax error in add filter command\n")
+                PRINT_ERROR("syntax error in subscribe command\n")
                 return;
             }
 
@@ -319,7 +325,7 @@ inline void state_bcm() {
                 &msg.msg_head.can_id);
 
             if (items != 1) {
-                PRINT_ERROR("syntax error in delete filter command\n")
+                PRINT_ERROR("syntax error in unsubscribe command\n")
                 return;
             }
 
