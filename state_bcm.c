@@ -73,7 +73,7 @@ inline void state_bcm() {
      * blocking for new packets.
      */
     if(more_elements) {
-        FD_SET(client_socket, &readfds);
+        FD_CLR(sc, &readfds);
     } else {
         ret = select((sc > client_socket)?sc+1:client_socket+1, &readfds, NULL, NULL, NULL);
 
@@ -124,7 +124,7 @@ inline void state_bcm() {
     if (FD_ISSET(client_socket, &readfds)) {
         int items;
         
-        ret = receive_command(client_socket, (char *) &buf);
+        ret = receive_command(client_socket, buf);
 
         if(ret != 0) {
             state = STATE_SHUTDOWN;
