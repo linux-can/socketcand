@@ -199,7 +199,7 @@ inline void state_bcm() {
                 }
             }
 
-            if((stop-start) > 3) {
+            if((stop-start) > 4) {
                 msg.msg_head.can_id |= CAN_EFF_FLAG;
             }
 
@@ -258,7 +258,7 @@ inline void state_bcm() {
                 }
             }
 
-            if((stop-start) > 3) {
+            if((stop-start) > 4) {
                 msg.msg_head.can_id |= CAN_EFF_FLAG;
             }
 
@@ -316,7 +316,7 @@ inline void state_bcm() {
                 }
             }
 
-            if((stop-start) > 3) {
+            if((stop-start) > 4) {
                 msg.msg_head.can_id |= CAN_EFF_FLAG;
             }
 
@@ -361,7 +361,7 @@ inline void state_bcm() {
                 }
             }
             
-            if((stop-start) > 3) {
+            if((stop-start) > 4) {
                 msg.msg_head.can_id |= CAN_EFF_FLAG;
             }
 
@@ -420,7 +420,7 @@ inline void state_bcm() {
                 }
             }
             
-            if((stop-start) > 3) {
+            if((stop-start) > 4) {
                 msg.msg_head.can_id |= CAN_EFF_FLAG;
             }
 
@@ -467,7 +467,7 @@ inline void state_bcm() {
                 }
             }
             
-            if((stop-start) > 3) {
+            if((stop-start) > 4) {
                 msg.msg_head.can_id |= CAN_EFF_FLAG;
             }
 
@@ -512,7 +512,7 @@ inline void state_bcm() {
                 }
             }
             
-            if((stop-start) > 3) {
+            if((stop-start) > 4) {
                 msg.msg_head.can_id |= CAN_EFF_FLAG;
             }
             msg.msg_head.opcode = RX_DELETE;
