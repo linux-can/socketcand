@@ -126,7 +126,11 @@ inline void state_raw() {
             } else if(frame.can_id & CAN_RTR_FLAG) {
                 /* TODO implement */
             } else {
-                ret = sprintf(buf, "< frame %03X %ld.%06ld ", frame.can_id, tv.tv_sec, tv.tv_usec);
+                if(frame.can_id & CAN_EFF_FLAG) {
+                    ret = sprintf(buf, "< frame %08X %ld.%06ld ", frame.can_id & CAN_EFF_MASK, tv.tv_sec, tv.tv_usec);
+                } else {
+                    ret = sprintf(buf, "< frame %03X %ld.%06ld ", frame.can_id & CAN_SFF_MASK, tv.tv_sec, tv.tv_usec);
+                }
                 for(i=0;i<frame.can_dlc;i++) {
                     ret += sprintf(buf+ret, "%02X", frame.data[i]);
                 }

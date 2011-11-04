@@ -109,8 +109,13 @@ inline void state_bcm() {
                 send(client_socket, rxmsg, strlen(rxmsg), 0);
             }
         } else {
-            snprintf(rxmsg, RXLEN, "< frame %03X %ld.%06ld ",
-                msg.msg_head.can_id, tv.tv_sec, tv.tv_usec);
+            if(msg.msg_head.can_id & CAN_EFF_FLAG) {
+                snprintf(rxmsg, RXLEN, "< frame %08X %ld.%06ld ",
+                    msg.msg_head.can_id & CAN_EFF_MASK, tv.tv_sec, tv.tv_usec);
+            } else {
+                snprintf(rxmsg, RXLEN, "< frame %03X %ld.%06ld ",
+                    msg.msg_head.can_id & CAN_SFF_MASK, tv.tv_sec, tv.tv_usec);
+            }
 
             for ( i = 0; i < msg.frame.can_dlc; i++)
                 snprintf(rxmsg + strlen(rxmsg), RXLEN - strlen(rxmsg), "%02X ",
