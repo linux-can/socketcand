@@ -10,33 +10,30 @@
 # Description:       daemon that provides network access to local CAN busses
 ### END INIT INFO
 
-. /lib/lsb/init-functions
-
 [ -f /etc/default/rcS ] && . /etc/default/rcS
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
-DAEMON=/usr/local/bin/socketcand
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+DAEMON=@bindir@/socketcand
 DESC="SocketCAN daemon"
 NAME="socketcand"
 PIDFILE=/var/run/socketcand.pid
-#CONF=/etc/fancontrol
 
 test -x $DAEMON || exit 0
 
 case "$1" in
   start)
-	log_daemon_msg "Starting $DESC" "$NAME"
+	echo "Starting $DESC" "$NAME"
 	start-stop-daemon --start --quiet --background --pidfile $PIDFILE --startas $DAEMON -m -- --daemon
-	log_end_msg $?
 	;;
   stop)
-	log_daemon_msg "Stopping $DESC" "$NAME"
+	echo "Stopping $DESC" "$NAME"
 	start-stop-daemon --stop --quiet --pidfile $PIDFILE --oknodo --startas $DAEMON
 	rm -f $PIDFILE
-	log_end_msg $?
 	;;
   restart)
   	$0 stop
-	sleep 3
+	sleep 1
 	$0 start
 	;;
   force-reload)
@@ -44,11 +41,8 @@ case "$1" in
 		$0 restart
 	fi
 	;;
-  status)
-	status_of_proc $DAEMON $NAME && exit 0 || exit $?
-	;;
   *)
-	log_success_msg "Usage: /etc/init.d/socketcand {start|stop|restart|force-reload|status}"
+	echo "Usage: /etc/init.d/socketcand {start|stop|restart|force-reload}"
 	exit 1
 	;;
 esac

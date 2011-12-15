@@ -4,14 +4,8 @@
 #define PROC_LINESIZE 256
 #define PROC_LINECOUNT 32
 
-void set_statistics(char *bus_name, int ival);
+extern int statistics_ival;
 void *statistics_loop(void *ptr);
-
-struct stat_entry {
-    char *bus_name;
-    int ival;
-    struct timeval *last_fired;
-};
 
 struct proc_stat_entry {
     char device_name[6];
@@ -33,5 +27,3 @@ struct proc_stat_entry {
     unsigned int tcompressed;
 };
 
-pthread_mutex_t stat_mutex;
-pthread_cond_t stat_condition;
