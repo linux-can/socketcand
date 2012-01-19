@@ -3,7 +3,7 @@
 
 #define MAXLEN 100
 #define MAX_BUSNAME 16+1
-#define PORT 28600
+#define PORT 29536
 
 #define STATE_NO_BUS 0
 #define STATE_BCM 1

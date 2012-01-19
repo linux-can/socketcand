@@ -153,7 +153,7 @@ For simple parsing and a human readable schema XML is used to structure the info
 ### Example ###
 
     <CANBeacon name="HeartOfGold" type="SocketCAN" description="A human readable description">
-        <URL>can://127.0.0.1:28600</URL>
+        <URL>can://127.0.0.1:29536</URL>
         <Bus name="vcan0"/>
         <Bus name="vcan1"/>
     </CANBeacon>
