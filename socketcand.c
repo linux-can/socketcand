@@ -129,7 +129,7 @@ int main(int argc, char **argv)
     /* Read config file before parsing commandline arguments */
     config_init(&config);
     if(CONFIG_TRUE == config_read_file(&config, "/etc/socketcand.conf")) {
-        config_lookup_int(&config, "port", (int*) &port);
+        config_lookup_int(&config, "port", (long int*) &port);
         config_lookup_string(&config, "description", (const char**) &description);
         config_lookup_string(&config, "busses", (const char**) &busses_string);
         config_lookup_string(&config, "listen", (const char**) &interface_string);
@@ -538,7 +538,7 @@ void print_usage(void) {
     printf("Options:\n");
     printf("\t-v activates verbose output to STDOUT\n");
     printf("\t-i comma separated list of SocketCAN interfaces the daemon shall\n\t\tprovide access to (e.g. -i can0,vcan1)\n");
-    printf("\t-p port changes the default port (28600) the daemon is listening at\n");
+    printf("\t-p port changes the default port (29536) the daemon is listening at\n");
     printf("\t-l interface changes the default network interface the daemon will\n\t\tbind to\n");
     printf("\t-d set this flag if you want log to syslog instead of STDOUT\n");
     printf("\t-n deactivates the discovery beacon\n");

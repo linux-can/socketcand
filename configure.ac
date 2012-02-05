@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.61])
-AC_INIT([socketcand], [0.2.3], [https://github.com/dschanoeh/socketcand/issues])
+AC_INIT([socketcand], [0.2.5], [https://github.com/dschanoeh/socketcand/issues])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([state_bcm.c])
 
@@ -41,5 +41,6 @@ AC_FUNC_FORK
 AC_CHECK_FUNCS([gethostname gettimeofday inet_ntoa memset select socket strerror])
 
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([debian_pack], [chmod +x debian_pack])
 AC_CONFIG_FILES([init.d/socketcand])
 AC_OUTPUT

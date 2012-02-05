@@ -37,6 +37,6 @@ Usage
 ###Description of the options
 * **-v** activates verbose output to STDOUT
 * **-i interfaces** is used to specify the SocketCAN interfaces the daemon shall provide access to
-* **-p port** changes the default port (28600) the daemon is listening at
+* **-p port** changes the default port (29536) the daemon is listening at
 * **-l interface** changes the default network interface (eth0) the daemon will bind to
 * **-h** prints a help message

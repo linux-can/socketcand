@@ -109,8 +109,13 @@ inline void state_bcm() {
                 send(client_socket, rxmsg, strlen(rxmsg), 0);
             }
         } else {
-            snprintf(rxmsg, RXLEN, "< frame %03X %ld.%06ld ",
-                msg.msg_head.can_id, tv.tv_sec, tv.tv_usec);
+            if(msg.msg_head.can_id & CAN_EFF_FLAG) {
+                snprintf(rxmsg, RXLEN, "< frame %08X %ld.%06ld ",
+                    msg.msg_head.can_id & CAN_EFF_MASK, tv.tv_sec, tv.tv_usec);
+            } else {
+                snprintf(rxmsg, RXLEN, "< frame %03X %ld.%06ld ",
+                    msg.msg_head.can_id & CAN_SFF_MASK, tv.tv_sec, tv.tv_usec);
+            }
 
             for ( i = 0; i < msg.frame.can_dlc; i++)
                 snprintf(rxmsg + strlen(rxmsg), RXLEN - strlen(rxmsg), "%02X ",
@@ -171,6 +176,32 @@ inline void state_bcm() {
                 PRINT_ERROR("Syntax error in send command\n")
                 return;
             }
+            
+            /* check if this is standard or extended identifier */
+            int start=0;
+            int stop=0;
+            int curr=0;
+            int i=0;
+            for(;i<strlen(buf);i++) {
+                if(buf[i] == ' ') {
+
+                    switch(curr) {
+                        case 1:
+                            start=i;
+                            break;
+                        case 2:
+                            stop=i;
+                            break;
+                        default:
+                            break;
+                    }
+                    curr++;
+                }
+            }
+
+            if((stop-start) > 4) {
+                msg.msg_head.can_id |= CAN_EFF_FLAG;
+            }
 
             msg.msg_head.opcode = TX_SEND;
             msg.frame.can_id = msg.msg_head.can_id;
@@ -203,6 +234,32 @@ inline void state_bcm() {
                 (items != 4 + msg.frame.can_dlc) ) {
                 PRINT_ERROR("Syntax error in add command.\n");
                 return;
+            }
+            
+            /* check if this is standard or extended identifier */
+            int start=0;
+            int stop=0;
+            int curr=0;
+            int i=0;
+            for(;i<strlen(buf);i++) {
+                if(buf[i] == ' ') {
+
+                    switch(curr) {
+                        case 3:
+                            start=i;
+                            break;
+                        case 4:
+                            stop=i;
+                            break;
+                        default:
+                            break;
+                    }
+                    curr++;
+                }
+            }
+
+            if((stop-start) > 4) {
+                msg.msg_head.can_id |= CAN_EFF_FLAG;
             }
 
             msg.msg_head.opcode = TX_SETUP;
@@ -237,6 +294,32 @@ inline void state_bcm() {
                 return;
             }
             
+            /* check if this is standard or extended identifier */
+            int start=0;
+            int stop=0;
+            int curr=0;
+            int i=0;
+            for(;i<strlen(buf);i++) {
+                if(buf[i] == ' ') {
+
+                    switch(curr) {
+                        case 1:
+                            start=i;
+                            break;
+                        case 2:
+                            stop=i;
+                            break;
+                        default:
+                            break;
+                    }
+                    curr++;
+                }
+            }
+
+            if((stop-start) > 4) {
+                msg.msg_head.can_id |= CAN_EFF_FLAG;
+            }
+
             msg.msg_head.opcode = TX_SETUP;
             msg.msg_head.flags  = 0;
             msg.frame.can_id = msg.msg_head.can_id;
@@ -254,6 +337,32 @@ inline void state_bcm() {
             if (items != 1)  {
                 PRINT_ERROR("Syntax error in delete job command\n")
                 return;
+            }
+            
+            /* check if this is standard or extended identifier */
+            int start=0;
+            int stop=0;
+            int curr=0;
+            int i=0;
+            for(;i<strlen(buf);i++) {
+                if(buf[i] == ' ') {
+
+                    switch(curr) {
+                        case 1:
+                            start=i;
+                            break;
+                        case 2:
+                            stop=i;
+                            break;
+                        default:
+                            break;
+                    }
+                    curr++;
+                }
+            }
+            
+            if((stop-start) > 4) {
+                msg.msg_head.can_id |= CAN_EFF_FLAG;
             }
 
             msg.msg_head.opcode = TX_DELETE;
@@ -288,6 +397,32 @@ inline void state_bcm() {
                 PRINT_ERROR("syntax error in filter command.\n")
                 return;
             }
+            
+            /* check if this is standard or extended identifier */
+            int start=0;
+            int stop=0;
+            int curr=0;
+            int i=0;
+            for(;i<strlen(buf);i++) {
+                if(buf[i] == ' ') {
+
+                    switch(curr) {
+                        case 3:
+                            start=i;
+                            break;
+                        case 4:
+                            stop=i;
+                            break;
+                        default:
+                            break;
+                    }
+                    curr++;
+                }
+            }
+            
+            if((stop-start) > 4) {
+                msg.msg_head.can_id |= CAN_EFF_FLAG;
+            }
 
             msg.msg_head.opcode = RX_SETUP;
             msg.msg_head.flags  = SETTIMER;
@@ -309,6 +444,32 @@ inline void state_bcm() {
                 PRINT_ERROR("syntax error in subscribe command\n")
                 return;
             }
+            
+            /* check if this is standard or extended identifier */
+            int start=0;
+            int stop=0;
+            int curr=0;
+            int i=0;
+            for(;i<strlen(buf);i++) {
+                if(buf[i] == ' ') {
+
+                    switch(curr) {
+                        case 3:
+                            start=i;
+                            break;
+                        case 4:
+                            stop=i;
+                            break;
+                        default:
+                            break;
+                    }
+                    curr++;
+                }
+            }
+            
+            if((stop-start) > 4) {
+                msg.msg_head.can_id |= CAN_EFF_FLAG;
+            }
 
             msg.msg_head.opcode = RX_SETUP;
             msg.msg_head.flags  = RX_FILTER_ID | SETTIMER;
@@ -329,6 +490,31 @@ inline void state_bcm() {
                 return;
             }
 
+            /* check if this is standard or extended identifier */
+            int start=0;
+            int stop=0;
+            int curr=0;
+            int i=0;
+            for(;i<strlen(buf);i++) {
+                if(buf[i] == ' ') {
+
+                    switch(curr) {
+                        case 1:
+                            start=i;
+                            break;
+                        case 2:
+                            stop=i;
+                            break;
+                        default:
+                            break;
+                    }
+                    curr++;
+                }
+            }
+            
+            if((stop-start) > 4) {
+                msg.msg_head.can_id |= CAN_EFF_FLAG;
+            }
             msg.msg_head.opcode = RX_DELETE;
             msg.frame.can_id = msg.msg_head.can_id;
             
