@@ -3771,6 +3771,8 @@ done
 
 ac_config_files="$ac_config_files Makefile"
 
+ac_config_files="$ac_config_files debian_pack"
+
 ac_config_files="$ac_config_files init.d/socketcand"
 
 cat >confcache <<\_ACEOF
@@ -4476,6 +4478,7 @@ do
   case $ac_config_target in
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+    "debian_pack") CONFIG_FILES="$CONFIG_FILES debian_pack" ;;
     "init.d/socketcand") CONFIG_FILES="$CONFIG_FILES init.d/socketcand" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
@@ -5022,6 +5025,11 @@ $as_echo "$as_me: $ac_file is unchanged" >&6;}
 
   esac
 
+
+  case $ac_file$ac_mode in
+    "debian_pack":F) chmod +x debian_pack ;;
+
+  esac
 done # for ac_tag
 
 
