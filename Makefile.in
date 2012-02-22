@@ -4,6 +4,8 @@
 
 sourcefiles = socketcand.c statistics.c beacon.c state_bcm.c state_raw.c state_control.c
 executable = socketcand
+sourcefiles_cl = socketcandcl.c
+executable_cl = socketcandcl
 srcdir = @srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -21,19 +23,23 @@ DEFS = @DEFS@
 CPPFLAGS = @CPPFLAGS@
 sysroot = @sysroot@
 
-all: socketcand
+all: socketcand socketcandcl
 
-socketcand: $(SOURCEFILES)
+socketcand: $(sourcefiles)
 	$(CC) $(CFLAGS) $(DEFS) $(CPPFLAGS) $(LDFLAGS) -I . -o $(executable) $(sourcefiles) $(LIBS)
 
+socketcandcl: $(sourcefiles_cl)
+	$(CC) $(CFLAGS) $(DEFS) $(CPPFLAGS) $(LDFLAGS) -I . -o $(executable_cl) $(sourcefiles_cl)
+
 clean:
-	rm -f $(executable) *.o
+	rm -f $(executable) $(executable_cl) *.o
 
 distclean:
-	rm -f $(executable) *.o *~ Makefile config.h
+	rm -f $(executable) $(executable_cl) *.o *~ Makefile config.h
 
 install: socketcand
 	cp $(srcdir)/socketcand $(sysroot)$(bindir)/
+	cp $(srcdir)/socketcandcl $(sysroot)$(bindir)/
 	cp $(srcdir)/socketcand.1 $(sysroot)$(mandir)/
 	cp -n $(srcdir)/etc/socketcand.conf $(sysroot)/etc/
 	if [ $(init_script) = yes ]; then install --mode=755 $(srcdir)/init.d/socketcand $(sysroot)/etc/init.d/socketcand; fi
