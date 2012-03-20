@@ -325,7 +325,7 @@ inline void state_connected()
                 break;
               }
             }
-            if((s - buf - 7) > 3)
+            if((s - buf - 7) > 4) {
               frame.can_id |= CAN_EFF_FLAG;
 
             frame.can_dlc = strlen(data_str) / 2;
