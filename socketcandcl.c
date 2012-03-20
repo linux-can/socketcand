@@ -341,9 +341,6 @@ inline void state_connected()
               perror("Writing CAN frame to can socket\n");
             }
           }
-        } else {
-          state = STATE_SHUTDOWN;
-          return;
         }
       } else {
         ret = read(server_socket, &buf, 0);
