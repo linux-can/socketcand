@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.61])
-AC_INIT([socketcand], [0.2.5], [https://github.com/dschanoeh/socketcand/issues])
+AC_INIT([socketcand], [0.3.0], [https://github.com/dschanoeh/socketcand/issues])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([state_bcm.c])
 
@@ -22,11 +22,20 @@ AC_ARG_ENABLE(rc_script, [  --enable-rc-script Enable creation of rc.d start scr
 AC_ARG_ENABLE(init_script, [  --disable-init-script Enable creation of init.d start script], 
               AC_SUBST(init_script, "no"), AC_SUBST(init_script, "yes"))
 
+# Checks for libconfig.
+AC_ARG_WITH([config], [AS_HELP_STRING([--without-config], [do not use libconfig])], [], [with_config=yes])
+
+LIBCONFIG=
+          AS_IF([test "x$with_config" != xno],
+            [AC_CHECK_LIB([config], [config_init],
+              [], [AC_MSG_FAILURE(
+                 [config test failed (--without-config to disable)])],
+              [-lconfig])])
+
 # Checks for programs.
 AC_PROG_CC
 
-# Checks for libraries.
-AC_CHECK_LIB([config], [config_init], [], AC_MSG_ERROR([libconfig not installed]))
+# Checks for pthread.
 AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([libpthread not installed]))
 
 # Checks for header files.

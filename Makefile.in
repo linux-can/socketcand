@@ -2,8 +2,11 @@
 # @configure_input@
 #
 
-sourcefiles = socketcand.c statistics.c beacon.c state_bcm.c state_raw.c state_control.c
+sourcefiles = $(srcdir)/socketcand.c $(srcdir)/statistics.c $(srcdir)/beacon.c \
+             $(srcdir)/state_bcm.c $(srcdir)/state_raw.c $(srcdir)/state_control.c
 executable = socketcand
+sourcefiles_cl = socketcandcl.c
+executable_cl = socketcandcl
 srcdir = @srcdir@
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -21,20 +24,24 @@ DEFS = @DEFS@
 CPPFLAGS = @CPPFLAGS@
 sysroot = @sysroot@
 
-all: socketcand
+all: socketcand socketcandcl
 
 socketcand: $(sourcefiles)
 	$(CC) $(CFLAGS) $(DEFS) $(CPPFLAGS) $(LDFLAGS) -I . -o $(executable) $(sourcefiles) $(LIBS)
 
+socketcandcl: $(sourcefiles_cl)
+	$(CC) $(CFLAGS) $(DEFS) $(CPPFLAGS) $(LDFLAGS) -I . -o $(executable_cl) $(sourcefiles_cl)
+
 clean:
-	rm -f $(executable) *.o
+	rm -f $(executable) $(executable_cl) *.o
 
 distclean:
-	rm -f $(executable) *.o *~ Makefile config.h
+	rm -f $(executable) $(executable_cl) *.o *~ Makefile config.h
 
 install: socketcand
 	mkdir -p $(DESTDIR)$(sysroot)$(bindir)
 	cp $(srcdir)/socketcand $(DESTDIR)$(sysroot)$(bindir)/
+	cp $(srcdir)/socketcandcl $(DESTDIR)$(sysroot)$(bindir)/
 	mkdir -p $(DESTDIR)$(sysroot)$(mandir)
 	cp $(srcdir)/socketcand.1 $(DESTDIR)$(sysroot)$(mandir)/
 	mkdir -p $(DESTDIR)$(sysroot)/etc/
