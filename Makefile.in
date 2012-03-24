@@ -2,7 +2,8 @@
 # @configure_input@
 #
 
-sourcefiles = socketcand.c statistics.c beacon.c state_bcm.c state_raw.c state_control.c
+sourcefiles = $(srcdir)/socketcand.c $(srcdir)/statistics.c $(srcdir)/beacon.c \
+             $(srcdir)/state_bcm.c $(srcdir)/state_raw.c $(srcdir)/state_control.c
 executable = socketcand
 srcdir = @srcdir@
 prefix = @prefix@

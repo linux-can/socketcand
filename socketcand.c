@@ -66,7 +66,9 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <syslog.h>
+#ifdef HAVE_LIBCONFIG
 #include <libconfig.h>
+#endif
 
 #include <linux/can.h>
 #include <linux/can/bcm.h>
@@ -114,7 +116,9 @@ int main(int argc, char **argv)
     char buf[MAXLEN];
     int c;
     char* busses_string;
+#ifdef HAVE_LIBCONFIG
     config_t config;
+#endif
 
     /* set default config settings */
     port = PORT;
@@ -126,6 +130,7 @@ int main(int argc, char **argv)
     strcpy(busses_string, "vcan0");
 
 
+#ifdef HAVE_LIBCONFIG
     /* Read config file before parsing commandline arguments */
     config_init(&config);
     if(CONFIG_TRUE == config_read_file(&config, "/etc/socketcand.conf")) {
@@ -134,6 +139,7 @@ int main(int argc, char **argv)
         config_lookup_string(&config, "busses", (const char**) &busses_string);
         config_lookup_string(&config, "listen", (const char**) &interface_string);
     }
+#endif
 
     /* Parse commandline arguments */
     while (1) {

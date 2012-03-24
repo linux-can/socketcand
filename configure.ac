@@ -22,11 +22,20 @@ AC_ARG_ENABLE(rc_script, [  --enable-rc-script Enable creation of rc.d start scr
 AC_ARG_ENABLE(init_script, [  --disable-init-script Enable creation of init.d start script], 
               AC_SUBST(init_script, "no"), AC_SUBST(init_script, "yes"))
 
+# Checks for libconfig.
+AC_ARG_WITH([config], [AS_HELP_STRING([--without-config], [do not use libconfig])], [], [with_config=yes])
+
+LIBCONFIG=
+          AS_IF([test "x$with_config" != xno],
+            [AC_CHECK_LIB([config], [config_init],
+              [], [AC_MSG_FAILURE(
+                 [config test failed (--without-config to disable)])],
+              [-lconfig])])
+
 # Checks for programs.
 AC_PROG_CC
 
-# Checks for libraries.
-AC_CHECK_LIB([config], [config_init], [], AC_MSG_ERROR([libconfig not installed]))
+# Checks for pthread.
 AC_CHECK_LIB([pthread], [pthread_create], [], AC_MSG_ERROR([libpthread not installed]))
 
 # Checks for header files.
