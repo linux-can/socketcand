@@ -124,9 +124,9 @@ int main(int argc, char **argv)
     port = PORT;
     description = malloc(sizeof(BEACON_DESCRIPTION));
     strcpy(description, BEACON_DESCRIPTION);
-    interface_string = malloc(strlen("eth0"));
+    interface_string = malloc(strlen("eth0")+ 1);
     strcpy(interface_string, "eth0");
-    busses_string = malloc(strlen("vcan0"));
+    busses_string = malloc(strlen("vcan0")+ 1);
     strcpy(busses_string, "vcan0");
 
 
