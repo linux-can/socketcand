@@ -106,7 +106,7 @@ Reception of a CAN frame with CAN ID 0x123 , data length 4 and data 0x11, 0x22, 
     < frame 123 23.424242 11 22 33 44 >
 
 ## Mode RAW ##
-After switching to RAW mode the BCM socket is closed and a RAW socket is opened. Now every frame on the bus will immediately be received. Therefore no commands to control which frames are received are supported. Frames may not be sent in this mode.
+After switching to RAW mode the BCM socket is closed and a RAW socket is opened. Now every frame on the bus will immediately be received. Therefore no commands to control which frames are received are supported, but the send command works as in BCM mode.
 
 ##### Switch to BCM mode #####
 With '< bcmmode >' it is possible to switch back to BCM mode.
@@ -153,7 +153,7 @@ For simple parsing and a human readable schema XML is used to structure the info
 ### Example ###
 
     <CANBeacon name="HeartOfGold" type="SocketCAN" description="A human readable description">
-        <URL>can://127.0.0.1:28600</URL>
+        <URL>can://127.0.0.1:29536</URL>
         <Bus name="vcan0"/>
         <Bus name="vcan1"/>
     </CANBeacon>

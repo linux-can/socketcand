@@ -38,7 +38,7 @@ struct cmsghdr *cmsg;
 
 inline void state_raw() {
     char buf[MAXLEN];
-    int i, ret;
+    int i, ret, items;
 
     if(previous_state != STATE_RAW) {
 
@@ -158,6 +158,61 @@ inline void state_raw() {
                 strcpy(buf, "< ok >");
                 send(client_socket, buf, strlen(buf), 0);
                 return;
+			/* Send a single frame */
+			} else if(!strncmp("< send ", buf, 7)) { 
+				items = sscanf(buf, "< %*s %x %hhu "
+					"%hhx %hhx %hhx %hhx %hhx %hhx "
+					"%hhx %hhx >",
+					&frame.can_id,
+					&frame.can_dlc,
+					&frame.data[0],
+					&frame.data[1],
+					&frame.data[2],
+					&frame.data[3],
+					&frame.data[4],
+					&frame.data[5],
+					&frame.data[6],
+					&frame.data[7]);
+
+				if ( (items < 2) ||
+					(frame.can_dlc > 8) ||
+					(items != 2 + frame.can_dlc)) {
+					PRINT_ERROR("Syntax error in send command\n")
+					return;
+				}
+
+				/* check if this is standard or extended identifier */
+				int start=0;
+				int stop=0;
+				int curr=0;
+				int i=0;
+				for(;i<strlen(buf);i++) {
+					if(buf[i] == ' ') {
+
+						switch(curr) {
+							case 1:
+								start=i;
+								break;
+							case 2:
+								stop=i;
+								break;
+							default:
+								break;
+						}
+						curr++;
+					}
+				}
+
+				if((stop-start) > 4) {
+					frame.can_id |= CAN_EFF_FLAG;
+				}
+
+				ret = send(raw_socket, &frame, sizeof(struct can_frame), 0);
+				if(ret==-1) {
+					state = STATE_SHUTDOWN;
+					return;
+				}
+
             } else {
                 PRINT_ERROR("unknown command '%s'\n", buf);
                 strcpy(buf, "< error unknown command >");
