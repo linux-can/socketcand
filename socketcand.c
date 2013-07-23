@@ -155,29 +155,29 @@ int main(int argc, char **argv)
             {"no-beacon", no_argument, 0, 'n'},
             {0, 0, 0, 0}
         };
-    
+
         c = getopt_long (argc, argv, "vhni:p:l:d", long_options, &option_index);
-    
+
         if (c == -1)
             break;
-    
+
         switch (c) {
             case 0:
                 /* If this option set a flag, do nothing else now. */
                 if (long_options[option_index].flag != 0)
                     break;
             break;
-    
-    
+
+
             case 'v':
                 puts ("Verbose output activated\n");
                 verbose_flag = 1;
                 break;
-    
+
             case 'p':
                 port = atoi(optarg);
                 break;
-    
+
             case 'i':
                 busses_string = realloc(busses_string,strlen(optarg));
                 strcpy(busses_string, optarg);
@@ -207,7 +207,7 @@ int main(int argc, char **argv)
             case '?':
                 print_usage();
                 return 0;
-    
+
             default:
                 print_usage();
                 return -1;
@@ -244,7 +244,7 @@ int main(int argc, char **argv)
     signalaction.sa_mask = sigset;
     signalaction.sa_flags = 0;
     sigaction(SIGCHLD, &signalaction, NULL);  /* signal for dying child */
-    
+
     sigint_action.sa_handler = &sigint;
     sigint_action.sa_mask = sigset;
     sigint_action.sa_flags = 0;
@@ -286,7 +286,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    while (1) { 
+    while (1) {
         client_socket = accept(sl,(struct sockaddr *)&clientaddr, &sin_size);
         if (client_socket > 0 ){
             int flag;
@@ -310,7 +310,7 @@ int main(int argc, char **argv)
     }
 
     PRINT_VERBOSE("client connected\n")
-    
+
 #ifdef DEBUG
     PRINT_VERBOSE("setting SO_REUSEADDR\n")
     i = 1;
@@ -383,7 +383,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-/* reads all available data from the socket into the command buffer. 
+/* reads all available data from the socket into the command buffer.
  * returns '-1' if no command could be received.
  */
 int receive_command(int socket, char *buffer) {
@@ -414,7 +414,7 @@ int receive_command(int socket, char *buffer) {
         }
     }
 
-    /* 
+    /*
      * if there is no '<' in string it makes no sense to keep data because
      * we will never be able to construct a command of it
      */
@@ -446,7 +446,7 @@ int receive_command(int socket, char *buffer) {
 #ifdef DEBUG_RECEPTION
     PRINT_VERBOSE("\tElement between %d and %d\n", start, stop);
 #endif
-    
+
     /* copy string to new destination and correct cmd_buffer */
     for(i=start;i<=stop;i++) {
         buffer[i-start] = cmd_buffer[i];
@@ -530,7 +530,7 @@ void determine_adress() {
     saddr.sin_family = AF_INET;
     saddr.sin_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
     saddr.sin_port = htons(port);
-    
+
     /* set broadcast adress */
     broadcast_addr.sin_family = AF_INET;
     broadcast_addr.sin_addr = ((struct sockaddr_in *) &ifr_brd.ifr_broadaddr)->sin_addr;
