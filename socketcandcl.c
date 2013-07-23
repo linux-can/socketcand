@@ -68,7 +68,7 @@
 #include <linux/can/raw.h>
 
 #define MAXLEN 4000
-#define PORT 28600
+#define PORT 29536
 
 #define STATE_INIT 0
 #define STATE_CONNECTED 1
@@ -504,7 +504,7 @@ void print_usage(void)
   printf("\t-v activates verbose output to STDOUT\n");
   printf("\t-s server hostname\n");
   printf("\t-i SocketCAN interfaces to use: device_server,device_client \n");
-  printf("\t-p port changes the default port (28600) the client connects to\n");
+  printf("\t-p port changes the default port (29536) the client connects to\n");
   printf("\t-h prints this message\n");
 }
 
