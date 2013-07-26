@@ -504,7 +504,7 @@ void print_usage(void)
   printf("\t-v activates verbose output to STDOUT\n");
   printf("\t-s server hostname\n");
   printf("\t-i SocketCAN interfaces to use: device_server,device_client \n");
-  printf("\t-p port changes the default port (29536) the client connects to\n");
+  printf("\t-p port changes the default port (%d) the client connects to\n", PORT);
   printf("\t-h prints this message\n");
 }
 
