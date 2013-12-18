@@ -12,7 +12,7 @@ To build and run socketcand make sure you have the following tools installed:
 * gcc or another C compiler
 * a kernel that includes the SocketCAN modules
 * the headers for your kernel version
-* the libconfig (with headers)
+* the libconfig with headers (libconfig-dev under debian based systems)
 
 First run
 
