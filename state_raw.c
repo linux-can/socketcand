@@ -89,7 +89,7 @@ inline void state_raw() {
      * blocking for new packets.
      */
     if(more_elements) {
-        FD_SET(client_socket, &readfds);
+        FD_CLR(raw_socket, &readfds);
     } else {
         ret = select((raw_socket > client_socket)?raw_socket+1:client_socket+1, &readfds, NULL, NULL, NULL);
 
