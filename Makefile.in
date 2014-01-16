@@ -45,6 +45,6 @@ install: socketcand
 	mkdir -p $(DESTDIR)$(sysroot)$(mandir)
 	cp $(srcdir)/socketcand.1 $(DESTDIR)$(sysroot)$(mandir)/
 	mkdir -p $(DESTDIR)$(sysroot)/etc/
-	cp -n $(srcdir)/etc/socketcand.conf $(DESTDIR)$(sysroot)/etc/
+	install -m 0644 $(srcdir)/etc/socketcand.conf $(DESTDIR)$(sysroot)/etc/
 	if [ $(init_script) = yes ]; then mkdir -p $(DESTDIR)$(sysroot)/etc/init.d; install --mode=755 $(srcdir)/init.d/socketcand $(DESTDIR)$(sysroot)/etc/init.d/socketcand; fi
 	if [ $(rc_script) = yes ]; then install --mode=755 $(srcdir)/rc.d/socketcand $(DESTDIR)$(sysroot)/etc/rc.d/socketcand; fi
