@@ -102,6 +102,18 @@ struct sockaddr_in saddr, broadcast_addr;
 char* interface_string;
 struct ifreq ifr, ifr_brd;
 
+int state_changed(char *buf, int current_state)
+{
+    if(!strcmp("< rawmode >", buf))
+	state = STATE_RAW;
+    else if(!strcmp("< bcmmode >", buf))
+	state = STATE_BCM;
+    else if(!strcmp("< controlmode >", buf))
+	state = STATE_CONTROL;
+
+    return (current_state != state);
+}
+
 int main(int argc, char **argv)
 {
     int i, found;

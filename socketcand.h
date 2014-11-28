@@ -37,3 +37,4 @@ extern struct sockaddr_in broadcast_addr;
 extern struct sockaddr_in saddr;
 
 int receive_command(int socket, char *buf);
+int state_changed(char *buf, int current_state);

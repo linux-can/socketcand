@@ -6,10 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <signal.h>
-#include <errno.h>
 #include <pthread.h>
-#include <getopt.h>
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -39,6 +36,18 @@ inline void state_control() {
         return;
     }
 
+    if (state_changed(buf, state)) {
+	pthread_cancel(statistics_thread);
+	strcpy(buf, "< ok >");
+	send(client_socket, buf, strlen(buf), 0);
+	return;
+    }
+
+    if(!strcmp("< echo >", buf)) {
+	send(client_socket, buf, strlen(buf), 0);
+	return;
+    }
+
     if(!strncmp("< statistics ", buf, 13)) {
         items = sscanf(buf, "< %*s %u >",
             &i);
@@ -48,18 +57,6 @@ inline void state_control() {
         } else {
             statistics_ival = i;
         }
-    } else if(!strcmp("< rawmode >", buf)) {
-        pthread_cancel(statistics_thread);
-        state = STATE_RAW;
-        strcpy(buf, "< ok >");
-        send(client_socket, buf, strlen(buf), 0);
-        return;
-    } else if(!strcmp("< bcmmode >", buf)) {
-        pthread_cancel(statistics_thread);
-        state = STATE_BCM;
-        strcpy(buf, "< ok >");
-        send(client_socket, buf, strlen(buf), 0);
-        return;
     } else {
         PRINT_ERROR("unknown command '%s'.\n", buf)
         strcpy(buf, "< error unknown command >");

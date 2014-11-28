@@ -6,10 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <signal.h>
 #include <errno.h>
-#include <pthread.h>
-#include <getopt.h>
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -142,22 +139,21 @@ inline void state_raw() {
         ret = receive_command(client_socket, (char *) &buf);
 
         if(ret == 0) {
-            if(!strcmp("< bcmmode >", buf)) {
-                pthread_cancel(statistics_thread);
+
+	    if (state_changed(buf, state)) {
                 close(raw_socket);
-                state = STATE_BCM; 
                 strcpy(buf, "< ok >");
                 send(client_socket, buf, strlen(buf), 0);
-            } else if(!strcmp("< echo >", buf)) {
+		return;
+            }
+
+	    if(!strcmp("< echo >", buf)) {
                 send(client_socket, buf, strlen(buf), 0);
-            } else if(!strcmp("< controlmode >", buf)) {
-                close(raw_socket);
-                state = STATE_CONTROL;
-                strcpy(buf, "< ok >");
-                send(client_socket, buf, strlen(buf), 0);
-                return;
-			/* Send a single frame */
-			} else if(!strncmp("< send ", buf, 7)) { 
+		return;
+            }
+
+	    /* Send a single frame */
+	    if(!strncmp("< send ", buf, 7)) {
 				items = sscanf(buf, "< %*s %x %hhu "
 					"%hhx %hhx %hhx %hhx %hhx %hhx "
 					"%hhx %hhx >",
