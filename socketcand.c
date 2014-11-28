@@ -134,7 +134,7 @@ int main(int argc, char **argv)
     /* Read config file before parsing commandline arguments */
     config_init(&config);
     if(CONFIG_TRUE == config_read_file(&config, "/etc/socketcand.conf")) {
-        config_lookup_int(&config, "port", (long int*) &port);
+        config_lookup_int(&config, "port", (int*) &port);
         config_lookup_string(&config, "description", (const char**) &description);
         config_lookup_string(&config, "busses", (const char**) &busses_string);
         config_lookup_string(&config, "listen", (const char**) &interface_string);
