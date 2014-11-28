@@ -20,10 +20,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <linux/can.h>
-#include <linux/can/bcm.h>
-#include <linux/can/error.h>
-
 inline void state_control() {
     char buf[MAXLEN];
     int i, items;

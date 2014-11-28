@@ -22,8 +22,6 @@
 #include <syslog.h>
 
 #include <linux/can.h>
-#include <linux/can/bcm.h>
-#include <linux/can/error.h>
 
 int raw_socket;
 struct ifreq ifr;

@@ -70,10 +70,6 @@
 #include <libconfig.h>
 #endif
 
-#include <linux/can.h>
-#include <linux/can/bcm.h>
-#include <linux/can/error.h>
-
 #include "socketcand.h"
 #include "statistics.h"
 #include "beacon.h"

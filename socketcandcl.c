@@ -65,7 +65,6 @@
 #include <arpa/inet.h>
 
 #include <linux/can.h>
-#include <linux/can/raw.h>
 
 #define MAXLEN 4000
 #define PORT 29536
