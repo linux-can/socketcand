@@ -36,7 +36,7 @@ clean:
 	rm -f $(executable) $(executable_cl) *.o
 
 distclean:
-	rm -f $(executable) $(executable_cl) *.o *~ Makefile config.h
+	rm -f $(executable) $(executable_cl) *.o *~ Makefile config.h debian_pack
 
 install: socketcand
 	mkdir -p $(DESTDIR)$(sysroot)$(bindir)
