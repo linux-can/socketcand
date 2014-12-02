@@ -21,6 +21,10 @@
 
 #undef DEBUG_RECEPTION
 
+inline void state_bcm();
+inline void state_raw();
+inline void state_control();
+
 extern int client_socket;
 extern char **interface_names;
 extern int interface_count;

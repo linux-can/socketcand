@@ -71,9 +71,6 @@
 #include "socketcand.h"
 #include "statistics.h"
 #include "beacon.h"
-#include "state_bcm.h"
-#include "state_raw.h"
-#include "state_control.h"
 
 void print_usage(void);
 void sigint();
