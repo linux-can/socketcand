@@ -1,5 +1,4 @@
 /*
- *
  * Authors:
  * Andre Naujoks (the socket server stuff)
  * Oliver Hartkopp (the rest)
@@ -41,7 +40,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
  * DAMAGE.
  *
- * Send feedback to <socketcan-users@lists.berlios.de>
+ * Send feedback to <linux-can@vger.kernel.org>
  *
  */
 
