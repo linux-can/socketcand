@@ -18,48 +18,48 @@
 #include <arpa/inet.h>
 
 inline void state_control() {
-    char buf[MAXLEN];
-    int i, items;
+	char buf[MAXLEN];
+	int i, items;
 
-    if(previous_state != STATE_CONTROL) {
-        PRINT_VERBOSE("starting statistics thread...\n")
-        pthread_create(&statistics_thread, NULL, &statistics_loop, NULL);
+	if(previous_state != STATE_CONTROL) {
+		PRINT_VERBOSE("starting statistics thread...\n")
+			pthread_create(&statistics_thread, NULL, &statistics_loop, NULL);
 
-        previous_state = STATE_CONTROL;
-    }
+		previous_state = STATE_CONTROL;
+	}
 
-    i = receive_command(client_socket, (char *) &buf);
+	i = receive_command(client_socket, (char *) &buf);
 
-    if(i != 0) {
-        PRINT_ERROR("Connection terminated while waiting for command.\n");
-        state = STATE_SHUTDOWN;
-        return;
-    }
+	if(i != 0) {
+		PRINT_ERROR("Connection terminated while waiting for command.\n");
+		state = STATE_SHUTDOWN;
+		return;
+	}
 
-    if (state_changed(buf, state)) {
-	pthread_cancel(statistics_thread);
-	strcpy(buf, "< ok >");
-	send(client_socket, buf, strlen(buf), 0);
-	return;
-    }
+	if (state_changed(buf, state)) {
+		pthread_cancel(statistics_thread);
+		strcpy(buf, "< ok >");
+		send(client_socket, buf, strlen(buf), 0);
+		return;
+	}
 
-    if(!strcmp("< echo >", buf)) {
-	send(client_socket, buf, strlen(buf), 0);
-	return;
-    }
+	if(!strcmp("< echo >", buf)) {
+		send(client_socket, buf, strlen(buf), 0);
+		return;
+	}
 
-    if(!strncmp("< statistics ", buf, 13)) {
-        items = sscanf(buf, "< %*s %u >",
-            &i);
+	if(!strncmp("< statistics ", buf, 13)) {
+		items = sscanf(buf, "< %*s %u >",
+			       &i);
 
-        if (items != 1) {
-            PRINT_ERROR("Syntax error in statistics command\n")
-        } else {
-            statistics_ival = i;
-        }
-    } else {
-        PRINT_ERROR("unknown command '%s'.\n", buf)
-        strcpy(buf, "< error unknown command >");
-        send(client_socket, buf, strlen(buf), 0);
-    }
+		if (items != 1) {
+			PRINT_ERROR("Syntax error in statistics command\n")
+				} else {
+			statistics_ival = i;
+		}
+	} else {
+		PRINT_ERROR("unknown command '%s'.\n", buf)
+			strcpy(buf, "< error unknown command >");
+		send(client_socket, buf, strlen(buf), 0);
+	}
 }

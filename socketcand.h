@@ -16,7 +16,7 @@
 #define PRINT_VERBOSE(...) if(verbose_flag && !daemon_flag) printf(__VA_ARGS__);
 
 #ifndef VERSION_STRING
-    #define VERSION_STRING "SNAPSHOT"
+#define VERSION_STRING "SNAPSHOT"
 #endif
 
 #undef DEBUG_RECEPTION
