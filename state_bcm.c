@@ -23,6 +23,8 @@
 #include <linux/can/bcm.h>
 #include <linux/can/error.h>
 
+#define RXLEN 128
+
 int sc = -1;
 fd_set readfds;
 struct timeval tv;
