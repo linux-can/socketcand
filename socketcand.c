@@ -109,6 +109,41 @@ int state_changed(char *buf, int current_state)
 	return (current_state != state);
 }
 
+int element_length(char *buf, int element)
+{
+	int len = strlen(buf);
+	int elem, i, j;
+
+	/*
+	 * < elem1 elem2 elem3 >
+	 *
+	 * get the length of the requested element in bytes
+	 */
+
+	for (i=0, j=0, elem=0; i<len; i++) {
+
+		if (buf[i] == ' ') {
+			elem++;
+
+			/* step to next non-space */
+			while (buf[i] == ' ')
+				i++;
+
+			if (i >= len)
+				return 0;
+		}
+
+		if (elem == element) {
+
+			while (j+i < len && buf[j+i] != ' ')
+				j++;
+
+			return j;
+		}
+	}
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	int i, found;

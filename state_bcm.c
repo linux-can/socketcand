@@ -174,32 +174,10 @@ inline void state_bcm() {
 				PRINT_ERROR("Syntax error in send command\n")
 					return;
 			}
-            
-			/* check if this is standard or extended identifier */
-			int start=0;
-			int stop=0;
-			int curr=0;
-			int i=0;
-			for(;i<strlen(buf);i++) {
-				if(buf[i] == ' ') {
 
-					switch(curr) {
-					case 1:
-						start=i;
-						break;
-					case 2:
-						stop=i;
-						break;
-					default:
-						break;
-					}
-					curr++;
-				}
-			}
-
-			if((stop-start) > 4) {
+			/* < send XXXXXXXX ... > check for extended identifier */
+			if(element_length(buf, 2) == 8)
 				msg.msg_head.can_id |= CAN_EFF_FLAG;
-			}
 
 			msg.msg_head.opcode = TX_SEND;
 			msg.frame.can_id = msg.msg_head.can_id;
@@ -233,32 +211,10 @@ inline void state_bcm() {
 				PRINT_ERROR("Syntax error in add command.\n");
 				return;
 			}
-            
-			/* check if this is standard or extended identifier */
-			int start=0;
-			int stop=0;
-			int curr=0;
-			int i=0;
-			for(;i<strlen(buf);i++) {
-				if(buf[i] == ' ') {
 
-					switch(curr) {
-					case 3:
-						start=i;
-						break;
-					case 4:
-						stop=i;
-						break;
-					default:
-						break;
-					}
-					curr++;
-				}
-			}
-
-			if((stop-start) > 4) {
+			/* < add sec usec XXXXXXXX ... > check for extended identifier */
+			if(element_length(buf, 4) == 8)
 				msg.msg_head.can_id |= CAN_EFF_FLAG;
-			}
 
 			msg.msg_head.opcode = TX_SETUP;
 			msg.msg_head.flags |= SETTIMER | STARTTIMER;
@@ -291,32 +247,10 @@ inline void state_bcm() {
 				PRINT_ERROR("Syntax error in update send job command\n")
 					return;
 			}
-            
-			/* check if this is standard or extended identifier */
-			int start=0;
-			int stop=0;
-			int curr=0;
-			int i=0;
-			for(;i<strlen(buf);i++) {
-				if(buf[i] == ' ') {
 
-					switch(curr) {
-					case 1:
-						start=i;
-						break;
-					case 2:
-						stop=i;
-						break;
-					default:
-						break;
-					}
-					curr++;
-				}
-			}
-
-			if((stop-start) > 4) {
+			/* < update XXXXXXXX ... > check for extended identifier */
+			if(element_length(buf, 2) == 8)
 				msg.msg_head.can_id |= CAN_EFF_FLAG;
-			}
 
 			msg.msg_head.opcode = TX_SETUP;
 			msg.msg_head.flags  = 0;
@@ -336,32 +270,10 @@ inline void state_bcm() {
 				PRINT_ERROR("Syntax error in delete job command\n")
 					return;
 			}
-            
-			/* check if this is standard or extended identifier */
-			int start=0;
-			int stop=0;
-			int curr=0;
-			int i=0;
-			for(;i<strlen(buf);i++) {
-				if(buf[i] == ' ') {
 
-					switch(curr) {
-					case 1:
-						start=i;
-						break;
-					case 2:
-						stop=i;
-						break;
-					default:
-						break;
-					}
-					curr++;
-				}
-			}
-            
-			if((stop-start) > 4) {
+			/* < delete XXXXXXXX ... > check for extended identifier */
+			if(element_length(buf, 2) == 8)
 				msg.msg_head.can_id |= CAN_EFF_FLAG;
-			}
 
 			msg.msg_head.opcode = TX_DELETE;
 			msg.frame.can_id = msg.msg_head.can_id;
@@ -395,32 +307,10 @@ inline void state_bcm() {
 				PRINT_ERROR("syntax error in filter command.\n")
 					return;
 			}
-            
-			/* check if this is standard or extended identifier */
-			int start=0;
-			int stop=0;
-			int curr=0;
-			int i=0;
-			for(;i<strlen(buf);i++) {
-				if(buf[i] == ' ') {
 
-					switch(curr) {
-					case 3:
-						start=i;
-						break;
-					case 4:
-						stop=i;
-						break;
-					default:
-						break;
-					}
-					curr++;
-				}
-			}
-            
-			if((stop-start) > 4) {
+			/* < filter sec usec XXXXXXXX ... > check for extended identifier */
+			if(element_length(buf, 4) == 8)
 				msg.msg_head.can_id |= CAN_EFF_FLAG;
-			}
 
 			msg.msg_head.opcode = RX_SETUP;
 			msg.msg_head.flags  = SETTIMER;
@@ -442,32 +332,10 @@ inline void state_bcm() {
 				PRINT_ERROR("syntax error in subscribe command\n")
 					return;
 			}
-            
-			/* check if this is standard or extended identifier */
-			int start=0;
-			int stop=0;
-			int curr=0;
-			int i=0;
-			for(;i<strlen(buf);i++) {
-				if(buf[i] == ' ') {
 
-					switch(curr) {
-					case 3:
-						start=i;
-						break;
-					case 4:
-						stop=i;
-						break;
-					default:
-						break;
-					}
-					curr++;
-				}
-			}
-            
-			if((stop-start) > 4) {
+			/* < subscribe sec usec XXXXXXXX ... > check for extended identifier */
+			if(element_length(buf, 4) == 8)
 				msg.msg_head.can_id |= CAN_EFF_FLAG;
-			}
 
 			msg.msg_head.opcode = RX_SETUP;
 			msg.msg_head.flags  = RX_FILTER_ID | SETTIMER;
@@ -488,31 +356,10 @@ inline void state_bcm() {
 					return;
 			}
 
-			/* check if this is standard or extended identifier */
-			int start=0;
-			int stop=0;
-			int curr=0;
-			int i=0;
-			for(;i<strlen(buf);i++) {
-				if(buf[i] == ' ') {
-
-					switch(curr) {
-					case 1:
-						start=i;
-						break;
-					case 2:
-						stop=i;
-						break;
-					default:
-						break;
-					}
-					curr++;
-				}
-			}
-            
-			if((stop-start) > 4) {
+			/* < unsubscribe XXXXXXXX ... > check for extended identifier */
+			if(element_length(buf, 2) == 8)
 				msg.msg_head.can_id |= CAN_EFF_FLAG;
-			}
+
 			msg.msg_head.opcode = RX_DELETE;
 			msg.frame.can_id = msg.msg_head.can_id;
             

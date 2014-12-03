@@ -175,31 +175,9 @@ inline void state_raw() {
 						return;
 				}
 
-				/* check if this is standard or extended identifier */
-				int start=0;
-				int stop=0;
-				int curr=0;
-				int i=0;
-				for(;i<strlen(buf);i++) {
-					if(buf[i] == ' ') {
-
-						switch(curr) {
-						case 1:
-							start=i;
-							break;
-						case 2:
-							stop=i;
-							break;
-						default:
-							break;
-						}
-						curr++;
-					}
-				}
-
-				if((stop-start) > 4) {
+				/* < send XXXXXXXX ... > check for extended identifier */
+				if(element_length(buf, 2) == 8)
 					frame.can_id |= CAN_EFF_FLAG;
-				}
 
 				ret = send(raw_socket, &frame, sizeof(struct can_frame), 0);
 				if(ret==-1) {
