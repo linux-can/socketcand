@@ -103,8 +103,13 @@ int state_changed(char *buf, int current_state)
 		state = STATE_RAW;
 	else if(!strcmp("< bcmmode >", buf))
 		state = STATE_BCM;
+	else if(!strcmp("< isotpmode >", buf))
+		state = STATE_ISOTP;
 	else if(!strcmp("< controlmode >", buf))
 		state = STATE_CONTROL;
+
+	if (current_state != state)
+		PRINT_INFO("state changed to %d\n", state);
 
 	return (current_state != state);
 }
@@ -142,6 +147,20 @@ int element_length(char *buf, int element)
 		}
 	}
 	return 0;
+}
+
+int asc2nibble(char c)
+{
+	if ((c >= '0') && (c <= '9'))
+		return c - '0';
+
+	if ((c >= 'A') && (c <= 'F'))
+		return c - 'A' + 10;
+
+	if ((c >= 'a') && (c <= 'f'))
+		return c - 'a' + 10;
+
+	return 16; /* error */
 }
 
 int main(int argc, char **argv)
@@ -407,6 +426,9 @@ int main(int argc, char **argv)
 			break;
 		case STATE_RAW:
 			state_raw();
+			break;
+		case STATE_ISOTP:
+			state_isotp();
 			break;
 		case STATE_CONTROL:
 			state_control();

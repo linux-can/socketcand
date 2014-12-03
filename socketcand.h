@@ -1,7 +1,9 @@
 #include <pthread.h>
 #include <syslog.h>
 
-#define MAXLEN 100
+/* receive buffer length from inet socket for an isotp PDU plus command */
+#define MAXLEN 8300 /* 4095 * 2 = 8190 + cmd stuff */
+
 #define MAX_BUSNAME 16+1
 #define PORT 29536
 
@@ -10,6 +12,7 @@
 #define STATE_RAW 2
 #define STATE_SHUTDOWN 3
 #define STATE_CONTROL 4
+#define STATE_ISOTP 5
 
 #define PRINT_INFO(...) if(daemon_flag) syslog(LOG_INFO, __VA_ARGS__); else printf(__VA_ARGS__);
 #define PRINT_ERROR(...) if(daemon_flag) syslog(LOG_ERR, __VA_ARGS__); else fprintf(stderr, __VA_ARGS__);
@@ -23,6 +26,7 @@
 
 inline void state_bcm();
 inline void state_raw();
+inline void state_isotp();
 inline void state_control();
 
 extern int client_socket;
@@ -43,3 +47,4 @@ extern struct sockaddr_in saddr;
 int receive_command(int socket, char *buf);
 int state_changed(char *buf, int current_state);
 int element_length(char *buf, int element);
+int asc2nibble(char c);
