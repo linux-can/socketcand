@@ -155,12 +155,24 @@ inline void state_isotp() {
 
 	if (FD_ISSET(si, &readfds)) {
 
+		struct timeval tv = {0};
+
 		items = read(si, isobuf, ISOTPLEN);
+
+		/* read timestamp data */
+		if(ioctl(si, SIOCGSTAMP, &tv) < 0) {
+			PRINT_ERROR("Could not receive timestamp\n");
+		}
+
 		if (items > 0 && items <= ISOTPLEN) {
 
-			sprintf(rxmsg, "< pdu "); /* strlen = 6 */
+			int startlen;
+
+			sprintf(rxmsg, "< pdu %ld.%06ld ", tv.tv_sec, tv.tv_usec);
+			startlen = strlen(rxmsg);
+
 			for (i=0; i < items; i++)
-				sprintf(rxmsg + 6 + 2*i, "%02X", isobuf[i]);
+				sprintf(rxmsg + startlen + 2*i, "%02X", isobuf[i]);
 
 			sprintf(rxmsg + strlen(rxmsg), " >");
 			send(client_socket, rxmsg, strlen(rxmsg), 0);
