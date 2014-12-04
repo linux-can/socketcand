@@ -1,6 +1,5 @@
 #include "config.h"
 #include "socketcand.h"
-#include "statistics.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +19,6 @@
 
 #include <linux/can.h>
 #include <linux/can/isotp.h>
-#include <linux/can/bcm.h>
 #include <linux/can/error.h>
 
 /* max. length for ISO 15765-2 PDUs */
@@ -116,7 +114,10 @@ inline void state_isotp() {
 			addr.can_family = PF_CAN;
 			addr.can_ifindex = ifr.ifr_ifindex;
 
-			setsockopt(si, SOL_CAN_ISOTP, CAN_ISOTP_OPTS, &opts, sizeof(opts));
+			/* only change the built-in defaults when required */
+			if (opts.flags)
+				setsockopt(si, SOL_CAN_ISOTP, CAN_ISOTP_OPTS, &opts, sizeof(opts));
+
 			setsockopt(si, SOL_CAN_ISOTP, CAN_ISOTP_RECV_FC, &fcopts, sizeof(fcopts));
 
 			PRINT_VERBOSE("binding ISOTP socket...\n")
