@@ -157,9 +157,9 @@ inline void state_isotp() {
 		items = read(si, isobuf, ISOTPLEN);
 		if (items > 0 && items <= ISOTPLEN) {
 
-			sprintf(rxmsg, "< isopdu "); /* strlen = 9 */
+			sprintf(rxmsg, "< pdu "); /* strlen = 6 */
 			for (i=0; i < items; i++)
-				sprintf(rxmsg + 9 + 2*i, "%02X", isobuf[i]);
+				sprintf(rxmsg + 6 + 2*i, "%02X", isobuf[i]);
 
 			sprintf(rxmsg + strlen(rxmsg), " >");
 			send(client_socket, rxmsg, strlen(rxmsg), 0);
@@ -186,7 +186,7 @@ inline void state_isotp() {
 			return;
 		}
 
-		if(!strncmp("< isopdu ", buf, 9)) {
+		if(!strncmp("< sendpdu ", buf, 10)) {
 			items = element_length(buf, 2);
 			if (items & 1) {
 				PRINT_ERROR("odd number of ASCII Hex values\n");
@@ -201,11 +201,11 @@ inline void state_isotp() {
 
 			for (i = 0; i < items; i++) {
 
-				tmp = asc2nibble(buf[(2*i) + 9]);
+				tmp = asc2nibble(buf[(2*i) + 10]);
 				if (tmp > 0x0F)
 					return;
 				isobuf[i] = (tmp << 4);
-				tmp = asc2nibble(buf[(2*i) + 10]);
+				tmp = asc2nibble(buf[(2*i) + 11]);
 				if (tmp > 0x0F)
 					return;
 				isobuf[i] |= tmp;
