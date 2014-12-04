@@ -157,7 +157,7 @@ Configure the ISO-TP channel - optional parameters are in [ ] brackets.
     < isotpconf tx_id rx_id flags blocksize stmin [ wftmax txpad_content rxpad_content ext_address rx_ext_address ] >
 
 * tx_id - CAN ID of channel to transmit data (from the host / src). CAN IDs 000h up to 7FFh (standard frame format) and 00000000h up to 1FFFFFFFh (extended frame format).
-* tx_id - CAN ID of channel to receive data (to the host / dst). CAN IDs in same format as tx_id.
+* rx_id - CAN ID of channel to receive data (to the host / dst). CAN IDs in same format as tx_id.
 * flags - hex value built from the original flags from isotp.h. These flags define which of the following parameters is used/required in which way.
 * blocksize - can take values from 0 (=off) to 15
 * stmin - separation time minimum. Hex value from 00h - FFh according to ISO-TP specification
