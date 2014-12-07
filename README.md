@@ -8,6 +8,7 @@ Installation
 
 To build and run socketcand make sure you have the following tools installed:
 
+* autoconf
 * make
 * gcc or another C compiler
 * a kernel that includes the SocketCAN modules
@@ -15,6 +16,12 @@ To build and run socketcand make sure you have the following tools installed:
 * the libconfig with headers (libconfig-dev under debian based systems)
 
 First run
+
+    $ autoconf
+
+to create the 'configure' script.
+
+Then run the created script with
 
     $ ./configure
 
