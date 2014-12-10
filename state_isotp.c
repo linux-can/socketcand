@@ -21,9 +21,6 @@
 #include <linux/can/isotp.h>
 #include <linux/can/error.h>
 
-/* max. length for ISO 15765-2 PDUs */
-#define ISOTPLEN 4095
-
 int si = -1;
 fd_set readfds;
 
@@ -207,7 +204,7 @@ inline void state_isotp() {
 			}
 
 			items /= 2;
-			if (items > 4095) {
+			if (items > ISOTPLEN) {
 				PRINT_ERROR("PDU too long\n");
 				return;
 			}

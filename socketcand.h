@@ -1,8 +1,11 @@
 #include <pthread.h>
 #include <syslog.h>
 
+/* max. length for ISO 15765-2 PDUs */
+#define ISOTPLEN 4095
+
 /* receive buffer length from inet socket for an isotp PDU plus command */
-#define MAXLEN 8300 /* 4095 * 2 = 8190 + cmd stuff */
+#define MAXLEN (2 * ISOTPLEN + 100) /* 4095 * 2 + cmd stuff */
 
 #define MAX_BUSNAME 16+1
 #define PORT 29536
