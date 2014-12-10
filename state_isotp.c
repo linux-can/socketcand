@@ -80,6 +80,13 @@ inline void state_isotp() {
 				       &opts.ext_address,
 				       &opts.rx_ext_address);
 
+			/* < isotpconf XXXXXXXX ... > check for extended identifier */
+			if(element_length(buf, 2) == 8)
+				addr.can_addr.tp.tx_id |= CAN_EFF_FLAG;
+
+			if(element_length(buf, 3) == 8)
+				addr.can_addr.tp.rx_id |= CAN_EFF_FLAG;
+
 			if ((opts.flags & CAN_ISOTP_RX_EXT_ADDR && items < 10) ||
 			    (opts.flags & CAN_ISOTP_EXTEND_ADDR && items < 9) ||
 			    (opts.flags & CAN_ISOTP_RX_PADDING && items < 8) ||
