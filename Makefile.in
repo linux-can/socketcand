@@ -38,7 +38,7 @@ clean:
 	rm -f $(executable) $(executable_cl) *.o
 
 distclean:
-	rm -f $(executable) $(executable_cl) *.o *~ Makefile config.h debian_pack configure config.log config.status
+	rm -rf $(executable) $(executable_cl) *.o *~ Makefile config.h debian_pack configure config.log config.status autom4te.cache socketcand_*.deb
 
 install: socketcand
 	mkdir -p $(DESTDIR)$(sysroot)$(bindir)
