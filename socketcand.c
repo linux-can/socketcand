@@ -114,18 +114,18 @@ int state_changed(char *buf, int current_state)
 	return (current_state != state);
 }
 
-int element_length(char *buf, int element)
+char *element_start(char *buf, int element)
 {
 	int len = strlen(buf);
-	int elem, i, j;
+	int elem, i;
 
 	/*
 	 * < elem1 elem2 elem3 >
 	 *
-	 * get the length of the requested element in bytes
+	 * get the position of the requested element as char pointer
 	 */
 
-	for (i=0, j=0, elem=0; i<len; i++) {
+	for (i=0, elem=0; i<len; i++) {
 
 		if (buf[i] == ' ') {
 			elem++;
@@ -135,18 +135,37 @@ int element_length(char *buf, int element)
 				i++;
 
 			if (i >= len)
-				return 0;
+				return NULL;
 		}
 
-		if (elem == element) {
-
-			while (j+i < len && buf[j+i] != ' ')
-				j++;
-
-			return j;
-		}
+		if (elem == element)
+			return &buf[i];
 	}
-	return 0;
+	return NULL;
+}
+
+int element_length(char *buf, int element)
+{
+	int len;
+	int j = 0;
+	char *elembuf;
+
+	/*
+	 * < elem1 elem2 elem3 >
+	 *
+	 * get the length of the requested element in bytes
+	 */
+
+	elembuf = element_start(buf, element);
+	if (elembuf == NULL)
+		return 0;
+
+	len = strlen(elembuf);
+
+	while (j < len && elembuf[j] != ' ')
+		j++;
+
+	return j;
 }
 
 int asc2nibble(char c)

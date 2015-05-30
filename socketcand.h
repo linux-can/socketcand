@@ -49,5 +49,6 @@ extern struct sockaddr_in saddr;
 
 int receive_command(int socket, char *buf);
 int state_changed(char *buf, int current_state);
+char *element_start(char *buf, int element);
 int element_length(char *buf, int element);
 int asc2nibble(char c);
