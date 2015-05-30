@@ -29,7 +29,7 @@ fd_set readfds;
 struct timeval tv;
 
 inline void state_bcm() {
-	int i, ret;
+	int i, j, ret;
 	struct sockaddr_can caddr;
 	socklen_t caddrlen = sizeof(caddr);
 	struct ifreq ifr;
@@ -40,6 +40,11 @@ inline void state_bcm() {
 		struct bcm_msg_head msg_head;
 		struct can_frame frame;
 	} msg;
+
+	struct {
+		struct bcm_msg_head msg_head;
+		struct can_frame frame[257]; /* MAX_NFRAMES + MUX MASK */
+	} muxmsg;
 
 	if(previous_state != STATE_BCM) {
 		/* open BCM socket */
@@ -320,6 +325,82 @@ inline void state_bcm() {
 				caddr.can_ifindex = ifr.ifr_ifindex;
 				sendto(sc, &msg, sizeof(msg), 0,
 				       (struct sockaddr*)&caddr, sizeof(caddr));
+			}
+			/* Receive CAN ID with multiplex content matching */
+		} else if(!strncmp("< muxfilter ", buf, 12)) {
+
+			char *cfptr;
+			char tmp;
+
+			memset(&muxmsg, 0, sizeof(msg));
+
+			items = sscanf(buf, "< %*s %lu %lu %u %x %hhu "
+				       "%hhx %hhx %hhx %hhx %hhx %hhx %hhx %hhx ",
+				       &muxmsg.msg_head.ival2.tv_sec,
+				       &muxmsg.msg_head.ival2.tv_usec,
+				       &muxmsg.msg_head.nframes,
+				       &muxmsg.frame[0].can_id,
+				       &muxmsg.frame[0].can_dlc,
+				       &muxmsg.frame[0].data[0],
+				       &muxmsg.frame[0].data[1],
+				       &muxmsg.frame[0].data[2],
+				       &muxmsg.frame[0].data[3],
+				       &muxmsg.frame[0].data[4],
+				       &muxmsg.frame[0].data[5],
+				       &muxmsg.frame[0].data[6],
+				       &muxmsg.frame[0].data[7]);
+
+			if( (items != 13) ||
+			    (muxmsg.frame[0].can_dlc != 8) ||
+			    (muxmsg.msg_head.nframes < 2) ||
+			    (muxmsg.msg_head.nframes > 257) ) {
+				PRINT_ERROR("syntax error in muxfilter command.\n")
+					return;
+			}
+
+			/* < filter sec usec nframes XXXXXXXX ... > check for extended identifier */
+			if(element_length(buf, 5) == 8)
+				muxmsg.frame[0].can_id |= CAN_EFF_FLAG;
+
+			muxmsg.msg_head.can_id = muxmsg.frame[0].can_id;
+			muxmsg.msg_head.opcode = RX_SETUP;
+			muxmsg.msg_head.flags  = SETTIMER;
+
+			/* kick back 24 bytes as loop variable starts with 1 */
+			cfptr = element_start(buf, 15) - 24;
+			if (cfptr == NULL) {
+				PRINT_ERROR("failed to find filter data start in muxfilter.\n")
+					return;
+			}
+
+			/* copy filter data for mux mask in muxmsg.frame[0] */
+			for (i = 1; i < muxmsg.msg_head.nframes; i++) {
+
+				for (j = 0; j < 8; j++) {
+
+					tmp = asc2nibble(cfptr[(24*i + 3*j)]);
+					if (tmp > 0x0F) {
+						PRINT_ERROR("failed to process filter data in muxfilter.\n")
+							return;
+					}
+
+					muxmsg.frame[i].data[j] = (tmp << 4);
+
+					tmp = asc2nibble(cfptr[(24*i + 3*j)+1]);
+					if (tmp > 0x0F) {
+						PRINT_ERROR("failed to process filter data in muxfilter.\n")
+							return;
+					}
+
+					muxmsg.frame[i].data[j] |= tmp;
+				}
+			}
+
+			if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
+				caddr.can_ifindex = ifr.ifr_ifindex;
+				sendto(sc, &muxmsg, sizeof(struct bcm_msg_head) +
+				       sizeof(struct can_frame) * muxmsg.msg_head.nframes,
+				       0, (struct sockaddr*)&caddr, sizeof(caddr));
 			}
 			/* Add a filter */
 		} else if(!strncmp("< subscribe ", buf, 12)) {
