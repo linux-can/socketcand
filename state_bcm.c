@@ -332,7 +332,7 @@ inline void state_bcm() {
 			char *cfptr;
 			char tmp;
 
-			memset(&muxmsg, 0, sizeof(msg));
+			memset(&muxmsg, 0, sizeof(muxmsg));
 
 			items = sscanf(buf, "< %*s %lu %lu %u %x %hhu "
 				       "%hhx %hhx %hhx %hhx %hhx %hhx %hhx %hhx ",
@@ -370,6 +370,11 @@ inline void state_bcm() {
 			cfptr = element_start(buf, 15) - 24;
 			if (cfptr == NULL) {
 				PRINT_ERROR("failed to find filter data start in muxfilter.\n")
+					return;
+			}
+
+			if (strlen(cfptr) <  muxmsg.msg_head.nframes * 24) {
+				PRINT_ERROR("muxfilter data too short.\n")
 					return;
 			}
 
