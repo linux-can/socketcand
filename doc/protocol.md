@@ -72,7 +72,15 @@ Send a single CAN frame without cyclic transmission
 The commands for reception are 'subscribe' , 'unsubscribe' and 'filter'.
 
 ##### Content filtering #####
-This command is used to configure the broadcast manager for reception of frames with a given CAN ID. Frames are only sent when they match the pattern that is provided.
+This command is used to configure the broadcast manager for reception of frames with a given CAN ID. Frames are only sent when they match the pattern that is provided. The time value given is used to throttle the incoming update rate.
+
+    < filter secs usecs can_id can_dlc [data]* >
+
+* secs - number of seconds (throttle update rate)
+* usecs - number of microseconds (throttle update rate)
+* can_id - CAN identifier
+* can_dlc - data length code (values 0 .. 8)
+* data - ASCII hex bytes depending on the can_dlc value
 
 Examples:
 
@@ -87,6 +95,32 @@ Receive CAN ID 0x123 and check for changes in given mask
 As above but throttle receive update rate down to 1.5 seconds
 
     < filter 1 500000 123 8 FF 00 F8 00 00 00 00 00 >
+
+##### Content filtering for multiplex CAN messages #####
+This command is used to configure the broadcast manager for reception of frames with a given CAN ID and a multiplex message filter mask. Frames are only sent when they match the pattern that is provided. The time value given is used to throttle the incoming update rate.
+
+
+    < muxfilter secs usecs can_id nframes [data]+ >
+
+* secs - number of seconds (throttle update rate)
+* usecs - number of microseconds (throttle update rate)
+* can_id - CAN identifier
+* nframes - number of 8 byte filter tuples (one mux filter + 1..256 mux content filters)
+* data - ASCII hex bytes depending on the nframes value multiplied by 8
+
+Examples:
+
+The first 8 byte tuple is the multiplex mask which identifies the position of multiplex identifier. The following 8 byte tuples contain the value of the multiplex id at this position and the filter for that specific multiplex identifier in the remaining content of its 8 byte tuple.
+
+    FF 00 00 00 00 00 00 00 <--> multiplex mask (here: entire first byte)
+    33 FF FF FF FF FF FF FF <--> filter mask 'FF FF FF FF FF FF FF' for multiplex id '33'
+    56 FF 00 00 00 00 FF FF <--> filter mask 'FF 00 00 00 00 FF FF' for multiplex id '56'
+    44 FF FF FF FF 00 00 FF <--> filter mask 'FF FF FF FF 00 00 FF' for multiplex id '44'
+    ED 00 00 00 00 00 FF FF <--> filter mask '00 00 00 00 00 FF FF' for multiplex id 'ED'
+
+Receive CAN ID 0x123 and check for changes in given mutiplex mask '33'. The fourth value '2' is the number of frames (2 <= nframes <= 257):
+
+    < muxfilter 0 0 123 2 FF 00 00 00 00 00 00 00 33 FF FF FF FF FF FF FF >
 
 ##### Subscribe to CAN ID #####
 Adds a subscription a CAN ID. The frames are sent regardless of their content. An interval in seconds or microseconds may be set.
