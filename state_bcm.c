@@ -334,40 +334,27 @@ inline void state_bcm() {
 
 			memset(&muxmsg, 0, sizeof(muxmsg));
 
-			items = sscanf(buf, "< %*s %lu %lu %u %x %hhu "
-				       "%hhx %hhx %hhx %hhx %hhx %hhx %hhx %hhx ",
+			items = sscanf(buf, "< %*s %lu %lu %x %u ",
 				       &muxmsg.msg_head.ival2.tv_sec,
 				       &muxmsg.msg_head.ival2.tv_usec,
-				       &muxmsg.msg_head.nframes,
-				       &muxmsg.frame[0].can_id,
-				       &muxmsg.frame[0].can_dlc,
-				       &muxmsg.frame[0].data[0],
-				       &muxmsg.frame[0].data[1],
-				       &muxmsg.frame[0].data[2],
-				       &muxmsg.frame[0].data[3],
-				       &muxmsg.frame[0].data[4],
-				       &muxmsg.frame[0].data[5],
-				       &muxmsg.frame[0].data[6],
-				       &muxmsg.frame[0].data[7]);
+				       &muxmsg.msg_head.can_id,
+				       &muxmsg.msg_head.nframes);
 
-			if( (items != 13) ||
-			    (muxmsg.frame[0].can_dlc != 8) ||
+			if( (items != 4) ||
 			    (muxmsg.msg_head.nframes < 2) ||
 			    (muxmsg.msg_head.nframes > 257) ) {
 				PRINT_ERROR("syntax error in muxfilter command.\n")
 					return;
 			}
 
-			/* < filter sec usec nframes XXXXXXXX ... > check for extended identifier */
-			if(element_length(buf, 5) == 8)
-				muxmsg.frame[0].can_id |= CAN_EFF_FLAG;
+			/* < muxfilter sec usec XXXXXXXX ... > check for extended identifier */
+			if(element_length(buf, 4) == 8)
+				muxmsg.msg_head.can_id |= CAN_EFF_FLAG;
 
-			muxmsg.msg_head.can_id = muxmsg.frame[0].can_id;
 			muxmsg.msg_head.opcode = RX_SETUP;
 			muxmsg.msg_head.flags  = SETTIMER;
 
-			/* kick back 24 bytes as loop variable starts with 1 */
-			cfptr = element_start(buf, 15) - 24;
+			cfptr = element_start(buf, 6);
 			if (cfptr == NULL) {
 				PRINT_ERROR("failed to find filter data start in muxfilter.\n")
 					return;
@@ -378,8 +365,8 @@ inline void state_bcm() {
 					return;
 			}
 
-			/* copy filter data for mux mask in muxmsg.frame[0] */
-			for (i = 1; i < muxmsg.msg_head.nframes; i++) {
+			/* copy filter data and mux mask in muxmsg.frame[0] */
+			for (i = 0; i < muxmsg.msg_head.nframes; i++) {
 
 				for (j = 0; j < 8; j++) {
 
