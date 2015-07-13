@@ -31,6 +31,22 @@ case "$1" in
 	start-stop-daemon --stop --quiet --pidfile $PIDFILE --oknodo --startas $DAEMON
 	rm -f $PIDFILE
 	;;
+  status)
+	printf "%-50s" "Checking $NAME..."
+	if [ -f $PIDFILE ]; then
+	PID=`cat $PIDFILE`
+	if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+		printf "%s\n" "Process dead but pidfile exists"
+		return 1
+	else
+		echo "Running"
+		return 0
+	fi
+	else
+		printf "%s\n" "Service not running"
+		return 1
+	fi
+	;;
   restart)
   	$0 stop
 	sleep 1
