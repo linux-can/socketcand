@@ -92,6 +92,7 @@ char bus_name[MAX_BUSNAME];
 char cmd_buffer[MAXLEN];
 int cmd_index=0;
 char* description;
+char* afuxname;
 int more_elements = 0;
 struct sockaddr_in saddr, broadcast_addr;
 char* interface_string;
@@ -204,6 +205,7 @@ int main(int argc, char **argv)
 	strcpy(interface_string, "eth0");
 	busses_string = malloc(strlen("vcan0")+ 1);
 	strcpy(busses_string, "vcan0");
+	afuxname = NULL;
 
 
 #ifdef HAVE_LIBCONFIG
@@ -212,6 +214,7 @@ int main(int argc, char **argv)
 	if(CONFIG_TRUE == config_read_file(&config, "/etc/socketcand.conf")) {
 		config_lookup_int(&config, "port", (int*) &port);
 		config_lookup_string(&config, "description", (const char**) &description);
+		config_lookup_string(&config, "afuxname", (const char**) &afuxname);
 		config_lookup_string(&config, "busses", (const char**) &busses_string);
 		config_lookup_string(&config, "listen", (const char**) &interface_string);
 	}
@@ -225,14 +228,16 @@ int main(int argc, char **argv)
 			{"verbose", no_argument, 0, 'v'},
 			{"interfaces",  required_argument, 0, 'i'},
 			{"port", required_argument, 0, 'p'},
+			{"afuxname", required_argument, 0, 'u'},
 			{"listen", required_argument, 0, 'l'},
 			{"daemon", no_argument, 0, 'd'},
 			{"version", no_argument, 0, 'z'},
 			{"no-beacon", no_argument, 0, 'n'},
+			{"help", no_argument, 0, 'h'},
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long (argc, argv, "vhni:p:l:d", long_options, &option_index);
+		c = getopt_long (argc, argv, "vi:p:u:l:dznh", long_options, &option_index);
 
 		if (c == -1)
 			break;
@@ -244,29 +249,29 @@ int main(int argc, char **argv)
 				break;
 			break;
 
-
 		case 'v':
 			puts ("Verbose output activated\n");
 			verbose_flag = 1;
+			break;
+
+		case 'i':
+			busses_string = realloc(busses_string, strlen(optarg));
+			strcpy(busses_string, optarg);
 			break;
 
 		case 'p':
 			port = atoi(optarg);
 			break;
 
-		case 'i':
-			busses_string = realloc(busses_string,strlen(optarg));
-			strcpy(busses_string, optarg);
+		case 'u':
+			afuxname = realloc(afuxname, strlen(optarg));
+			strcpy(afuxname, optarg);
 			break;
 
 		case 'l':
 			interface_string = realloc(interface_string, strlen(optarg));
 			strcpy(interface_string, optarg);
 			break;
-
-		case 'h':
-			print_usage();
-			return 0;
 
 		case 'd':
 			daemon_flag=1;
@@ -279,6 +284,10 @@ int main(int argc, char **argv)
 		case 'n':
 			disable_beacon=1;
 			break;
+
+		case 'h':
+			print_usage();
+			return 0;
 
 		case '?':
 			print_usage();
@@ -352,10 +361,10 @@ int main(int argc, char **argv)
 	}
 
 	PRINT_VERBOSE("binding socket to %s:%d\n", inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port))
-		if(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
-			perror("bind");
-			exit(-1);
-		}
+	if(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
+		perror("bind");
+		exit(-1);
+	}
 
 	if (listen(sl,3) != 0) {
 		perror("listen");
@@ -388,8 +397,8 @@ int main(int argc, char **argv)
 	PRINT_VERBOSE("client connected\n")
 
 #ifdef DEBUG
-		PRINT_VERBOSE("setting SO_REUSEADDR\n")
-		i = 1;
+	PRINT_VERBOSE("setting SO_REUSEADDR\n")
+	i = 1;
 	if(setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) <0) {
 		perror("setting SO_REUSEADDR failed");
 	}
