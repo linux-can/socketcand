@@ -335,22 +335,6 @@ int main(int argc, char **argv)
 	sigint_action.sa_flags = 0;
 	sigaction(SIGINT, &sigint_action, NULL);
 
-	if((sl = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-		perror("inetsocket");
-		exit(1);
-	}
-
-#ifdef DEBUG
-	if(verbose_flag)
-		printf("setting SO_REUSEADDR\n");
-	i = 1;
-	if(setsockopt(sl, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) <0) {
-		perror("setting SO_REUSEADDR failed");
-	}
-#endif
-
-	determine_adress();
-
 	if(!disable_beacon) {
 		PRINT_VERBOSE("creating broadcast thread...\n");
 		i = pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
@@ -360,50 +344,74 @@ int main(int argc, char **argv)
 		PRINT_VERBOSE("Discovery beacon disabled\n");
 	}
 
-	PRINT_VERBOSE("binding socket to %s:%d\n", inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port));
-	if(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
-		perror("bind");
-		exit(-1);
-	}
+	if (afuxname) {
 
-	if (listen(sl,3) != 0) {
-		perror("listen");
-		exit(1);
-	}
+		/* create PF_UNIX socket */
 
-	while (1) {
-		client_socket = accept(sl,(struct sockaddr *)&clientaddr, &sin_size);
-		if (client_socket > 0 ){
-			int flag;
-			flag = 1;
-			setsockopt(client_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(flag));
-			if (fork())
-				close(client_socket);
-			else
-				break;
+	} else {
+
+		/* create PF_INET socket */
+
+		if((sl = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+			perror("inetsocket");
+			exit(1);
 		}
-		else {
-			if (errno != EINTR) {
-				/*
-				 * If the cause for the error was NOT the
-				 * signal from a dying child => give an error
-				 */
-				perror("accept");
-				exit(1);
-			}
-		}
-	}
-
-	PRINT_VERBOSE("client connected\n");
 
 #ifdef DEBUG
-	PRINT_VERBOSE("setting SO_REUSEADDR\n");
-	i = 1;
-	if(setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) <0) {
-		perror("setting SO_REUSEADDR failed");
-	}
+		if(verbose_flag)
+			printf("setting SO_REUSEADDR\n");
+		i = 1;
+		if(setsockopt(sl, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) <0) {
+			perror("setting SO_REUSEADDR failed");
+		}
 #endif
 
+		determine_adress();
+
+		PRINT_VERBOSE("binding socket to %s:%d\n", inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port));
+		if(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
+			perror("bind");
+			exit(-1);
+		}
+
+		if (listen(sl,3) != 0) {
+			perror("listen");
+			exit(1);
+		}
+
+		while (1) {
+			client_socket = accept(sl,(struct sockaddr *)&clientaddr, &sin_size);
+			if (client_socket > 0 ){
+				int flag;
+				flag = 1;
+				setsockopt(client_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(flag));
+				if (fork())
+					close(client_socket);
+				else
+					break;
+			}
+			else {
+				if (errno != EINTR) {
+					/*
+					 * If the cause for the error was NOT the
+					 * signal from a dying child => give an error
+					 */
+					perror("accept");
+					exit(1);
+				}
+			}
+		}
+
+		PRINT_VERBOSE("client connected\n");
+
+#ifdef DEBUG
+		PRINT_VERBOSE("setting SO_REUSEADDR\n");
+		i = 1;
+		if(setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) <0) {
+			perror("setting SO_REUSEADDR failed");
+		}
+#endif
+	}
 	/* main loop with state machine */
 	while(1) {
 		switch(state) {
