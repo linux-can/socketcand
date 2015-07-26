@@ -335,6 +335,8 @@ int main(int argc, char **argv)
 	sigint_action.sa_flags = 0;
 	sigaction(SIGINT, &sigint_action, NULL);
 
+	determine_adress();
+
 	if(!disable_beacon) {
 		PRINT_VERBOSE("creating broadcast thread...\n");
 		i = pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
@@ -365,8 +367,6 @@ int main(int argc, char **argv)
 			perror("setting SO_REUSEADDR failed");
 		}
 #endif
-
-		determine_adress();
 
 		PRINT_VERBOSE("binding socket to %s:%d\n", inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port));
 		if(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
