@@ -352,15 +352,15 @@ int main(int argc, char **argv)
 	determine_adress();
 
 	if(!disable_beacon) {
-		PRINT_VERBOSE("creating broadcast thread...\n")
-			i = pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
+		PRINT_VERBOSE("creating broadcast thread...\n");
+		i = pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
 		if(i)
 			PRINT_ERROR("could not create broadcast thread.\n");
 	} else {
 		PRINT_VERBOSE("Discovery beacon disabled\n");
 	}
 
-	PRINT_VERBOSE("binding socket to %s:%d\n", inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port))
+	PRINT_VERBOSE("binding socket to %s:%d\n", inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port));
 	if(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
 		perror("bind");
 		exit(-1);
@@ -394,10 +394,10 @@ int main(int argc, char **argv)
 		}
 	}
 
-	PRINT_VERBOSE("client connected\n")
+	PRINT_VERBOSE("client connected\n");
 
 #ifdef DEBUG
-	PRINT_VERBOSE("setting SO_REUSEADDR\n")
+	PRINT_VERBOSE("setting SO_REUSEADDR\n");
 	i = 1;
 	if(setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) <0) {
 		perror("setting SO_REUSEADDR failed");
@@ -443,8 +443,8 @@ int main(int argc, char **argv)
 					state = STATE_SHUTDOWN;
 				}
 			} else {
-				PRINT_ERROR("unknown command '%s'.\n", buf)
-					strcpy(buf, "< error unknown command >");
+				PRINT_ERROR("unknown command '%s'.\n", buf);
+				strcpy(buf, "< error unknown command >");
 				send(client_socket, buf, strlen(buf), 0);
 			}
 			break;
@@ -645,20 +645,20 @@ void childdied() {
 
 void sigint() {
 	if(verbose_flag)
-		PRINT_ERROR("received SIGINT\n")
+		PRINT_ERROR("received SIGINT\n");
 
-			if(sl != -1) {
-				if(verbose_flag)
-					PRINT_INFO("closing listening socket\n")
-						if(!close(sl))
-							sl = -1;
-			}
+	if(sl != -1) {
+		if(verbose_flag)
+			PRINT_INFO("closing listening socket\n");
+		if(!close(sl))
+			sl = -1;
+	}
 
 	if(client_socket != -1) {
 		if(verbose_flag)
-			PRINT_INFO("closing client socket\n")
-				if(!close(client_socket))
-					client_socket = -1;
+			PRINT_INFO("closing client socket\n");
+		if(!close(client_socket))
+			client_socket = -1;
 	}
 
 	closelog();
