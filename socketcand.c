@@ -59,6 +59,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/uio.h>
+#include <sys/un.h>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -95,6 +96,10 @@ char* description;
 char* afuxname;
 int more_elements = 0;
 struct sockaddr_in saddr, broadcast_addr;
+struct sockaddr_un unaddr;
+socklen_t unaddrlen;
+struct sockaddr_un remote_unaddr;
+socklen_t remote_unaddrlen;
 char* interface_string;
 struct ifreq ifr, ifr_brd;
 
@@ -349,6 +354,65 @@ int main(int argc, char **argv)
 	if (afuxname) {
 
 		/* create PF_UNIX socket */
+		if((sl = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
+			perror("unixsocket");
+			exit(1);
+		}
+
+		unaddr.sun_family = AF_UNIX;
+		if (strlen(afuxname) > sizeof(unaddr.sun_path)-3) {
+			printf("afuxname is too long.\n");
+			exit(1);
+		}
+
+		/* when the given afuxname starts with a '/' we assume the path name scheme, e.g.
+		 * /var/run/socketcand or /tmp/socketcand-afunix-socket
+		 * Without the leading '/' we use the string as abstract socket address.
+		 */
+
+		if (afuxname[0] == '/') {
+			strcpy(&unaddr.sun_path[0], afuxname);
+			/* due to the trailing \0 in path name definition we can write the entire struct */
+			unaddrlen = sizeof(unaddr);
+		} else {
+			strcpy(&unaddr.sun_path[1], afuxname);
+			unaddr.sun_path[0] = 0;
+			/* abtract name length definition without trailing \0 but with leading \0 */
+			unaddrlen = strlen(afuxname) + sizeof(unaddr.sun_family) + 1;
+		}
+		PRINT_VERBOSE("binding unix socket to with unaddrlen %d\n", unaddrlen);
+		if(bind(sl,(struct sockaddr*)&unaddr, unaddrlen) < 0) {
+			perror("unixbind");
+			exit(-1);
+		}
+
+		if (listen(sl,3) != 0) {
+			perror("unixlisten");
+			exit(1);
+		}
+
+		while (1) {
+			remote_unaddrlen = sizeof(struct sockaddr_un);
+			client_socket = accept(sl,(struct sockaddr *)&remote_unaddr, &remote_unaddrlen);
+			if (client_socket > 0 ){
+				if (fork())
+					close(client_socket);
+				else
+					break;
+			}
+			else {
+				if (errno != EINTR) {
+					/*
+					 * If the cause for the error was NOT the
+					 * signal from a dying child => give an error
+					 */
+					perror("accept");
+					exit(1);
+				}
+			}
+		}
+
+		PRINT_VERBOSE("client connected\n");
 
 	} else {
 
@@ -641,6 +705,7 @@ void print_usage(void) {
 	printf("\t-v activates verbose output to STDOUT\n");
 	printf("\t-i comma separated list of SocketCAN interfaces the daemon shall\n\t\tprovide access to (e.g. -i can0,vcan1)\n");
 	printf("\t-p port changes the default port (%d) the daemon is listening at\n", PORT);
+	printf("\t-u unix socket path (abtract name when leading '/' is missing)\n");
 	printf("\t-l interface changes the default network interface the daemon will\n\t\tbind to\n");
 	printf("\t-d set this flag if you want log to syslog instead of STDOUT\n");
 	printf("\t-n deactivates the discovery beacon\n");
