@@ -380,7 +380,7 @@ int main(int argc, char **argv)
 			/* abtract name length definition without trailing \0 but with leading \0 */
 			unaddrlen = strlen(afuxname) + sizeof(unaddr.sun_family) + 1;
 		}
-		PRINT_VERBOSE("binding unix socket to with unaddrlen %d\n", unaddrlen);
+		PRINT_VERBOSE("binding unix socket to '%s' with unaddrlen %d\n", afuxname, unaddrlen);
 		if(bind(sl,(struct sockaddr*)&unaddr, unaddrlen) < 0) {
 			perror("unixbind");
 			exit(-1);
