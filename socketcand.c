@@ -260,7 +260,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'i':
-			busses_string = realloc(busses_string, strlen(optarg));
+			busses_string = realloc(busses_string, strlen(optarg)+1);
 			strcpy(busses_string, optarg);
 			break;
 
@@ -269,12 +269,12 @@ int main(int argc, char **argv)
 			break;
 
 		case 'u':
-			afuxname = realloc(afuxname, strlen(optarg));
+			afuxname = realloc(afuxname, strlen(optarg)+1);
 			strcpy(afuxname, optarg);
 			break;
 
 		case 'l':
-			interface_string = realloc(interface_string, strlen(optarg));
+			interface_string = realloc(interface_string, strlen(optarg)+1);
 			strcpy(interface_string, optarg);
 			break;
 

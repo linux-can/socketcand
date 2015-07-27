@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 's':
-			server_string = realloc(server_string,strlen(optarg));
+			server_string = realloc(server_string, strlen(optarg)+1);
 			strcpy(server_string, optarg);
 			break;
 
