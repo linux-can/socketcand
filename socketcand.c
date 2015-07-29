@@ -206,10 +206,10 @@ int main(int argc, char **argv)
 	port = PORT;
 	description = malloc(sizeof(BEACON_DESCRIPTION));
 	strcpy(description, BEACON_DESCRIPTION);
-	interface_string = malloc(strlen("eth0")+ 1);
-	strcpy(interface_string, "eth0");
-	busses_string = malloc(strlen("vcan0")+ 1);
-	strcpy(busses_string, "vcan0");
+	interface_string = malloc(strlen(DEFAULT_INTERFACE)+ 1);
+	strcpy(interface_string, DEFAULT_INTERFACE);
+	busses_string = malloc(strlen(DEFAULT_BUSNAME)+ 1);
+	strcpy(busses_string, DEFAULT_BUSNAME);
 	afuxname = NULL;
 
 
@@ -700,16 +700,16 @@ void determine_adress() {
 void print_usage(void) {
 	printf("%s Version %s\n", PACKAGE_NAME, PACKAGE_VERSION);
 	printf("Report bugs to %s\n\n", PACKAGE_BUGREPORT);
-	printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port] [-l ip_addr | --listen interface]\n\t\t[-n | --no-beacon]\n\n");
+	printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port] [-l interface | --listen interface]\n\t\t[-u name | --afuxname name] [-n | --no-beacon] [-d | --daemon]\n\t\t[-h | --help]\n\n");
 	printf("Options:\n");
-	printf("\t-v activates verbose output to STDOUT\n");
-	printf("\t-i comma separated list of SocketCAN interfaces the daemon shall\n\t\tprovide access to (e.g. -i can0,vcan1)\n");
-	printf("\t-p port changes the default port (%d) the daemon is listening at\n", PORT);
-	printf("\t-u unix socket path (abtract name when leading '/' is missing)\n");
-	printf("\t-l interface changes the default network interface the daemon will\n\t\tbind to\n");
-	printf("\t-d set this flag if you want log to syslog instead of STDOUT\n");
-	printf("\t-n deactivates the discovery beacon\n");
-	printf("\t-h prints this message\n");
+	printf("\t-v (activates verbose output to STDOUT)\n");
+	printf("\t-i <interfaces> (comma separated list of SocketCAN interfaces the daemon\n\t\tshall provide access to e.g. '-i can0,vcan1' - default: %s)\n", DEFAULT_BUSNAME);
+	printf("\t-p <port> (changes the default port '%d' the daemon is listening at)\n", PORT);
+	printf("\t-l <interface> (changes the default network interface the daemon will\n\t\tbind to - default: %s)\n", DEFAULT_INTERFACE);
+	printf("\t-u <name> (the AF_UNIX socket path - abstract name when leading '/' is missing)\n\t\t(N.B. the AF_UNIX binding will supersede the port/interface settings)\n");
+	printf("\t-n (deactivates the discovery beacon)\n");
+	printf("\t-d (set this flag if you want log to syslog instead of STDOUT)\n");
+	printf("\t-h (prints this message)\n");
 }
 
 void childdied() {

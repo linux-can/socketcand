@@ -39,11 +39,17 @@ The daemon uses a simple UDP beacon mechanism for service discovery. A beacon co
 Usage
 -----
 
-    socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces] [-p port | --port port] [-l ip_addr | --listen interface] [-h | --help]
+     socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]
+		[-p port | --port port] [-l interface | --listen interface]
+		[-u name | --afuxname name] [-n | --no-beacon] [-d | --daemon]
+		[-h | --help]
 
 ###Description of the options
-* **-v** activates verbose output to STDOUT
-* **-i interfaces** is used to specify the SocketCAN interfaces the daemon shall provide access to
-* **-p port** changes the default port (29536) the daemon is listening at
-* **-l interface** changes the default network interface (eth0) the daemon will bind to
-* **-h** prints a help message
+* **-v** (activates verbose output to STDOUT)
+* **-i interfaces** (comma separated list of SocketCAN interfaces the daemon shall provide access to e.g. '-i can0,vcan1' - default: vcan0)
+* **-p port** (changes the default port '29536' the daemon is listening at)
+* **-l interface** (changes the default network interface the daemon will bind to - default: eth0)
+* **-u name** (the AF_UNIX socket path - abstract name when leading '/' is missing) (N.B. the AF_UNIX binding will supersede the port/interface settings)
+* **-n** (deactivates the discovery beacon)
+* **-d** (set this flag if you want log to syslog instead of STDOUT)
+* **-h** (prints this message)

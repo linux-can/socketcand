@@ -4,8 +4,10 @@ Socketcand protocol
 The socketcand provides a network interface to a number of CAN busses on the host. It can be controlled over a single TCP socket and supports transmission and reception of CAN frames. The used protocol is ASCII based and has some states in which different commandy may be used.
 
 ## Mode NO_BUS ##
-After connecting to the socket the client is greeted with '< hi >'. The open command is used to select one of the CAN busses that were announced in the broadcast beacon. The syntax is:
-    < open canbus >
+After connecting to the socket the client is greeted with '< hi >'. The open command is used to select one of the CAN busses that were announced in the broadcast beacon. The syntax is '<open canbus>', e.g.
+
+    < open can0 >
+
 where canbus may be at maximum 16 characters long. If the client is allowed to access the bus the server will respond with '< ok >'. Otherwise an error is returned and the connection is terminated.
 After a bus was opened the mode is switched to BCM mode. The Mode NO_BUS is the only mode where bittimings or other bus configuration settings may be done.
 

@@ -9,6 +9,8 @@
 
 #define MAX_BUSNAME 16+1
 #define PORT 29536
+#define DEFAULT_INTERFACE "eth0"
+#define DEFAULT_BUSNAME "vcan0"
 
 #define STATE_NO_BUS 0
 #define STATE_BCM 1
