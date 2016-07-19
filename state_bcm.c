@@ -28,7 +28,7 @@ int sc = -1;
 fd_set readfds;
 struct timeval tv;
 
-inline void state_bcm() {
+void state_bcm() {
 	int i, j, ret;
 	struct sockaddr_can caddr;
 	socklen_t caddrlen = sizeof(caddr);

@@ -29,10 +29,10 @@
 
 #undef DEBUG_RECEPTION
 
-inline void state_bcm();
-inline void state_raw();
-inline void state_isotp();
-inline void state_control();
+void state_bcm();
+void state_raw();
+void state_isotp();
+void state_control();
 
 extern int client_socket;
 extern char **interface_names;

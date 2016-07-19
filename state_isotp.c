@@ -24,7 +24,7 @@
 int si = -1;
 fd_set readfds;
 
-inline void state_isotp() {
+void state_isotp() {
 	int i, items, ret;
 
 	struct sockaddr_can addr;
