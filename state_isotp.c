@@ -20,6 +20,7 @@
 #include <linux/can.h>
 #include <linux/can/isotp.h>
 #include <linux/can/error.h>
+#include <linux/sockios.h>
 
 int si = -1;
 fd_set readfds;

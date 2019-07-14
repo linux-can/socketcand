@@ -21,6 +21,7 @@
 #include <linux/can.h>
 #include <linux/can/bcm.h>
 #include <linux/can/error.h>
+#include <linux/sockios.h>
 
 #define RXLEN 128
 
