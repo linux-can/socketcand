@@ -97,7 +97,7 @@ char cmd_buffer[MAXLEN];
 
 int main(int argc, char **argv)
 {
-	int i, c;
+	int i;
 	struct sockaddr_in serveraddr;
 	struct hostent *server_ent;
 	struct sigaction sigint_action;
@@ -107,14 +107,14 @@ int main(int argc, char **argv)
 	/* set default config settings */
 	port = PORT;
 	strcpy(ldev, "can0");
-	strcpy(rdev,"can0");
+	strcpy(rdev, "can0");
 	server_string = malloc(strlen("localhost"));
 
 
 	/* Parse commandline arguments */
 	for(;;) {
 		/* getopt_long stores the option index here. */
-		int option_index = 0;
+		int c, option_index = 0;
 		static struct option long_options[] = {
 			{"verbose", no_argument, 0, 'v'},
 			{"interfaces",  required_argument, 0, 'i'},
@@ -246,9 +246,8 @@ int main(int argc, char **argv)
 inline void state_connected()
 {
 
-	int i, ret;
+	int ret;
 	static struct can_frame frame;
-	char data_str[2*8];
 	static struct ifreq ifr;
 	static struct sockaddr_can addr;
 	fd_set readfds;
@@ -314,6 +313,8 @@ inline void state_connected()
 				ret = receive_command(server_socket, (char *) &buf);
 				if(ret == 0) {
 					if(!strncmp("< frame", buf, 7)) {
+						char data_str[2*8];
+
 						sscanf(buf, "< frame %x %*d.%*d %s >", &frame.can_id,
 						       data_str);
 
@@ -373,6 +374,7 @@ inline void state_connected()
 					} else if(frame.can_id & CAN_RTR_FLAG) {
 						/* TODO implement */
 					} else {
+						int i;
 						if(frame.can_id & CAN_EFF_FLAG) {
 							ret = sprintf(buf, "< send %08X %d ",
 								      frame.can_id & CAN_EFF_MASK, frame.can_dlc);
