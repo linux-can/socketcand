@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	bzero(&serveraddr, sizeof(serveraddr));
+	memset(&serveraddr, 0, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_port = htons(port);
 
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	bcopy(server_ent->h_addr, &(serveraddr.sin_addr.s_addr),
+	memcpy(&(serveraddr.sin_addr.s_addr), server_ent->h_addr,
 	      server_ent->h_length);
 
 
