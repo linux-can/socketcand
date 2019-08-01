@@ -101,7 +101,6 @@ int main(int argc, char **argv)
 	struct sockaddr_in serveraddr;
 	struct hostent *server_ent;
 	struct sigaction sigint_action;
-	sigset_t sigset;
 	char buf[MAXLEN];
 	char* server_string;
 
@@ -176,7 +175,7 @@ int main(int argc, char **argv)
 
 
 	sigint_action.sa_handler = &sigint;
-	sigint_action.sa_mask = sigset;
+	sigemptyset(&sigint_action.sa_mask);
 	sigint_action.sa_flags = 0;
 	sigaction(SIGINT, &sigint_action, NULL);
 
