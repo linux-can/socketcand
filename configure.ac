@@ -1,5 +1,5 @@
 #                                               -*- Autoconf -*-
-# Process this file with autoconf to produce a configure script.
+# Process this file with ./autogen.sh to produce a configure script.
 
 AC_PREREQ([2.61])
 AC_INIT([socketcand], [0.6.1], [https://github.com/linux-can/socketcand/issues])

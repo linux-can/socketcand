@@ -6,7 +6,7 @@ cd debianpack
 tar xfz socketcand-@PACKAGE_VERSION@.tar.gz
 rm socketcand-@PACKAGE_VERSION@.tar.gz
 cd socketcand-@PACKAGE_VERSION@
-autoconf
+./autogen.sh
 cd ..
 tar cfz socketcand-@PACKAGE_VERSION@.tar.gz socketcand-@PACKAGE_VERSION@
 cd socketcand-@PACKAGE_VERSION@
