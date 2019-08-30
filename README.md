@@ -44,7 +44,7 @@ Usage
 		[-u name | --afuxname name] [-n | --no-beacon] [-d | --daemon]
 		[-h | --help]
 
-###Description of the options
+### Description of the options
 * **-v** (activates verbose output to STDOUT)
 * **-i interfaces** (comma separated list of SocketCAN interfaces the daemon shall provide access to e.g. '-i can0,vcan1' - default: vcan0)
 * **-p port** (changes the default port '29536' the daemon is listening at)
