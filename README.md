@@ -17,7 +17,7 @@ To build and run socketcand make sure you have the following tools installed:
 
 First run
 
-    $ autoconf
+    $ ./autogen.sh
 
 to create the 'configure' script.
 
