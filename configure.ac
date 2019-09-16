@@ -23,7 +23,7 @@ AC_ARG_ENABLE(init_script, [  --disable-init-script Enable creation of init.d st
               AC_SUBST(init_script, "no"), AC_SUBST(init_script, "yes"))
 
 # Checks for libconfig.
-AC_ARG_WITH([config], [AS_HELP_STRING([--without-config], [do not use libconfig])], [], [with_config=yes])
+AC_ARG_WITH([config], [AS_HELP_STRING([--with-config], [use libconfig])], [], [with_config=no])
 
 LIBCONFIG=
           AS_IF([test "x$with_config" != xno],
