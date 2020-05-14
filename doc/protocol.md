@@ -149,21 +149,22 @@ After the server receives an '< echo >' it immediately returns the same string. 
 
     < echo >
 
-##### Switch to RAW mode #####
+## Mode RAW ##
+After switching to RAW mode the BCM socket is closed and a RAW socket is opened. Now every frame on the bus will immediately be received. Therefore no commands to control which frames are received are supported, but the send command works as in BCM mode.
+
+#### Switch to RAW mode ####
 A mode switch to RAW mode can be initiated by sending '< rawmode >'.
 
     < rawmode >
 
-### Frame transmission ###
+#### Frame transmission ####
 CAN messages received by the given filters are send in the format:
     < frame can_id seconds.useconds [data]* >
 
 Example:
 Reception of a CAN frame with CAN ID 0x123 , data length 4 and data 0x11, 0x22, 0x33 and 0x44 at time 23.424242>
-    < frame 123 23.424242 11 22 33 44 >
 
-## Mode RAW ##
-After switching to RAW mode the BCM socket is closed and a RAW socket is opened. Now every frame on the bus will immediately be received. Therefore no commands to control which frames are received are supported, but the send command works as in BCM mode.
+    < frame 123 23.424242 11 22 33 44 >
 
 ##### Switch to BCM mode #####
 With '< bcmmode >' it is possible to switch back to BCM mode.
