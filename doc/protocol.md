@@ -11,12 +11,12 @@ After connecting to the socket the client is greeted with '< hi >'. The open com
 where canbus may be at maximum 16 characters long. If the client is allowed to access the bus the server will respond with '< ok >'. Otherwise an error is returned and the connection is terminated.
 After a bus was opened the mode is switched to BCM mode. The Mode NO_BUS is the only mode where bittimings or other bus configuration settings may be done.
 
-##### Configure the bittiming (to be implemented) #####
+#### Configure the bittiming (to be implemented) ####
 The protocol enables the client to change the bittiming of a given bus as provided by set link. Automatic bitrate configuration by the kernel is not supported because it is not guaranteed that the corresponding option was enabled during compile time (e.g. in Ubuntu 10.10 it is not). This way it it also easier to implement the function in a microcontroller based adapter.
 
     < can0 B bitrate sample_point tq prop_seg phase_seg1 phase_seg2 sjw brp >
 
-##### Set the controlmode (to be implementend) #####
+#### Set the controlmode (to be implementend) ####
 The control mode controls if the bus is set to listen only, if sent packages are looped back and if the controller is configured to take three samples. The following command provides access to these settings. Each field must be set to '0' or '1' to disable or enable the setting.
 
     < can0 C listen_only loopback three_samples >
@@ -27,7 +27,7 @@ After the client has successfully opened a bus the mode is switched to BCM mode 
 ### Commands for transmission ###
 There are a few commands that control the transmission of CAN frames. Most of them are interval based and the Socket CAN broadcast manager guarantees that the frames are sent cyclic with the given interval. To be able to control these transmission jobs they are automatically removed when the BCM server socket is closed.
 
-##### Add a new frame for transmission #####
+#### Add a new frame for transmission ####
 This command adds a new frame to the BCM queue. An interval can be configured to have the frame sent cyclic.
 
 Examples:
@@ -44,7 +44,7 @@ Send the CAN frame 123#42424242 every 20 msecs
 
     < add 0 20000 123 4 42 42 42 42 >
 
-##### Update a frame #####
+#### Update a frame ####
 This command updates a frame transmission job that was created via the 'add' command with new content. The transmission timers are not touched
 
 Examle:
@@ -52,7 +52,7 @@ Update the CAN frame 123#42424242 with 123#112233 - no change of timers
 
     < update 123 3 11 22 33 >
 
-##### Delete a send job #####
+#### Delete a send job ####
 A send job can be removed with the 'delete' command.
 
 Example:
@@ -60,7 +60,7 @@ Delete the cyclic send job from above
 
     < delete 123 >
 
-##### Send a single frame #####
+#### Send a single frame ####
 This command is used to send a single CAN frame.
 
     < send can_id can_dlc [data]* >
@@ -73,7 +73,7 @@ Send a single CAN frame without cyclic transmission
 ### Commands for reception ###
 The commands for reception are 'subscribe' , 'unsubscribe' and 'filter'.
 
-##### Content filtering #####
+#### Content filtering ####
 This command is used to configure the broadcast manager for reception of frames with a given CAN ID. Frames are only sent when they match the pattern that is provided. The time value given is used to throttle the incoming update rate.
 
     < filter secs usecs can_id can_dlc [data]* >
@@ -98,7 +98,7 @@ As above but throttle receive update rate down to 1.5 seconds
 
     < filter 1 500000 123 8 FF 00 F8 00 00 00 00 00 >
 
-##### Content filtering for multiplex CAN messages #####
+#### Content filtering for multiplex CAN messages ####
 This command is used to configure the broadcast manager for reception of frames with a given CAN ID and a multiplex message filter mask. Frames are only sent when they match the pattern that is provided. The time value given is used to throttle the incoming update rate.
 
 
@@ -124,7 +124,7 @@ Receive CAN ID 0x123 and check for changes in given mutiplex mask '33'. The four
 
     < muxfilter 0 0 123 2 FF 00 00 00 00 00 00 00 33 FF FF FF FF FF FF FF >
 
-##### Subscribe to CAN ID #####
+#### Subscribe to CAN ID ####
 Adds a subscription a CAN ID. The frames are sent regardless of their content. An interval in seconds or microseconds may be set.
 
     < subscribe ival_s ival_us can_id >
@@ -134,7 +134,7 @@ Subscribe to CAN ID 0x123 without content filtering
 
     < subscribe 0 0 123 >
 
-##### Delete a subscription or filter #####
+#### Delete a subscription or filter ####
 This deletes all subscriptions or filters for a specific CAN ID.
 
     < unsubscribe can_id >
@@ -144,7 +144,7 @@ Delete receive filter ('R' or 'F') for CAN ID 0x123
 
     < unsubscribe 123 >
 
-##### Echo command #####
+#### Echo command ####
 After the server receives an '< echo >' it immediately returns the same string. This can be used to see if the connection is still up and to measure latencies.
 
     < echo >
@@ -166,15 +166,15 @@ Reception of a CAN frame with CAN ID 0x123 , data length 4 and data 0x11, 0x22, 
 
     < frame 123 23.424242 11 22 33 44 >
 
-##### Switch to BCM mode #####
+#### Switch to BCM mode ####
 With '< bcmmode >' it is possible to switch back to BCM mode.
 
     < bcmmode >
 
-##### Echo command #####
+#### Echo command ####
 The echo command is supported and works as described under mode BCM.
 
-##### Statistics #####
+#### Statistics ####
 In RAW mode it is possible to receive bus statistics. Transmission is enabled by the '< statistics ival >' command. Ival is the interval between two statistics transmissions in milliseconds. The ival may be set to '0' to deactivate transmission.
 After enabling statistics transmission the data is send inline with normal CAN frames and other data. The daemon takes care of the interval that was specified. The information is transfered in the following format:
     < stat rbytes rpackets tbytes tpackets >
