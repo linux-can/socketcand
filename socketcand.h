@@ -57,3 +57,11 @@ int state_changed(char *buf, int current_state);
 char *element_start(char *buf, int element);
 int element_length(char *buf, int element);
 int asc2nibble(char c);
+
+/* CAN DLC to real data length conversion helpers especially for CAN FD */
+
+/* get data length from can_dlc with sanitized can_dlc */
+unsigned char can_dlc2len(unsigned char can_dlc);
+
+/* map the sanitized data length to an appropriate data length code */
+unsigned char can_len2dlc(unsigned char len);
