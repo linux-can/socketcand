@@ -187,7 +187,7 @@ After enabling statistics transmission the data is send inline with normal CAN f
     < stat rbytes rpackets tbytes tpackets >
 The reported bytes and packets are reported as unsigned integers.
 
-Example for can interface 'can0' to enable statistics with interval of one second:
+Example for CAN interface 'can0' to enable statistics with interval of one second:
 
     < open can0 >< controlmode >< statistics 1000 >
 
