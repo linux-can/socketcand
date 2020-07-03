@@ -179,7 +179,7 @@ With '< bcmmode >' it is possible to switch back to BCM mode.
 The echo command is supported and works as described under mode BCM.
 
 ## Mode CONTROL ##
-With '< controlmode >' is its possible to enter the CONTROL mode. Here statistics can get enabled or disabled.
+With '< controlmode >' it is possible to enter the CONTROL mode. Here statistics can be enabled or disabled.
 
 #### Statistics ####
 In CONTROL mode it is possible to receive bus statistics. Transmission is enabled by the '< statistics ival >' command. Ival is the interval between two statistics transmissions in milliseconds. The ival may be set to '0' to deactivate transmission.
