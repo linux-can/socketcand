@@ -68,7 +68,11 @@ This command is used to send a single CAN frame.
 Example:
 Send a single CAN frame without cyclic transmission
 
-    < send 123 0 >
+    // ID: 123, no data
+    < send 123 0 > 
+    
+    // ID: 1AAAAAAA, Length: 2, Data: 0x01 0xF1
+    < send 1AAAAAAA 2 1 F1 > 
 
 ### Commands for reception ###
 The commands for reception are 'subscribe' , 'unsubscribe' and 'filter'.
@@ -174,12 +178,18 @@ With '< bcmmode >' it is possible to switch back to BCM mode.
 #### Echo command ####
 The echo command is supported and works as described under mode BCM.
 
+## Mode CONTROL ##
+With '< controlmode >' it is possible to enter the CONTROL mode. Here statistics can be enabled or disabled.
+
 #### Statistics ####
-In RAW mode it is possible to receive bus statistics. Transmission is enabled by the '< statistics ival >' command. Ival is the interval between two statistics transmissions in milliseconds. The ival may be set to '0' to deactivate transmission.
+In CONTROL mode it is possible to receive bus statistics. Transmission is enabled by the '< statistics ival >' command. Ival is the interval between two statistics transmissions in milliseconds. The ival may be set to '0' to deactivate transmission.
 After enabling statistics transmission the data is send inline with normal CAN frames and other data. The daemon takes care of the interval that was specified. The information is transfered in the following format:
     < stat rbytes rpackets tbytes tpackets >
 The reported bytes and packets are reported as unsigned integers.
 
+Example for CAN interface 'can0' to enable statistics with interval of one second:
+
+    < open can0 >< controlmode >< statistics 1000 >
 
 ## Mode ISO-TP ##
 A transport protocol, such as ISO-TP, is needed to enable e.g. software updload via CAN. It organises the connection-less transmission of a sequence of data. An ISO-TP channel consists of two exclusive CAN IDs, one to transmit data and the other to receive data.
