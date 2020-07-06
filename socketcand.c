@@ -102,7 +102,6 @@ socklen_t unaddrlen;
 struct sockaddr_un remote_unaddr;
 socklen_t remote_unaddrlen;
 char* interface_string;
-struct ifreq ifr, ifr_brd;
 
 int state_changed(char *buf, int current_state)
 {
@@ -666,6 +665,8 @@ int receive_command(int socket, char *buffer) {
 }
 
 void determine_adress() {
+	struct ifreq ifr, ifr_brd;
+
 	int probe_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if(probe_socket < 0) {

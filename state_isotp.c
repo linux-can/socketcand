@@ -25,7 +25,6 @@
 #include <linux/sockios.h>
 
 int si = -1;
-fd_set readfds;
 
 void state_isotp() {
 	int i, items, ret;
@@ -39,6 +38,7 @@ void state_isotp() {
 	char buf[MAXLEN]; /* inet commands to can */
 	unsigned char isobuf[ISOTPLEN+1]; /* binary buffer for isotp socket */
 	unsigned char tmp;
+	fd_set readfds;
 	
 	while(previous_state != STATE_ISOTP) {
 
