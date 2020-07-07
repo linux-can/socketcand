@@ -25,7 +25,6 @@
 int raw_socket;
 struct ifreq ifr;
 struct sockaddr_can addr;
-fd_set readfds;
 struct msghdr msg;
 struct can_frame frame;
 struct iovec iov;
@@ -36,6 +35,7 @@ struct cmsghdr *cmsg;
 void state_raw() {
 	char buf[MAXLEN];
 	int i, ret, items;
+	fd_set readfds;
 
 	if(previous_state != STATE_RAW) {
 

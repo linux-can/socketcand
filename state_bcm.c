@@ -28,8 +28,6 @@
 #define RXLEN 128
 
 int sc = -1;
-fd_set readfds;
-struct timeval tv;
 
 void state_bcm() {
 	int i, j, ret;
@@ -38,6 +36,7 @@ void state_bcm() {
 	struct ifreq ifr;
 	char rxmsg[RXLEN];
 	char buf[MAXLEN];
+	fd_set readfds;
 
 	struct {
 		struct bcm_msg_head msg_head;
@@ -91,6 +90,7 @@ void state_bcm() {
 	}
 
 	if (FD_ISSET(sc, &readfds)) {
+		struct timeval tv;
 
 		ret = recvfrom(sc, &msg, sizeof(msg), 0,
 			       (struct sockaddr*)&caddr, &caddrlen);
