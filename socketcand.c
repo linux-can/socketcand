@@ -120,7 +120,7 @@ int state_changed(char *buf, int current_state)
 	return (current_state != state);
 }
 
-char *element_start(char *buf, int element)
+char* element_start(char *buf, int element)
 {
 	int len = strlen(buf);
 	int elem, i;
