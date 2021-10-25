@@ -302,7 +302,13 @@ inline void state_connected() {
 
 						sscanf(buf, "< frame %x %*d.%*d %s >", &frame.can_id, data_str);
 
-						if (element_length(buf, 2) == 8)
+						char *s = buf + 7;
+						for (; ++s;) {
+							if (*s == ' ') {
+								break;
+							}
+						}
+						if ((s - buf - 7) > 4)
 							frame.can_id |= CAN_EFF_FLAG;
 
 						frame.can_dlc = strlen(data_str) / 2;
@@ -322,8 +328,15 @@ inline void state_connected() {
 					//force DLC 0 since it is undocumented feature
 					frame.can_dlc = 0;
 					frame.can_id |= CAN_RTR_FLAG;
-					if (element_length(buf, 2) == 8)
-						frame.can_id |= CAN_EFF_FLAG; //extended
+
+					char *s = buf + 6;
+					for (; ++s;) {
+						if (*s == ' ') {
+							break;
+						}
+					}
+					if ((s - buf - 7) > 4)
+						frame.can_id |= CAN_EFF_FLAG;
 
 					ret = write(raw_socket, &frame, sizeof(struct can_frame));
 					if (ret < sizeof(struct can_frame)) {
