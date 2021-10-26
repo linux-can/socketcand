@@ -2,7 +2,7 @@ Running on Raspberry PI
 ===================
 
 For this example used adapter-board: https://www.waveshare.com/rs485-can-hat.htm you can find it on aliexpress too.
-After flashing Raspberry image to SD card modify 'config.txt', uncomment this like:
+After flashing Raspberry image to SD card modify 'config.txt', uncomment this line:
 
 	dtparam=spi=on
 

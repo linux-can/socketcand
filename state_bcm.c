@@ -198,13 +198,12 @@ void state_bcm() {
 			/* Add a send job */
 		} else if (!strncmp("< sendrtr ", buf, 10)) {
 			//send RTR frame only
-			items = sscanf(buf, "< %*s %x >", &msg.msg_head.can_id);
-			if ((items < 1)) {
-				PRINT_ERROR("Syntax error in send command\n")
+			items = sscanf(buf, "< %*s %x %hhu >", &msg.msg_head.can_id, &msg.frame.can_dlc);
+			if ((items < 2) || (msg.frame.can_dlc > CAN_MAX_DLEN)) {
+				PRINT_ERROR("Syntax error in sendrtr command\n")
 				return;
 			}
-			//force DLC 0 since it is undocumented feature
-			msg.frame.can_dlc = 0;
+
 			msg.msg_head.can_id |= CAN_RTR_FLAG;
 
 			if (element_length(buf, 2) == 8)

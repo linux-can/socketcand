@@ -344,9 +344,8 @@ inline void state_connected()
 				}
 				if (!strncmp("< rtr ", buf, 6)) {
 					//send RTR frame only
-					sscanf(buf, "< %*s %x %*d.%*d >", &frame.can_id);
-					//force DLC 0 since it is undocumented feature
-					frame.can_dlc = 0;
+					sscanf(buf, "< %*s %x %*d.%*d %hhu >", &frame.can_id, &frame.can_dlc);
+
 					frame.can_id |= CAN_RTR_FLAG;
 					char *s = buf + 6;
 					for (; ++s;) {
@@ -392,21 +391,19 @@ inline void state_connected()
 				} else {
 					if(frame.can_id & CAN_ERR_FLAG) {
 						/* TODO implement */
-					} else if(frame.can_id & CAN_RTR_FLAG) {
-						/* TODO implement */
 					} else {
 						if (frame.can_id & CAN_RTR_FLAG) {
 							if (frame.can_id & CAN_EFF_FLAG) {
-								ret = sprintf(buf, "< sendrtr %08X >", frame.can_id & CAN_EFF_MASK);
+								ret = sprintf(buf, "< sendrtr %08X %hhu >", frame.can_id & CAN_EFF_MASK, frame.can_dlc);
 							} else {
-								ret = sprintf(buf, "< sendrtr %03X >", frame.can_id & CAN_SFF_MASK);
+								ret = sprintf(buf, "< sendrtr %03X %hhu >", frame.can_id & CAN_SFF_MASK, frame.can_dlc);
 							}
 						} else {
 							int i;
 							if (frame.can_id & CAN_EFF_FLAG) {
-								ret = sprintf(buf, "< send %08X %d ", frame.can_id & CAN_EFF_MASK, frame.can_dlc);
+								ret = sprintf(buf, "< send %08X %hhu ", frame.can_id & CAN_EFF_MASK, frame.can_dlc);
 							} else {
-								ret = sprintf(buf, "< send %03X %d ", frame.can_id & CAN_SFF_MASK, frame.can_dlc);
+								ret = sprintf(buf, "< send %03X %hhu ", frame.can_id & CAN_SFF_MASK, frame.can_dlc);
 							}
 							for (i = 0; i < frame.can_dlc; i++) {
 								ret += sprintf(buf + ret, "%02x ", frame.data[i]);

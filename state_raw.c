@@ -122,9 +122,9 @@ void state_raw() {
 				send(client_socket, buf, strlen(buf), 0);
 			} else if (frame.can_id & CAN_RTR_FLAG) {
 				if (frame.can_id & CAN_EFF_FLAG) {
-					ret = sprintf(buf, "< rtr %08X %ld.%06ld >", frame.can_id & CAN_EFF_MASK, tv.tv_sec, tv.tv_usec);
+					ret = sprintf(buf, "< rtr %08X %ld.%06ld %hhu >", frame.can_id & CAN_EFF_MASK, tv.tv_sec, tv.tv_usec, frame.can_dlc);
 				} else {
-					ret = sprintf(buf, "< rtr %03X %ld.%06ld >", frame.can_id & CAN_SFF_MASK, tv.tv_sec, tv.tv_usec);
+					ret = sprintf(buf, "< rtr %03X %ld.%06ld %hhu >", frame.can_id & CAN_SFF_MASK, tv.tv_sec, tv.tv_usec, frame.can_dlc);
 				}
 				send(client_socket, buf, strlen(buf), 0);
 			} else {
@@ -194,13 +194,12 @@ void state_raw() {
 
 			} else if (!strncmp("< sendrtr ", buf, 10)) {
 				//send RTR frame only
-				items = sscanf(buf, "< %*s %x >", &frame.can_id);
-				if ((items < 1)) {
-					PRINT_ERROR("Syntax error in send command\n")
+				items = sscanf(buf, "< %*s %x %hhu >", &frame.can_id, &frame.can_dlc);
+				if ((items < 2) || (frame.can_dlc > CAN_MAX_DLEN)) {
+					PRINT_ERROR("Syntax error in sendrtr command\n")
 					return;
 				}
-				//force DLC 0 since it is undocumented feature
-				frame.can_dlc = 0;
+
 				frame.can_id |= CAN_RTR_FLAG;
 
 				if (element_length(buf, 2) == 8)
