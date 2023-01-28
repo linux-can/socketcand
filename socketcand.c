@@ -665,7 +665,7 @@ int receive_command(int socket, char *buffer) {
 }
 
 void determine_adress() {
-	struct ifreq ifr, ifr_brd;
+	struct ifreq ifr, ifr_mask;
 
 	int probe_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -680,23 +680,26 @@ void determine_adress() {
 	strncpy(ifr.ifr_name, interface_string, IFNAMSIZ-1);
 	ioctl(probe_socket, SIOCGIFADDR, &ifr);
 
-	ifr_brd.ifr_addr.sa_family = AF_INET;
-	strncpy(ifr_brd.ifr_name, interface_string, IFNAMSIZ-1);
-	ioctl(probe_socket, SIOCGIFBRDADDR, &ifr_brd);
+	ifr_mask.ifr_addr.sa_family = AF_INET;
+	strncpy(ifr_mask.ifr_name, interface_string, IFNAMSIZ-1);
+	ioctl(probe_socket, SIOCGIFNETMASK, &ifr_mask);
+
 	close(probe_socket);
 
 	PRINT_VERBOSE("Listen adress is %s\n", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
-	PRINT_VERBOSE("Broadcast adress is %s\n", inet_ntoa(((struct sockaddr_in *)&ifr_brd.ifr_broadaddr)->sin_addr));
+	PRINT_VERBOSE("Netmask is %s\n", inet_ntoa(((struct sockaddr_in *)&ifr_mask.ifr_netmask)->sin_addr));
 
 	/* set listen adress */
 	saddr.sin_family = AF_INET;
 	saddr.sin_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
 	saddr.sin_port = htons(port);
 
-	/* set broadcast adress */
+	/* calculate and set broadcast adress */
 	broadcast_addr.sin_family = AF_INET;
-	broadcast_addr.sin_addr = ((struct sockaddr_in *) &ifr_brd.ifr_broadaddr)->sin_addr;
+	broadcast_addr.sin_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
+	broadcast_addr.sin_addr.s_addr |= ~((struct sockaddr_in *) &ifr_mask.ifr_netmask)->sin_addr.s_addr;
 	broadcast_addr.sin_port = htons(BROADCAST_PORT);
+	PRINT_VERBOSE("Broadcast adress is %s\n", inet_ntoa(broadcast_addr.sin_addr));
 }
 
 void print_usage(void) {
