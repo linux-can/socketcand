@@ -342,6 +342,25 @@ inline void state_connected()
 						}
 					}
 				}
+				if (!strncmp("< rtr ", buf, 6)) {
+					//send RTR frame only
+					sscanf(buf, "< %*s %x %*d.%*d %hhu >", &frame.can_id, &frame.can_dlc);
+
+					frame.can_id |= CAN_RTR_FLAG;
+					char *s = buf + 6;
+					for (; ++s;) {
+						if (*s == ' ') {
+							break;
+						}
+					}
+					if ((s - buf - 7) > 4)
+						frame.can_id |= CAN_EFF_FLAG;
+
+					ret = write(raw_socket, &frame, sizeof(struct can_frame));
+					if (ret < sizeof(struct can_frame)) {
+						perror("Writing CAN frame to can socket\n");
+					}
+				}
 			} else {
 				ret = read(server_socket, &buf, 0);
 				if(ret == -1) {
@@ -372,21 +391,26 @@ inline void state_connected()
 				} else {
 					if(frame.can_id & CAN_ERR_FLAG) {
 						/* TODO implement */
-					} else if(frame.can_id & CAN_RTR_FLAG) {
-						/* TODO implement */
 					} else {
-						int i;
-						if(frame.can_id & CAN_EFF_FLAG) {
-							ret = sprintf(buf, "< send %08X %d ",
-								      frame.can_id & CAN_EFF_MASK, frame.can_dlc);
+						if (frame.can_id & CAN_RTR_FLAG) {
+							if (frame.can_id & CAN_EFF_FLAG) {
+								ret = sprintf(buf, "< sendrtr %08X %hhu >", frame.can_id & CAN_EFF_MASK, frame.can_dlc);
+							} else {
+								ret = sprintf(buf, "< sendrtr %03X %hhu >", frame.can_id & CAN_SFF_MASK, frame.can_dlc);
+							}
 						} else {
-							ret = sprintf(buf, "< send %03X %d ",
-								      frame.can_id & CAN_SFF_MASK, frame.can_dlc);
+							int i;
+							if (frame.can_id & CAN_EFF_FLAG) {
+								ret = sprintf(buf, "< send %08X %hhu ", frame.can_id & CAN_EFF_MASK, frame.can_dlc);
+							} else {
+								ret = sprintf(buf, "< send %03X %hhu ", frame.can_id & CAN_SFF_MASK, frame.can_dlc);
+							}
+							for (i = 0; i < frame.can_dlc; i++) {
+								ret += sprintf(buf + ret, "%02x ", frame.data[i]);
+							}
+							sprintf(buf + ret, " >");
+
 						}
-						for(i=0; i<frame.can_dlc; i++) {
-							ret += sprintf(buf+ret, "%02x ", frame.data[i]);
-						}
-						sprintf(buf+ret, " >");
 
 						const size_t len = strlen(buf);
 						ret = send(server_socket, buf, len, 0);

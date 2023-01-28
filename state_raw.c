@@ -120,8 +120,13 @@ void state_raw() {
 				canid_t class = frame.can_id  & CAN_EFF_MASK;
 				ret = sprintf(buf, "< error %03X %ld.%06ld >", class, tv.tv_sec, tv.tv_usec);
 				send(client_socket, buf, strlen(buf), 0);
-			} else if(frame.can_id & CAN_RTR_FLAG) {
-				/* TODO implement */
+			} else if (frame.can_id & CAN_RTR_FLAG) {
+				if (frame.can_id & CAN_EFF_FLAG) {
+					ret = sprintf(buf, "< rtr %08X %ld.%06ld %hhu >", frame.can_id & CAN_EFF_MASK, tv.tv_sec, tv.tv_usec, frame.can_dlc);
+				} else {
+					ret = sprintf(buf, "< rtr %03X %ld.%06ld %hhu >", frame.can_id & CAN_SFF_MASK, tv.tv_sec, tv.tv_usec, frame.can_dlc);
+				}
+				send(client_socket, buf, strlen(buf), 0);
 			} else {
 				if(frame.can_id & CAN_EFF_FLAG) {
 					ret = sprintf(buf, "< frame %08X %ld.%06ld ", frame.can_id & CAN_EFF_MASK, tv.tv_sec, tv.tv_usec);
@@ -187,6 +192,23 @@ void state_raw() {
 					return;
 				}
 
+			} else if (!strncmp("< sendrtr ", buf, 10)) {
+				//send RTR frame only
+				items = sscanf(buf, "< %*s %x %hhu >", &frame.can_id, &frame.can_dlc);
+				if ((items < 2) || (frame.can_dlc > CAN_MAX_DLEN)) {
+					PRINT_ERROR("Syntax error in sendrtr command\n")
+					return;
+				}
+
+				frame.can_id |= CAN_RTR_FLAG;
+
+				if (element_length(buf, 2) == 8)
+					frame.can_id |= CAN_EFF_FLAG; //extended
+				ret = send(raw_socket, &frame, sizeof(struct can_frame), 0);
+				if (ret == -1) {
+					state = STATE_SHUTDOWN;
+					return;
+				}
 			} else {
 				PRINT_ERROR("unknown command '%s'\n", buf);
 				strcpy(buf, "< error unknown command >");

@@ -74,6 +74,22 @@ Send a single CAN frame without cyclic transmission
     // ID: 1AAAAAAA, Length: 2, Data: 0x01 0xF1
     < send 1AAAAAAA 2 1 F1 > 
 
+#### Send a single Remote-transfer-request frame ####
+This command is used to send a single RTR CAN frame.
+
+    < sendrtr can_id can_dlc >
+
+Example:
+Send a single CAN frame without cyclic transmission
+
+    // ID: 123, DLC 0
+    < sendrtr 123 0 > 
+    
+    // ID: 1AAAAAAA, DLC 2
+    < sendrtr 1AAAAAAA 2 > 
+
+Note that DLC may cause collisions on CAN bus. Check CiA application note 802
+
 ### Commands for reception ###
 The commands for reception are 'subscribe' , 'unsubscribe' and 'filter'.
 
@@ -169,7 +185,16 @@ Example:
 Reception of a CAN frame with CAN ID 0x123 , data length 4 and data 0x11, 0x22, 0x33 and 0x44 at time 23.424242>
 
     < frame 123 23.424242 11 22 33 44 >
+    
+#### RTR frame transmission ####
+CAN RTR messages received in raw mode:
+    < rtr can_id seconds.useconds can_dlc >
 
+Example:
+Reception of a RTR frame with CAN ID 0x123 , data length 4 at time 23.424242
+
+    < rtr 123 23.424242 4 >
+    
 #### Switch to BCM mode ####
 With '< bcmmode >' it is possible to switch back to BCM mode.
 

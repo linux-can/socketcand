@@ -196,7 +196,24 @@ void state_bcm() {
 				       (struct sockaddr*)&caddr, sizeof(caddr));
 			}
 			/* Add a send job */
-		} else if(!strncmp("< add ", buf, 6)) {
+		} else if (!strncmp("< sendrtr ", buf, 10)) {
+			//send RTR frame only
+			items = sscanf(buf, "< %*s %x %hhu >", &msg.msg_head.can_id, &msg.frame.can_dlc);
+			if ((items < 2) || (msg.frame.can_dlc > CAN_MAX_DLEN)) {
+				PRINT_ERROR("Syntax error in sendrtr command\n")
+				return;
+			}
+
+			msg.msg_head.can_id |= CAN_RTR_FLAG;
+
+			if (element_length(buf, 2) == 8)
+				msg.msg_head.can_id |= CAN_EFF_FLAG; //extended
+
+			if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
+				caddr.can_ifindex = ifr.ifr_ifindex;
+				sendto(sc, &msg, sizeof(msg), 0, (struct sockaddr*) &caddr, sizeof(caddr));
+			}
+		} else if (!strncmp("< add ", buf, 6)) {
 			items = sscanf(buf, "< %*s %lu %lu %x %hhu "
 				       "%hhx %hhx %hhx %hhx %hhx %hhx "
 				       "%hhx %hhx >",
