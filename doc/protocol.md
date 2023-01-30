@@ -61,7 +61,7 @@ Delete the cyclic send job from above
     < delete 123 >
 
 #### Send a single frame ####
-This command is used to send a single CAN frame.
+This command is used to send a single CAN frame. The data is lowercase unpadded hex with spaces inbetween.
 
     < send can_id can_dlc [data]* >
 
@@ -69,10 +69,10 @@ Example:
 Send a single CAN frame without cyclic transmission
 
     // ID: 123, no data
-    < send 123 0 > 
-    
+    < send 123 0 >
+
     // ID: 1AAAAAAA, Length: 2, Data: 0x01 0xF1
-    < send 1AAAAAAA 2 1 F1 > 
+    < send 1AAAAAAA 2 1 f1 >
 
 ### Commands for reception ###
 The commands for reception are 'subscribe' , 'unsubscribe' and 'filter'.
@@ -162,13 +162,13 @@ A mode switch to RAW mode can be initiated by sending '< rawmode >'.
     < rawmode >
 
 #### Frame transmission ####
-CAN messages received by the given filters are send in the format:
+CAN messages received by the given filters are send in the following format. Note the data part is padded uppercase hex without spaces inbetween.
     < frame can_id seconds.useconds [data]* >
 
 Example:
-Reception of a CAN frame with CAN ID 0x123 , data length 4 and data 0x11, 0x22, 0x33 and 0x44 at time 23.424242>
+Reception of a CAN frame with CAN ID 0x123 , data length 4 and data 0x1A, 0x22, 0x03 and 0x44 at time 23.424242>.
 
-    < frame 123 23.424242 11 22 33 44 >
+    < frame 123 23.424242 1A220344 >
 
 #### Switch to BCM mode ####
 With '< bcmmode >' it is possible to switch back to BCM mode.
@@ -295,4 +295,3 @@ Error frame transmission
 
 Error frames are sent inline with regular frames. 'data' is an integer with the encoded error data (see socketcan/can/error.h for further information):
     < error data >
-
