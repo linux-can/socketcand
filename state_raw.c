@@ -120,6 +120,7 @@ void state_raw() {
 				canid_t class = frame.can_id  & CAN_EFF_MASK;
 				ret = sprintf(buf, "< error %03X %ld.%06ld >", class, tv.tv_sec, tv.tv_usec);
 				send(client_socket, buf, strlen(buf), 0);
+				tcp_quickack(client_socket);
 			} else if(frame.can_id & CAN_RTR_FLAG) {
 				/* TODO implement */
 			} else {
@@ -133,6 +134,7 @@ void state_raw() {
 				}
 				sprintf(buf+ret, " >");
 				send(client_socket, buf, strlen(buf), 0);
+				tcp_quickack(client_socket);
 			}
 		}
 	}
@@ -146,11 +148,13 @@ void state_raw() {
 				close(raw_socket);
 				strcpy(buf, "< ok >");
 				send(client_socket, buf, strlen(buf), 0);
+				tcp_quickack(client_socket);
 				return;
 			}
 
 			if(!strcmp("< echo >", buf)) {
 				send(client_socket, buf, strlen(buf), 0);
+				tcp_quickack(client_socket);
 				return;
 			}
 
@@ -191,6 +195,7 @@ void state_raw() {
 				PRINT_ERROR("unknown command '%s'\n", buf);
 				strcpy(buf, "< error unknown command >");
 				send(client_socket, buf, strlen(buf), 0);
+				tcp_quickack(client_socket);
 			}
 		} else {
 			state = STATE_SHUTDOWN;
@@ -198,6 +203,7 @@ void state_raw() {
 		}
 	} else {
 		ret = read(client_socket, &buf, 0);
+		tcp_quickack(client_socket);
 		if(ret==-1) {
 			state = STATE_SHUTDOWN;
 			return;

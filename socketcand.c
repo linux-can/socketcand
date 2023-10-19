@@ -88,6 +88,7 @@ int port;
 int verbose_flag=0;
 int daemon_flag=0;
 int disable_beacon=0;
+int tcp_quickack_flag=0;
 int state = STATE_NO_BUS;
 int previous_state = -1;
 char bus_name[MAX_BUSNAME];
@@ -102,6 +103,14 @@ socklen_t unaddrlen;
 struct sockaddr_un remote_unaddr;
 socklen_t remote_unaddrlen;
 char* interface_string;
+
+void tcp_quickack(int s)
+{
+	int i = 1;
+
+	if (tcp_quickack_flag)
+		setsockopt(s, IPPROTO_TCP, TCP_QUICKACK, &i, sizeof(int));
+}
 
 int state_changed(char *buf, int current_state)
 {
@@ -233,6 +242,7 @@ int main(int argc, char **argv)
 			{"verbose", no_argument, 0, 'v'},
 			{"interfaces",  required_argument, 0, 'i'},
 			{"port", required_argument, 0, 'p'},
+			{"quick-ack", no_argument, 0, 'q'},
 			{"afuxname", required_argument, 0, 'u'},
 			{"listen", required_argument, 0, 'l'},
 			{"daemon", no_argument, 0, 'd'},
@@ -242,7 +252,7 @@ int main(int argc, char **argv)
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long (argc, argv, "vi:p:u:l:dznh", long_options, &option_index);
+		c = getopt_long (argc, argv, "vi:p:qu:l:dznh", long_options, &option_index);
 
 		if (c == -1)
 			break;
@@ -266,6 +276,11 @@ int main(int argc, char **argv)
 
 		case 'p':
 			port = atoi(optarg);
+			break;
+
+		case 'q':
+			PRINT_VERBOSE("TCP_QUICKACK socket option activated\n");
+			tcp_quickack_flag = 1;
 			break;
 
 		case 'u':
@@ -483,6 +498,7 @@ int main(int argc, char **argv)
 			if(previous_state != STATE_NO_BUS) {
 				strcpy(buf, "< hi >");
 				send(client_socket, buf, strlen(buf), 0);
+				tcp_quickack(client_socket);
 				previous_state = STATE_NO_BUS;
 			}
 			/* client has to start with a command */
@@ -506,18 +522,21 @@ int main(int argc, char **argv)
 				if(found) {
 					strcpy(buf, "< ok >");
 					send(client_socket, buf, strlen(buf), 0);
+					tcp_quickack(client_socket);
 					state = STATE_BCM;
 					break;
 				} else {
 					PRINT_INFO("client tried to access unauthorized bus.\n");
 					strcpy(buf, "< error could not open bus >");
 					send(client_socket, buf, strlen(buf), 0);
+					tcp_quickack(client_socket);
 					state = STATE_SHUTDOWN;
 				}
 			} else {
 				PRINT_ERROR("unknown command '%s'.\n", buf);
 				strcpy(buf, "< error unknown command >");
 				send(client_socket, buf, strlen(buf), 0);
+				tcp_quickack(client_socket);
 			}
 			break;
 
@@ -554,6 +573,7 @@ int receive_command(int socket, char *buffer) {
 	 */
 	if(!more_elements) {
 		cmd_index += read(socket, cmd_buffer+cmd_index, MAXLEN-cmd_index);
+		tcp_quickack(client_socket);
 #ifdef DEBUG_RECEPTION
 		PRINT_VERBOSE("\tRead from socket\n");
 #endif
@@ -705,11 +725,12 @@ void determine_adress() {
 void print_usage(void) {
 	printf("%s Version %s\n", PACKAGE_NAME, PACKAGE_VERSION);
 	printf("Report bugs to %s\n\n", PACKAGE_BUGREPORT);
-	printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port] [-l interface | --listen interface]\n\t\t[-u name | --afuxname name] [-n | --no-beacon] [-d | --daemon]\n\t\t[-h | --help]\n\n");
+	printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port] [-q | --quick-ack]\n\t\t[-l interface | --listen interface] [-u name | --afuxname name]\n\t\t[-n | --no-beacon] [-d | --daemon] [-h | --help]\n\n");
 	printf("Options:\n");
 	printf("\t-v (activates verbose output to STDOUT)\n");
 	printf("\t-i <interfaces> (comma separated list of SocketCAN interfaces the daemon\n\t\tshall provide access to e.g. '-i can0,vcan1' - default: %s)\n", DEFAULT_BUSNAME);
 	printf("\t-p <port> (changes the default port '%d' the daemon is listening at)\n", PORT);
+	printf("\t-q (enable TCP_QUICKACK socket option)\n");
 	printf("\t-l <interface> (changes the default network interface the daemon will\n\t\tbind to - default: %s)\n", DEFAULT_INTERFACE);
 	printf("\t-u <name> (the AF_UNIX socket path - abstract name when leading '/' is missing)\n\t\t(N.B. the AF_UNIX binding will supersede the port/interface settings)\n");
 	printf("\t-n (deactivates the discovery beacon)\n");

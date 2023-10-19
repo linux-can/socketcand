@@ -127,6 +127,7 @@ void *statistics_loop(void *ptr) {
 
 			/* no lock needed here because POSIX send is thread-safe and does locking itself */
 			send( client_socket, buffer, strlen(buffer), 0 );
+			tcp_quickack(client_socket);
 
 			last_fired.tv_sec = current_time.tv_sec;
 			last_fired.tv_usec = current_time.tv_usec;
