@@ -39,7 +39,7 @@ void state_isotp() {
 	unsigned char isobuf[ISOTPLEN+1]; /* binary buffer for isotp socket */
 	unsigned char tmp;
 	fd_set readfds;
-	
+
 	while(previous_state != STATE_ISOTP) {
 
 		ret = receive_command(client_socket, buf);
@@ -55,11 +55,13 @@ void state_isotp() {
 			previous_state = STATE_ISOTP;
 			strcpy(buf, "< ok >");
 			send(client_socket, buf, strlen(buf), 0);
+			tcp_quickack(client_socket);
 			return;
 		}
 
 		if(!strcmp("< echo >", buf)) {
 			send(client_socket, buf, strlen(buf), 0);
+			tcp_quickack(client_socket);
 			continue;
 		}
 
@@ -135,7 +137,7 @@ void state_isotp() {
 				state = STATE_SHUTDOWN;
 				return;
 			}
-			
+
 			/* ok we made it and have a proper isotp socket open */
 			previous_state = STATE_ISOTP;
 		}
@@ -183,6 +185,7 @@ void state_isotp() {
 
 			sprintf(rxmsg + strlen(rxmsg), " >");
 			send(client_socket, rxmsg, strlen(rxmsg), 0);
+			tcp_quickack(client_socket);
 		}
 	}
 
@@ -198,11 +201,13 @@ void state_isotp() {
 			close(si);
 			strcpy(buf, "< ok >");
 			send(client_socket, buf, strlen(buf), 0);
+			tcp_quickack(client_socket);
 			return;
 		}
 
 		if(!strcmp("< echo >", buf)) {
 			send(client_socket, buf, strlen(buf), 0);
+			tcp_quickack(client_socket);
 			return;
 		}
 
@@ -241,6 +246,7 @@ void state_isotp() {
 			PRINT_ERROR("unknown command '%s'.\n", buf)
 				strcpy(buf, "< error unknown command >");
 			send(client_socket, buf, strlen(buf), 0);
+			tcp_quickack(client_socket);
 		}
 	}
 }

@@ -35,6 +35,7 @@ void state_bcm();
 void state_raw();
 void state_isotp();
 void state_control();
+void tcp_quickack();
 
 extern int client_socket;
 extern char **interface_names;

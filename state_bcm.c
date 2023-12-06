@@ -113,6 +113,7 @@ void state_bcm() {
 
 				snprintf(rxmsg + strlen(rxmsg), RXLEN - strlen(rxmsg), " >");
 				send(client_socket, rxmsg, strlen(rxmsg), 0);
+				tcp_quickack(client_socket);
 			}
 		} else {
 			if(msg.msg_head.can_id & CAN_EFF_FLAG) {
@@ -129,6 +130,7 @@ void state_bcm() {
 
 			snprintf(rxmsg + strlen(rxmsg), RXLEN - strlen(rxmsg), " >");
 			send(client_socket, rxmsg, strlen(rxmsg), 0);
+			tcp_quickack(client_socket);
 		}
 	}
 
@@ -152,11 +154,13 @@ void state_bcm() {
 			close(sc);
 			strcpy(buf, "< ok >");
 			send(client_socket, buf, strlen(buf), 0);
+			tcp_quickack(client_socket);
 			return;
 		}
 
 		if(!strcmp("< echo >", buf)) {
 			send(client_socket, buf, strlen(buf), 0);
+			tcp_quickack(client_socket);
 			return;
 		}
 
@@ -438,7 +442,7 @@ void state_bcm() {
 
 			msg.msg_head.opcode = RX_DELETE;
 			msg.frame.can_id = msg.msg_head.can_id;
-            
+
 			if (!ioctl(sc, SIOCGIFINDEX, &ifr)) {
 				caddr.can_ifindex = ifr.ifr_ifindex;
 				sendto(sc, &msg, sizeof(msg), 0,
@@ -448,6 +452,7 @@ void state_bcm() {
 			PRINT_ERROR("unknown command '%s'.\n", buf)
 				strcpy(buf, "< error unknown command >");
 			send(client_socket, buf, strlen(buf), 0);
+			tcp_quickack(client_socket);
 		}
 	}
 }

@@ -42,11 +42,13 @@ void state_control() {
 		pthread_cancel(statistics_thread);
 		strcpy(buf, "< ok >");
 		send(client_socket, buf, strlen(buf), 0);
+		tcp_quickack(client_socket);
 		return;
 	}
 
 	if(!strcmp("< echo >", buf)) {
 		send(client_socket, buf, strlen(buf), 0);
+		tcp_quickack(client_socket);
 		return;
 	}
 
@@ -63,5 +65,6 @@ void state_control() {
 		PRINT_ERROR("unknown command '%s'.\n", buf)
 			strcpy(buf, "< error unknown command >");
 		send(client_socket, buf, strlen(buf), 0);
+		tcp_quickack(client_socket);
 	}
 }
