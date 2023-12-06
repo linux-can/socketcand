@@ -43,7 +43,6 @@ extern int interface_count;
 extern int port;
 extern int verbose_flag;
 extern int daemon_flag;
-extern int tcp_quickack_flag;
 extern int state;
 extern int previous_state;
 extern char bus_name[];
