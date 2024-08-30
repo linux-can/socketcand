@@ -60,6 +60,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/uio.h>
+#include <sys/un.h>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -100,16 +101,20 @@ int main(int argc, char **argv)
 {
 	int i;
 	struct sockaddr_in serveraddr;
+	struct sockaddr_un serveraddr_un;
+	socklen_t serveraddr_un_len;
 	struct hostent *server_ent;
 	struct sigaction sigint_action;
 	char buf[MAXLEN];
 	char* server_string;
+	char* afuxname;
 
 	/* set default config settings */
 	port = PORT;
 	strcpy(ldev, "can0");
 	strcpy(rdev, "can0");
 	server_string = malloc(strlen("localhost"));
+	afuxname = NULL;
 
 
 	/* Parse commandline arguments */
@@ -119,13 +124,14 @@ int main(int argc, char **argv)
 		static struct option long_options[] = {
 			{"verbose", no_argument, 0, 'v'},
 			{"interfaces",  required_argument, 0, 'i'},
+			{"afuxname", required_argument, 0, 'u'},
 			{"server", required_argument, 0, 's'},
 			{"port", required_argument, 0, 'p'},
 			{"version", no_argument, 0, 'z'},
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "vhi:p:l:s:", long_options, &option_index);
+		c = getopt_long(argc, argv, "vhi:p:l:s:u:", long_options, &option_index);
 
 		if(c == -1)
 			break;
@@ -144,6 +150,11 @@ int main(int argc, char **argv)
 
 		case 'p':
 			port = atoi(optarg);
+			break;
+
+		case 'u':
+			afuxname = realloc(afuxname, strlen(optarg)+1);
+			strcpy(afuxname, optarg);
 			break;
 
 		case 's':
@@ -180,30 +191,70 @@ int main(int argc, char **argv)
 	sigint_action.sa_flags = 0;
 	sigaction(SIGINT, &sigint_action, NULL);
 
-	server_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if(server_socket < 0) {
-		perror("socket");
-		exit(1);
-	}
 
-	memset(&serveraddr, 0, sizeof(serveraddr));
-	serveraddr.sin_family = AF_INET;
-	serveraddr.sin_port = htons(port);
+	if (afuxname) {
+		/* create AF_UNIX socket */
+		server_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+		if(server_socket < 0) {
+			perror("unixsocket");
+			exit(1);
+		}
 
-	server_ent = gethostbyname(server_string);
-	if(server_ent == 0) {
-		perror(server_string);
-		exit(1);
-	}
+		serveraddr_un.sun_family = AF_UNIX;
+		if (strlen(afuxname) > sizeof(serveraddr_un.sun_path)-3) {
+			printf("afuxname is too long.\n");
+			exit(1);
+		}
 
-	memcpy(&(serveraddr.sin_addr.s_addr), server_ent->h_addr,
-	      server_ent->h_length);
+		/* when the given afuxname starts with a '/' we assume the path name scheme, e.g.
+		 * /var/run/socketcand or /tmp/socketcand-afunix-socket
+		 * Without the leading '/' we use the string as abstract socket address.
+		 */
+
+		if (afuxname[0] == '/') {
+			strcpy(&serveraddr_un.sun_path[0], afuxname);
+			/* due to the trailing \0 in path name definition we can write the entire struct */
+			serveraddr_un_len = sizeof(serveraddr_un);
+		} else {
+			strcpy(&serveraddr_un.sun_path[1], afuxname);
+			serveraddr_un.sun_path[0] = 0;
+			/* abtract name length definition without trailing \0 but with leading \0 */
+			serveraddr_un_len = strlen(afuxname) + sizeof(serveraddr_un.sun_family) + 1;
+		}
+
+		if(connect(server_socket, (struct sockaddr*)&serveraddr_un, serveraddr_un_len) != 0) {
+			perror("connect");
+			exit(1);
+		}
+	} 
+	 else {
+		/* create AF_INET socket */
+
+		server_socket = socket(AF_INET, SOCK_STREAM, 0);
+		if(server_socket < 0) {
+			perror("socket");
+			exit(1);
+		}
+
+		memset(&serveraddr, 0, sizeof(serveraddr));
+		serveraddr.sin_family = AF_INET;
+		serveraddr.sin_port = htons(port);
+
+		server_ent = gethostbyname(server_string);
+		if(server_ent == 0) {
+			perror(server_string);
+			exit(1);
+		}
+
+		memcpy(&(serveraddr.sin_addr.s_addr), server_ent->h_addr,
+			server_ent->h_length);
 
 
-	if(connect(server_socket, (struct sockaddr*)&serveraddr,
-		   sizeof(serveraddr)) != 0) {
-		perror("connect");
-		exit(1);
+		if(connect(server_socket, (struct sockaddr*)&serveraddr,
+			sizeof(serveraddr)) != 0) {
+			perror("connect");
+			exit(1);
+		}
 	}
 
 
@@ -500,12 +551,13 @@ int receive_command(int socket, char *buffer)
 
 void print_usage(void)
 {
-	printf("Usage: socketcandcl [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-s server | --server server ]\n\t\t[-p port | --port port]\n");
+	printf("Usage: socketcandcl [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-s server | --server server ] [-u name | --afuxname name]\n\t\t[-p port | --port port]\n");
 	printf("Options:\n");
 	printf("\t-v activates verbose output to STDOUT\n");
 	printf("\t-s server hostname\n");
 	printf("\t-i SocketCAN interfaces to use: device_server,device_client \n");
 	printf("\t-p port changes the default port (%d) the client connects to\n", PORT);
+	printf("\t-u AF_UNIX socket path - abstract name when leading '/' is missing\n");
 	printf("\t-h prints this message\n");
 }
 
