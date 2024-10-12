@@ -274,7 +274,7 @@ void state_raw()
 				if ( (items < 2) ||
 				     (frame.len > 64) ||
 				     (items != 3 + frame.len)) {
-					PRINT_ERROR("Syntax error in send command\n")
+					PRINT_ERROR("Syntax error in fdsend command\n")
 						return;
 				}
 
