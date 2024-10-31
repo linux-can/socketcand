@@ -19,7 +19,7 @@ AC_SUBST(sysroot, $sysroot)
 AC_ARG_ENABLE(rc_script, [  --enable-rc-script Enable creation of rc.d start script], 
               AC_SUBST(rc_script, "yes"))
 
-AC_ARG_ENABLE(init_script, [  --disable-init-script Enable creation of init.d start script], 
+AC_ARG_ENABLE(init_script, [  --disable-init-script Disable creation of init.d start script], 
               AC_SUBST(init_script, "no"), AC_SUBST(init_script, "yes"))
 
 # Checks for libconfig.
