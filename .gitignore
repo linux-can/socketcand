@@ -11,3 +11,4 @@ config.h
 config.h.in
 init.d/socketcand
 debian_pack
+tags
