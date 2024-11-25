@@ -6,6 +6,17 @@ deps = [dependency('threads')]
 enable_rc_script = get_option('rc_script')
 enable_init_script = get_option('init_script')
 
+src =  [
+    'socketcand.c',
+    'statistics.c',
+    'beacon.c',
+    'state_bcm.c',
+    'state_raw.c',
+    'state_isotp.c',
+    'state_control.c',
+    'state_nobus.c',
+]
+
 # Check if libconfig is available
 enable_libconfig = get_option('libconfig')
 if enable_libconfig
@@ -16,16 +27,16 @@ if enable_libconfig
     endif
 endif
 
+# Check if libsocketcan is available
+dep_libsocketcan = dependency('libsocketcan', required: false)
+if dep_libsocketcan.found()
+    conf.set_quoted('HAVE_LIBSOCKETCAN', '1')
+    deps += dep_libsocketcan
+    src += 'canctl.c'
+endif
+
 executable('socketcand',
-    [
-        'socketcand.c',
-        'statistics.c',
-        'beacon.c',
-        'state_bcm.c',
-        'state_raw.c',
-        'state_isotp.c',
-        'state_control.c',
-    ],
+    src,
     include_directories : include_directories('include'),
     dependencies: deps,
     install : true,
