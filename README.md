@@ -8,28 +8,17 @@ Installation
 
 To build and run socketcand make sure you have the following tools installed:
 
-* autoconf
-* make
+* meson
 * gcc or another C compiler
 * a kernel that includes the SocketCAN modules
 * the headers for your kernel version
 * the libconfig with headers (libconfig-dev under debian based systems)
 
-First run
+Execute the following commands to configure, build, and install the software:
 
-    $ ./autogen.sh
-
-to create the 'configure' script.
-
-Then run the created script with
-
-    $ ./configure
-
-to check your system and create the Makefile. If you want to install scripts for a init system other than SysVinit check the available settings with './configure -h'.
-To compile and install the socketcand run
-
-    $ make
-    $ make install
+    $ meson setup -Dlibconfig=true --buildtype=release build
+    $ meson compile -C build
+    $ meson install -C build
 
 Service discovery
 -----------------
