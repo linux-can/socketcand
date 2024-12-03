@@ -11,6 +11,7 @@ if enable_libconfig
         conf.set_quoted('HAVE_LIBCONFIG', '1')
         deps += dep_libconfig
     endif
+    subdir('etc')
 endif
 
 executable('socketcand',
