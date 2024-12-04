@@ -1,0 +1,14 @@
+[Unit]
+Description=CAN over IP Daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/socketcand
+KillMode=process
+DevicePolicy=auto
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

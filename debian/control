@@ -1,0 +1,21 @@
+Source: socketcand
+Section: net
+Priority: extra
+Maintainer: Yegor Yefremov <yegorslists@googlemail.com>
+Build-Depends: debhelper-compat (= 10),
+               gzip,
+               libconfig-dev,
+               libsocketcan-dev,
+               meson,
+               pkg-config,
+Standards-Version: 3.9.3
+Homepage: https://github.com/linux-can/socketcand
+
+Package: socketcand
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: CAN over IP Daemon
+ Socketcand is a daemon that provides access to CAN interfaces on
+ a machine via a network interface. The communication protocol uses
+ a TCP/IP connection and a specific protocol to transfer CAN frames
+ and control commands.
