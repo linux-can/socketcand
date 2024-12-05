@@ -75,9 +75,18 @@
 #define STATE_CONNECTED 1
 #define STATE_SHUTDOWN 2
 
-#define PRINT_INFO(...) printf(__VA_ARGS__);
-#define PRINT_ERROR(...) fprintf(stderr, __VA_ARGS__);
-#define PRINT_VERBOSE(...) printf(__VA_ARGS__);
+#define PRINT_INFO(...)              \
+	do {                         \
+		printf(__VA_ARGS__); \
+	} while (0)
+#define PRINT_ERROR(...)                      \
+	do {                                  \
+		fprintf(stderr, __VA_ARGS__); \
+	} while (0)
+#define PRINT_VERBOSE(...)           \
+	do {                         \
+		printf(__VA_ARGS__); \
+	} while (0)
 
 void print_usage(void);
 void sigint();
@@ -355,8 +364,8 @@ inline void state_connected()
 				ret = select(server_socket+1, &readfds, NULL, NULL, NULL);
 
 				if(ret < 0) {
-					PRINT_ERROR("Error in select()\n")
-						state = STATE_SHUTDOWN;
+					PRINT_ERROR("Error in select()\n");
+					state = STATE_SHUTDOWN;
 					return;
 				}
 			}
@@ -410,16 +419,16 @@ inline void state_connected()
 
 			ret = select(raw_socket+1, &readfds, NULL, NULL, NULL);
 			if(ret < 0) {
-				PRINT_ERROR("Error in select()\n")
-					state = STATE_SHUTDOWN;
+				PRINT_ERROR("Error in select()\n");
+				state = STATE_SHUTDOWN;
 				return;
 			}
 
 			if(FD_ISSET(raw_socket, &readfds)) {
 				ret = recv(raw_socket, &frame, sizeof(struct can_frame), MSG_WAITALL);
 				if(ret < sizeof(struct can_frame)) {
-					PRINT_ERROR("Error reading frame from RAW socket\n")
-						perror("Reading CAN socket\n");
+					PRINT_ERROR("Error reading frame from RAW socket\n");
+					perror("Reading CAN socket\n");
 				} else {
 					if(frame.can_id & CAN_ERR_FLAG) {
 						/* TODO implement */
@@ -571,18 +580,18 @@ void childdied()
 void sigint()
 {
 	if(verbose_flag)
-		PRINT_ERROR("received SIGINT\n")
+		PRINT_ERROR("received SIGINT\n");
 
-			if(server_socket != -1) {
-				if(verbose_flag)
-					PRINT_INFO("closing server socket\n")
-						close(server_socket);
-			}
+	if (server_socket != -1) {
+		if (verbose_flag)
+			PRINT_INFO("closing server socket\n");
+		close(server_socket);
+	}
 
 	if(raw_socket != -1) {
 		if(verbose_flag)
-			PRINT_INFO("closing can socket\n")
-				close(raw_socket);
+			PRINT_INFO("closing can socket\n");
+		close(raw_socket);
 	}
 
 	exit(0);
