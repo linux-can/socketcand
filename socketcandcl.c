@@ -67,6 +67,7 @@
 #include <arpa/inet.h>
 
 #include <linux/can.h>
+#include <linux/can/raw.h>
 
 #define MAXLEN 4000
 #define PORT 29536
@@ -226,8 +227,7 @@ int main(int argc, char **argv)
 			perror("connect");
 			exit(1);
 		}
-	} 
-	 else {
+	} else {
 		/* create AF_INET socket */
 
 		server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -299,7 +299,7 @@ inline void state_connected()
 {
 
 	int ret;
-	static struct can_frame frame;
+	static struct canfd_frame frame;
 	static struct ifreq ifr;
 	static struct sockaddr_can addr;
 	fd_set readfds;
@@ -330,6 +330,25 @@ inline void state_connected()
 			state = STATE_SHUTDOWN;
 			return;
 		}
+
+		if(ioctl(raw_socket,SIOCGIFMTU,&ifr) < 0) {
+			PRINT_ERROR("Error while searching for bus MTU %s\n", strerror(errno));
+			state = STATE_SHUTDOWN;
+			return;
+		}
+
+		if (ifr.ifr_mtu == CANFD_MTU) {
+			const int canfd_on = 1;
+			if(setsockopt(raw_socket, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &canfd_on, sizeof(canfd_on)) < 0) {
+				PRINT_ERROR("Could not enable CAN FD support\n");
+				state = STATE_SHUTDOWN;
+				return;
+			}
+		}
+
+//		fprintf(stderr, "MTU of %s is %d\n", ldev, ifr.ifr_mtu);
+
+
 		/* bind socket */
 		if(bind(raw_socket, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
 			PRINT_ERROR("Error while binding RAW socket %s\n", strerror(errno));
@@ -363,6 +382,7 @@ inline void state_connected()
 
 			if(FD_ISSET(server_socket, &readfds) || more_elements) {
 				ret = receive_command(server_socket, (char *) &buf);
+//				fprintf(stderr, "%s\n", buf);
 				if(ret == 0) {
 					if(!strncmp("< frame", buf, 7)) {
 						char data_str[2*8];
@@ -379,7 +399,9 @@ inline void state_connected()
 						if((s - buf - 7) > 4)
 							frame.can_id |= CAN_EFF_FLAG;
 
-						frame.can_dlc = strlen(data_str) / 2;
+						frame.len = strlen(data_str) / 2;
+
+//						fprintf(stderr, "frame.can_id: %d  frame.flags: %d  frame.len: %d\n", frame.can_id, frame.flags, frame.len);
 
 						sscanf(data_str, "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
 						       &frame.data[0], &frame.data[1],
@@ -388,7 +410,36 @@ inline void state_connected()
 						       &frame.data[6], &frame.data[7]);
 
 						ret = write(raw_socket, &frame, sizeof(struct can_frame));
-						if(ret<sizeof(struct can_frame)) {
+						if(ret != sizeof(struct can_frame)) {
+							perror("Writing CAN frame to can socket\n");
+						}
+					} else if(!strncmp("< fdframe", buf, 9)) {
+						char data_str[2*64];
+
+						sscanf(buf, "< fdframe %x %hhx %*d.%*d %s >", &frame.can_id, &frame.flags,
+						       data_str);
+
+						char* s = buf + 9;
+						for(; ++s;) {
+							if(*s== ' ') {
+								break;
+							}
+						}
+						if((s - buf - 9) > 4)
+							frame.can_id |= CAN_EFF_FLAG;
+
+						frame.len = strlen(data_str) / 2;
+
+//						fprintf(stderr, "frame.can_id: %d  frame.flags: %d  frame.len: %d\n", frame.can_id, frame.flags, frame.len);
+
+						sscanf(data_str, "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
+						       &frame.data[0], &frame.data[1],
+						       &frame.data[2], &frame.data[3],
+						       &frame.data[4], &frame.data[5],
+						       &frame.data[6], &frame.data[7]);
+
+						ret = write(raw_socket, &frame, sizeof(struct canfd_frame));
+						if(ret != sizeof(struct canfd_frame)) {
 							perror("Writing CAN frame to can socket\n");
 						}
 					}
@@ -416,8 +467,8 @@ inline void state_connected()
 			}
 
 			if(FD_ISSET(raw_socket, &readfds)) {
-				ret = recv(raw_socket, &frame, sizeof(struct can_frame), MSG_WAITALL);
-				if(ret < sizeof(struct can_frame)) {
+				ret = recv(raw_socket, &frame, sizeof(struct canfd_frame), MSG_WAITALL);
+				if(ret != sizeof(struct canfd_frame) && ret != sizeof(struct can_frame)) {
 					PRINT_ERROR("Error reading frame from RAW socket\n")
 						perror("Reading CAN socket\n");
 				} else {
@@ -427,17 +478,30 @@ inline void state_connected()
 						/* TODO implement */
 					} else {
 						int i;
-						if(frame.can_id & CAN_EFF_FLAG) {
-							ret = sprintf(buf, "< send %08X %d ",
-								      frame.can_id & CAN_EFF_MASK, frame.can_dlc);
-						} else {
-							ret = sprintf(buf, "< send %03X %d ",
-								      frame.can_id & CAN_SFF_MASK, frame.can_dlc);
+
+//						fprintf(stderr, "frame.can_id: %d  frame.flags: %d  frame.len: %d\n", frame.can_id, frame.flags, frame.len);
+
+						if(ret == sizeof(struct can_frame)) {
+							if(frame.can_id & CAN_EFF_FLAG) {
+								ret = sprintf(buf, "< send %08X %d ",
+									      frame.can_id & CAN_EFF_MASK, frame.len);
+							} else {
+								ret = sprintf(buf, "< send %03X %d ",
+									      frame.can_id & CAN_SFF_MASK, frame.len);
+							}
+						} else if(ret == sizeof(struct canfd_frame)) {
+							if(frame.can_id & CAN_EFF_FLAG) {
+								ret = sprintf(buf, "< fdsend %08X %02X %d ",
+									      frame.can_id & CAN_EFF_MASK, frame.flags, frame.len);
+							} else {
+								ret = sprintf(buf, "< fdsend %03X %02X %d ",
+									      frame.can_id & CAN_SFF_MASK, frame.flags, frame.len);
+							}
 						}
-						for(i=0; i<frame.can_dlc; i++) {
+						for(i=0; i<frame.len; i++) {
 							ret += sprintf(buf+ret, "%02x ", frame.data[i]);
 						}
-						sprintf(buf+ret, " >");
+						sprintf(buf+ret, ">");
 
 						const size_t len = strlen(buf);
 						ret = send(server_socket, buf, len, 0);
