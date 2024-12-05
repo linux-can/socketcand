@@ -11,15 +11,17 @@ After connecting to the socket the client is greeted with '< hi >'. The open com
 where canbus may be at maximum 16 characters long. If the client is allowed to access the bus the server will respond with '< ok >'. Otherwise an error is returned and the connection is terminated.
 After a bus was opened the mode is switched to BCM mode. The Mode NO_BUS is the only mode where bittimings or other bus configuration settings may be done.
 
-#### Configure the bittiming (to be implemented) ####
+#### Configure the bittiming ####
 The protocol enables the client to change the bittiming of a given bus as provided by set link. Automatic bitrate configuration by the kernel is not supported because it is not guaranteed that the corresponding option was enabled during compile time (e.g. in Ubuntu 10.10 it is not). This way it it also easier to implement the function in a microcontroller based adapter.
 
     < can0 B bitrate sample_point tq prop_seg phase_seg1 phase_seg2 sjw brp >
 
-#### Set the controlmode (to be implementend) ####
+#### Set the controlmode ####
 The control mode controls if the bus is set to listen only, if sent packages are looped back and if the controller is configured to take three samples. The following command provides access to these settings. Each field must be set to '0' or '1' to disable or enable the setting.
 
     < can0 C listen_only loopback three_samples >
+
+**_NOTE:_** The interface configuration only works if socketcand is compiled with libsocketcan dependency.
 
 ## Mode BCM (default mode) ##
 After the client has successfully opened a bus the mode is switched to BCM mode (DEFAULT). In this mode a BCM socket to the bus will be opened and can be controlled over the connection. The following commands are understood:
