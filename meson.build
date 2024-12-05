@@ -28,7 +28,8 @@ executable('socketcand',
     ],
     include_directories : include_directories('include'),
     dependencies: deps,
-    install : true
+    install : true,
+    install_dir : get_option('sbindir')
 )
 
 executable('socketcandcl',
