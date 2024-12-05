@@ -9,7 +9,7 @@
 /* receive buffer length from inet socket for an isotp PDU plus command */
 #define MAXLEN (2 * ISOTPLEN + 100) /* 4095 * 2 + cmd stuff */
 
-#define MAX_BUSNAME 16+1
+#define MAX_BUSNAME 16 + 1
 #define PORT 29536
 #define DEFAULT_INTERFACE "eth0"
 #define DEFAULT_BUSNAME "vcan0"
@@ -21,9 +21,25 @@
 #define STATE_CONTROL 4
 #define STATE_ISOTP 5
 
-#define PRINT_INFO(...) do{ if(daemon_flag) syslog(LOG_INFO, __VA_ARGS__); else printf(__VA_ARGS__); } while(0)
-#define PRINT_ERROR(...) do{ if(daemon_flag) syslog(LOG_ERR, __VA_ARGS__); else fprintf(stderr, __VA_ARGS__); } while(0)
-#define PRINT_VERBOSE(...) do{ if(verbose_flag && !daemon_flag) printf(__VA_ARGS__); } while(0)
+#define PRINT_INFO(...)                                \
+	do {                                           \
+		if (daemon_flag)                       \
+			syslog(LOG_INFO, __VA_ARGS__); \
+		else                                   \
+			printf(__VA_ARGS__);           \
+	} while (0)
+#define PRINT_ERROR(...)                              \
+	do {                                          \
+		if (daemon_flag)                      \
+			syslog(LOG_ERR, __VA_ARGS__); \
+		else                                  \
+			fprintf(stderr, __VA_ARGS__); \
+	} while (0)
+#define PRINT_VERBOSE(...)                        \
+	do {                                      \
+		if (verbose_flag && !daemon_flag) \
+			printf(__VA_ARGS__);      \
+	} while (0)
 
 #ifndef VERSION_STRING
 #define VERSION_STRING "SNAPSHOT"
@@ -47,8 +63,8 @@ extern int daemon_flag;
 extern int state;
 extern int previous_state;
 extern char bus_name[];
-extern char* description;
-extern char* afuxname;
+extern char *description;
+extern char *afuxname;
 extern pthread_t statistics_thread;
 extern int more_elements;
 extern struct sockaddr_in broadcast_addr;

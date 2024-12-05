@@ -19,20 +19,21 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-void state_control() {
+void state_control()
+{
 	char buf[MAXLEN];
 	int i, items;
 
-	if(previous_state != STATE_CONTROL) {
+	if (previous_state != STATE_CONTROL) {
 		PRINT_VERBOSE("starting statistics thread...\n");
-			pthread_create(&statistics_thread, NULL, &statistics_loop, NULL);
+		pthread_create(&statistics_thread, NULL, &statistics_loop, NULL);
 
 		previous_state = STATE_CONTROL;
 	}
 
-	i = receive_command(client_socket, (char *) &buf);
+	i = receive_command(client_socket, (char *)&buf);
 
-	if(i != 0) {
+	if (i != 0) {
 		PRINT_ERROR("Connection terminated while waiting for command.\n");
 		state = STATE_SHUTDOWN;
 		return;
@@ -46,24 +47,24 @@ void state_control() {
 		return;
 	}
 
-	if(!strcmp("< echo >", buf)) {
+	if (!strcmp("< echo >", buf)) {
 		send(client_socket, buf, strlen(buf), 0);
 		tcp_quickack(client_socket);
 		return;
 	}
 
-	if(!strncmp("< statistics ", buf, 13)) {
+	if (!strncmp("< statistics ", buf, 13)) {
 		items = sscanf(buf, "< %*s %u >",
 			       &i);
 
 		if (items != 1) {
 			PRINT_ERROR("Syntax error in statistics command\n");
-				} else {
+		} else {
 			statistics_ival = i;
 		}
 	} else {
 		PRINT_ERROR("unknown command '%s'.\n", buf);
-			strcpy(buf, "< error unknown command >");
+		strcpy(buf, "< error unknown command >");
 		send(client_socket, buf, strlen(buf), 0);
 		tcp_quickack(client_socket);
 	}

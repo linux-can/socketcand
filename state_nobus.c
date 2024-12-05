@@ -6,7 +6,7 @@
 #include <string.h>
 #include <sys/socket.h>
 
-static int check_bus(const char *bus_name) 
+static int check_bus(const char *bus_name)
 {
 	int found = 0, i;
 
@@ -45,8 +45,8 @@ void state_nobus(void)
 			PRINT_INFO("client tried to access unauthorized bus.\n");
 			strcpy(buf, "< error could not open bus >");
 			goto shutdown_err;
-		} 
-		if (canctl_start_iface (bus_name)) {
+		}
+		if (canctl_start_iface(bus_name)) {
 			PRINT_INFO("Error starting CAN interface.\n");
 			snprintf(buf, MAXLEN, "< error could not start interface %s >", bus_name);
 			goto shutdown_err;
@@ -59,29 +59,29 @@ void state_nobus(void)
 			PRINT_INFO("client tried to access unauthorized bus.\n");
 			strcpy(buf, "< error could not open bus >");
 			goto shutdown_err;
-		} 
+		}
 
 		/* Check the configuration operation */
 		switch (op) {
-			case 'B':
-				if (canctl_set_bittiming(bus_name, buf, strlen(buf))) {
-					PRINT_ERROR("Error configuring bus bittiming.\n");
-					snprintf(buf, MAXLEN, "< error configuring interface %s > \n", bus_name);
-					goto shutdown_err;
-				}
-				break;
-			case 'C':
-				if (canctl_set_control_modes(bus_name, buf, strlen(buf))) {
-					PRINT_ERROR("Error configuring bus control modes.\n");
-					snprintf(buf, MAXLEN, "< error configuring interface %s > \n", bus_name);
-					goto shutdown_err;
-				}
-				break;
-			default:
-				PRINT_ERROR("Configuration operation not supported\n");
-				snprintf(buf, MAXLEN, "< configuration operation not supported %c > \n", op);
+		case 'B':
+			if (canctl_set_bittiming(bus_name, buf, strlen(buf))) {
+				PRINT_ERROR("Error configuring bus bittiming.\n");
+				snprintf(buf, MAXLEN, "< error configuring interface %s > \n", bus_name);
 				goto shutdown_err;
-				break;
+			}
+			break;
+		case 'C':
+			if (canctl_set_control_modes(bus_name, buf, strlen(buf))) {
+				PRINT_ERROR("Error configuring bus control modes.\n");
+				snprintf(buf, MAXLEN, "< error configuring interface %s > \n", bus_name);
+				goto shutdown_err;
+			}
+			break;
+		default:
+			PRINT_ERROR("Configuration operation not supported\n");
+			snprintf(buf, MAXLEN, "< configuration operation not supported %c > \n", op);
+			goto shutdown_err;
+			break;
 		}
 
 		goto return_ok;
@@ -101,4 +101,4 @@ shutdown_err:
 	send(client_socket, buf, strlen(buf), 0);
 	tcp_quickack(client_socket);
 	state = STATE_SHUTDOWN;
-} 
+}

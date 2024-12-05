@@ -83,26 +83,26 @@ int receive_command(int socket, char *buf);
 int sl, client_socket;
 pthread_t beacon_thread, statistics_thread;
 char **interface_names;
-int interface_count=0;
+int interface_count = 0;
 int port;
-int verbose_flag=0;
-int daemon_flag=0;
-int disable_beacon=0;
-int tcp_quickack_flag=0;
+int verbose_flag = 0;
+int daemon_flag = 0;
+int disable_beacon = 0;
+int tcp_quickack_flag = 0;
 int state = STATE_NO_BUS;
 int previous_state = -1;
 char bus_name[MAX_BUSNAME];
 char cmd_buffer[MAXLEN];
-int cmd_index=0;
-char* description;
-char* afuxname;
+int cmd_index = 0;
+char *description;
+char *afuxname;
 int more_elements = 0;
 struct sockaddr_in saddr, broadcast_addr;
 struct sockaddr_un unaddr;
 socklen_t unaddrlen;
 struct sockaddr_un remote_unaddr;
 socklen_t remote_unaddrlen;
-char* interface_string;
+char *interface_string;
 
 void tcp_quickack(int s)
 {
@@ -114,13 +114,13 @@ void tcp_quickack(int s)
 
 int state_changed(char *buf, int current_state)
 {
-	if(!strcmp("< rawmode >", buf))
+	if (!strcmp("< rawmode >", buf))
 		state = STATE_RAW;
-	else if(!strcmp("< bcmmode >", buf))
+	else if (!strcmp("< bcmmode >", buf))
 		state = STATE_BCM;
-	else if(!strcmp("< isotpmode >", buf))
+	else if (!strcmp("< isotpmode >", buf))
 		state = STATE_ISOTP;
-	else if(!strcmp("< controlmode >", buf))
+	else if (!strcmp("< controlmode >", buf))
 		state = STATE_CONTROL;
 
 	if (current_state != state)
@@ -140,8 +140,7 @@ char *element_start(char *buf, int element)
 	 * get the position of the requested element as char pointer
 	 */
 
-	for (i=0, elem=0; i<len; i++) {
-
+	for (i = 0, elem = 0; i < len; i++) {
 		if (buf[i] == ' ') {
 			elem++;
 
@@ -205,7 +204,7 @@ int main(int argc, char **argv)
 	struct sigaction signalaction, sigint_action;
 	sigset_t sigset;
 	int c;
-	char* busses_string;
+	char *busses_string;
 #ifdef HAVE_LIBCONFIG
 	config_t config;
 #endif
@@ -214,22 +213,21 @@ int main(int argc, char **argv)
 	port = PORT;
 	description = malloc(sizeof(BEACON_DESCRIPTION));
 	strcpy(description, BEACON_DESCRIPTION);
-	interface_string = malloc(strlen(DEFAULT_INTERFACE)+ 1);
+	interface_string = malloc(strlen(DEFAULT_INTERFACE) + 1);
 	strcpy(interface_string, DEFAULT_INTERFACE);
-	busses_string = malloc(strlen(DEFAULT_BUSNAME)+ 1);
+	busses_string = malloc(strlen(DEFAULT_BUSNAME) + 1);
 	strcpy(busses_string, DEFAULT_BUSNAME);
 	afuxname = NULL;
-
 
 #ifdef HAVE_LIBCONFIG
 	/* Read config file before parsing commandline arguments */
 	config_init(&config);
-	if(CONFIG_TRUE == config_read_file(&config, "/etc/socketcand.conf")) {
-		config_lookup_int(&config, "port", (int*) &port);
-		config_lookup_string(&config, "description", (const char**) &description);
-		config_lookup_string(&config, "afuxname", (const char**) &afuxname);
-		config_lookup_string(&config, "busses", (const char**) &busses_string);
-		config_lookup_string(&config, "listen", (const char**) &interface_string);
+	if (CONFIG_TRUE == config_read_file(&config, "/etc/socketcand.conf")) {
+		config_lookup_int(&config, "port", (int *)&port);
+		config_lookup_string(&config, "description", (const char **)&description);
+		config_lookup_string(&config, "afuxname", (const char **)&afuxname);
+		config_lookup_string(&config, "busses", (const char **)&busses_string);
+		config_lookup_string(&config, "listen", (const char **)&interface_string);
 	}
 #endif
 
@@ -238,20 +236,20 @@ int main(int argc, char **argv)
 		/* getopt_long stores the option index here. */
 		int option_index = 0;
 		static struct option long_options[] = {
-			{"verbose", no_argument, 0, 'v'},
-			{"interfaces",  required_argument, 0, 'i'},
-			{"port", required_argument, 0, 'p'},
-			{"quick-ack", no_argument, 0, 'q'},
-			{"afuxname", required_argument, 0, 'u'},
-			{"listen", required_argument, 0, 'l'},
-			{"daemon", no_argument, 0, 'd'},
-			{"version", no_argument, 0, 'z'},
-			{"no-beacon", no_argument, 0, 'n'},
-			{"help", no_argument, 0, 'h'},
-			{0, 0, 0, 0}
+			{ "verbose", no_argument, 0, 'v' },
+			{ "interfaces", required_argument, 0, 'i' },
+			{ "port", required_argument, 0, 'p' },
+			{ "quick-ack", no_argument, 0, 'q' },
+			{ "afuxname", required_argument, 0, 'u' },
+			{ "listen", required_argument, 0, 'l' },
+			{ "daemon", no_argument, 0, 'd' },
+			{ "version", no_argument, 0, 'z' },
+			{ "no-beacon", no_argument, 0, 'n' },
+			{ "help", no_argument, 0, 'h' },
+			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long (argc, argv, "vi:p:qu:l:dznh", long_options, &option_index);
+		c = getopt_long(argc, argv, "vi:p:qu:l:dznh", long_options, &option_index);
 
 		if (c == -1)
 			break;
@@ -264,12 +262,12 @@ int main(int argc, char **argv)
 			break;
 
 		case 'v':
-			puts ("Verbose output activated\n");
+			puts("Verbose output activated\n");
 			verbose_flag = 1;
 			break;
 
 		case 'i':
-			busses_string = realloc(busses_string, strlen(optarg)+1);
+			busses_string = realloc(busses_string, strlen(optarg) + 1);
 			strcpy(busses_string, optarg);
 			break;
 
@@ -283,17 +281,17 @@ int main(int argc, char **argv)
 			break;
 
 		case 'u':
-			afuxname = realloc(afuxname, strlen(optarg)+1);
+			afuxname = realloc(afuxname, strlen(optarg) + 1);
 			strcpy(afuxname, optarg);
 			break;
 
 		case 'l':
-			interface_string = realloc(interface_string, strlen(optarg)+1);
+			interface_string = realloc(interface_string, strlen(optarg) + 1);
 			strcpy(interface_string, optarg);
 			break;
 
 		case 'd':
-			daemon_flag=1;
+			daemon_flag = 1;
 			break;
 
 		case 'z':
@@ -301,7 +299,7 @@ int main(int argc, char **argv)
 			return 0;
 
 		case 'n':
-			disable_beacon=1;
+			disable_beacon = 1;
 			break;
 
 		case 'h':
@@ -318,13 +316,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-
-
 	/* parse busses */
-	for(i=0;;i++) {
-		if(busses_string[i] == '\0')
+	for (i = 0;; i++) {
+		if (busses_string[i] == '\0')
 			break;
-		if(busses_string[i] == ',')
+		if (busses_string[i] == ',')
 			interface_count++;
 	}
 	interface_count++;
@@ -333,21 +329,20 @@ int main(int argc, char **argv)
 
 	interface_names[0] = strtok(busses_string, ",");
 
-	for(i=1;i<interface_count;i++) {
+	for (i = 1; i < interface_count; i++) {
 		interface_names[i] = strtok(NULL, ",");
 	}
 
 	/* if daemon mode was activated the syslog must be opened */
-	if(daemon_flag) {
+	if (daemon_flag) {
 		openlog("socketcand", 0, LOG_DAEMON);
 	}
-
 
 	sigemptyset(&sigset);
 	signalaction.sa_handler = &childdied;
 	signalaction.sa_mask = sigset;
 	signalaction.sa_flags = 0;
-	sigaction(SIGCHLD, &signalaction, NULL);  /* signal for dying child */
+	sigaction(SIGCHLD, &signalaction, NULL); /* signal for dying child */
 
 	sigint_action.sa_handler = &sigint;
 	sigint_action.sa_mask = sigset;
@@ -356,25 +351,24 @@ int main(int argc, char **argv)
 
 	determine_adress();
 
-	if(!disable_beacon) {
+	if (!disable_beacon) {
 		PRINT_VERBOSE("creating broadcast thread...\n");
 		i = pthread_create(&beacon_thread, NULL, &beacon_loop, NULL);
-		if(i)
+		if (i)
 			PRINT_ERROR("could not create broadcast thread.\n");
 	} else {
 		PRINT_VERBOSE("Discovery beacon disabled\n");
 	}
 
 	if (afuxname) {
-
 		/* create PF_UNIX socket */
-		if((sl = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
+		if ((sl = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
 			perror("unixsocket");
 			exit(1);
 		}
 
 		unaddr.sun_family = AF_UNIX;
-		if (strlen(afuxname) > sizeof(unaddr.sun_path)-3) {
+		if (strlen(afuxname) > sizeof(unaddr.sun_path) - 3) {
 			printf("afuxname is too long.\n");
 			exit(1);
 		}
@@ -395,26 +389,25 @@ int main(int argc, char **argv)
 			unaddrlen = strlen(afuxname) + sizeof(unaddr.sun_family) + 1;
 		}
 		PRINT_VERBOSE("binding unix socket to '%s' with unaddrlen %d\n", afuxname, unaddrlen);
-		if(bind(sl,(struct sockaddr*)&unaddr, unaddrlen) < 0) {
+		if (bind(sl, (struct sockaddr *)&unaddr, unaddrlen) < 0) {
 			perror("unixbind");
 			exit(-1);
 		}
 
-		if (listen(sl,3) != 0) {
+		if (listen(sl, 3) != 0) {
 			perror("unixlisten");
 			exit(1);
 		}
 
 		while (1) {
 			remote_unaddrlen = sizeof(struct sockaddr_un);
-			client_socket = accept(sl,(struct sockaddr *)&remote_unaddr, &remote_unaddrlen);
-			if (client_socket > 0 ){
+			client_socket = accept(sl, (struct sockaddr *)&remote_unaddr, &remote_unaddrlen);
+			if (client_socket > 0) {
 				if (fork())
 					close(client_socket);
 				else
 					break;
-			}
-			else {
+			} else {
 				if (errno != EINTR) {
 					/*
 					 * If the cause for the error was NOT the
@@ -429,37 +422,36 @@ int main(int argc, char **argv)
 		PRINT_VERBOSE("client connected\n");
 
 	} else {
-
 		/* create PF_INET socket */
 
-		if((sl = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+		if ((sl = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 			perror("inetsocket");
 			exit(1);
 		}
 
 #ifdef DEBUG
-		if(verbose_flag)
+		if (verbose_flag)
 			printf("setting SO_REUSEADDR\n");
 		i = 1;
-		if(setsockopt(sl, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) <0) {
+		if (setsockopt(sl, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) < 0) {
 			perror("setting SO_REUSEADDR failed");
 		}
 #endif
 
 		PRINT_VERBOSE("binding socket to %s:%d\n", inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port));
-		if(bind(sl,(struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
+		if (bind(sl, (struct sockaddr *)&saddr, sizeof(saddr)) < 0) {
 			perror("bind");
 			exit(-1);
 		}
 
-		if (listen(sl,3) != 0) {
+		if (listen(sl, 3) != 0) {
 			perror("listen");
 			exit(1);
 		}
 
 		while (1) {
-			client_socket = accept(sl,(struct sockaddr *)&clientaddr, &sin_size);
-			if (client_socket > 0 ){
+			client_socket = accept(sl, (struct sockaddr *)&clientaddr, &sin_size);
+			if (client_socket > 0) {
 				int flag;
 				flag = 1;
 				setsockopt(client_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(flag));
@@ -467,8 +459,7 @@ int main(int argc, char **argv)
 					close(client_socket);
 				else
 					break;
-			}
-			else {
+			} else {
 				if (errno != EINTR) {
 					/*
 					 * If the cause for the error was NOT the
@@ -485,14 +476,14 @@ int main(int argc, char **argv)
 #ifdef DEBUG
 		PRINT_VERBOSE("setting SO_REUSEADDR\n");
 		i = 1;
-		if(setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) <0) {
+		if (setsockopt(client_socket, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i)) < 0) {
 			perror("setting SO_REUSEADDR failed");
 		}
 #endif
 	}
 	/* main loop with state machine */
-	while(1) {
-		switch(state) {
+	while (1) {
+		switch (state) {
 		case STATE_NO_BUS:
 			state_nobus();
 			break;
@@ -521,14 +512,15 @@ int main(int argc, char **argv)
 /* reads all available data from the socket into the command buffer.
  * returns '-1' if no command could be received.
  */
-int receive_command(int socket, char *buffer) {
+int receive_command(int socket, char *buffer)
+{
 	int i, start, stop;
 
 	/* if there are no more elements in the buffer read more data from the
 	 * socket.
 	 */
-	if(!more_elements) {
-		cmd_index += read(socket, cmd_buffer+cmd_index, MAXLEN-cmd_index);
+	if (!more_elements) {
+		cmd_index += read(socket, cmd_buffer + cmd_index, MAXLEN - cmd_index);
 		tcp_quickack(client_socket);
 #ifdef DEBUG_RECEPTION
 		PRINT_VERBOSE("\tRead from socket\n");
@@ -543,8 +535,8 @@ int receive_command(int socket, char *buffer) {
 
 	/* find first '<' in string */
 	start = -1;
-	for(i=0;i<cmd_index;i++) {
-		if(cmd_buffer[i] == '<') {
+	for (i = 0; i < cmd_index; i++) {
+		if (cmd_buffer[i] == '<') {
 			start = i;
 			break;
 		}
@@ -554,7 +546,7 @@ int receive_command(int socket, char *buffer) {
 	 * if there is no '<' in string it makes no sense to keep data because
 	 * we will never be able to construct a command of it
 	 */
-	if(start == -1) {
+	if (start == -1) {
 		cmd_index = 0;
 #ifdef DEBUG_RECEPTION
 		PRINT_VERBOSE("\tBad data. No element found\n");
@@ -564,15 +556,15 @@ int receive_command(int socket, char *buffer) {
 
 	/* check whether the command is completely in the buffer */
 	stop = -1;
-	for(i=1;i<cmd_index;i++) {
-		if(cmd_buffer[i] == '>') {
+	for (i = 1; i < cmd_index; i++) {
+		if (cmd_buffer[i] == '>') {
 			stop = i;
 			break;
 		}
 	}
 
 	/* if no '>' is in the string we have to wait for more data */
-	if(stop == -1) {
+	if (stop == -1) {
 #ifdef DEBUG_RECEPTION
 		PRINT_VERBOSE("\tNo full element in the buffer\n");
 #endif
@@ -584,30 +576,30 @@ int receive_command(int socket, char *buffer) {
 #endif
 
 	/* copy string to new destination and correct cmd_buffer */
-	for(i=start;i<=stop;i++) {
-		buffer[i-start] = cmd_buffer[i];
+	for (i = start; i <= stop; i++) {
+		buffer[i - start] = cmd_buffer[i];
 	}
-	buffer[i-start] = '\0';
+	buffer[i - start] = '\0';
 
 #ifdef DEBUG_RECEPTION
 	PRINT_VERBOSE("\tElement is '%s'\n", buffer);
 #endif
 
 	/* if only this message was in the buffer we're done */
-	if(stop == cmd_index-1) {
+	if (stop == cmd_index - 1) {
 		cmd_index = 0;
 	} else {
 		/* check if there is a '<' after the stop */
 		start = -1;
-		for(i=stop;i<cmd_index;i++) {
-			if(cmd_buffer[i] == '<') {
+		for (i = stop; i < cmd_index; i++) {
+			if (cmd_buffer[i] == '<') {
 				start = i;
 				break;
 			}
 		}
 
 		/* if there is none it is only garbage we can remove */
-		if(start == -1) {
+		if (start == -1) {
 			cmd_index = 0;
 #ifdef DEBUG_RECEPTION
 			PRINT_VERBOSE("\tGarbage after the first element in the buffer\n");
@@ -615,21 +607,21 @@ int receive_command(int socket, char *buffer) {
 			return 0;
 			/* otherwise we copy the valid data to the beginning of the buffer */
 		} else {
-			for(i=start;i<cmd_index;i++) {
-				cmd_buffer[i-start] = cmd_buffer[i];
+			for (i = start; i < cmd_index; i++) {
+				cmd_buffer[i - start] = cmd_buffer[i];
 			}
 			cmd_index -= start;
 
 			/* check if there is at least one full element in the buffer */
 			stop = -1;
-			for(i=1;i<cmd_index;i++) {
-				if(cmd_buffer[i] == '>') {
+			for (i = 1; i < cmd_index; i++) {
+				if (cmd_buffer[i] == '>') {
 					stop = i;
 					break;
 				}
 			}
 
-			if(stop != -1) {
+			if (stop != -1) {
 				more_elements = 1;
 #ifdef DEBUG_RECEPTION
 				PRINT_VERBOSE("\tMore than one full element in the buffer.\n");
@@ -640,12 +632,13 @@ int receive_command(int socket, char *buffer) {
 	return 0;
 }
 
-void determine_adress() {
+void determine_adress()
+{
 	struct ifreq ifr, ifr_mask;
 
 	int probe_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
-	if(probe_socket < 0) {
+	if (probe_socket < 0) {
 		PRINT_ERROR("Could not create socket!\n");
 		exit(-1);
 	}
@@ -653,11 +646,11 @@ void determine_adress() {
 	PRINT_VERBOSE("Using network interface '%s'\n", interface_string);
 
 	ifr.ifr_addr.sa_family = AF_INET;
-	strncpy(ifr.ifr_name, interface_string, IFNAMSIZ-1);
+	strncpy(ifr.ifr_name, interface_string, IFNAMSIZ - 1);
 	ioctl(probe_socket, SIOCGIFADDR, &ifr);
 
 	ifr_mask.ifr_addr.sa_family = AF_INET;
-	strncpy(ifr_mask.ifr_name, interface_string, IFNAMSIZ-1);
+	strncpy(ifr_mask.ifr_name, interface_string, IFNAMSIZ - 1);
 	ioctl(probe_socket, SIOCGIFNETMASK, &ifr_mask);
 
 	close(probe_socket);
@@ -667,18 +660,19 @@ void determine_adress() {
 
 	/* set listen adress */
 	saddr.sin_family = AF_INET;
-	saddr.sin_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
+	saddr.sin_addr = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
 	saddr.sin_port = htons(port);
 
 	/* calculate and set broadcast adress */
 	broadcast_addr.sin_family = AF_INET;
-	broadcast_addr.sin_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
-	broadcast_addr.sin_addr.s_addr |= ~((struct sockaddr_in *) &ifr_mask.ifr_netmask)->sin_addr.s_addr;
+	broadcast_addr.sin_addr = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
+	broadcast_addr.sin_addr.s_addr |= ~((struct sockaddr_in *)&ifr_mask.ifr_netmask)->sin_addr.s_addr;
 	broadcast_addr.sin_port = htons(BROADCAST_PORT);
 	PRINT_VERBOSE("Broadcast adress is %s\n", inet_ntoa(broadcast_addr.sin_addr));
 }
 
-void print_usage(void) {
+void print_usage(void)
+{
 	printf("%s Version %s\n", PACKAGE_NAME, PACKAGE_VERSION);
 	printf("Report bugs to %s\n\n", PACKAGE_BUGREPORT);
 	printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port] [-q | --quick-ack]\n\t\t[-l interface | --listen interface] [-u name | --afuxname name]\n\t\t[-n | --no-beacon] [-d | --daemon] [-h | --help]\n\n");
@@ -694,25 +688,27 @@ void print_usage(void) {
 	printf("\t-h (prints this message)\n");
 }
 
-void childdied() {
+void childdied()
+{
 	wait(NULL);
 }
 
-void sigint() {
-	if(verbose_flag)
+void sigint()
+{
+	if (verbose_flag)
 		PRINT_ERROR("received SIGINT\n");
 
-	if(sl != -1) {
-		if(verbose_flag)
+	if (sl != -1) {
+		if (verbose_flag)
 			PRINT_INFO("closing listening socket\n");
-		if(!close(sl))
+		if (!close(sl))
 			sl = -1;
 	}
 
-	if(client_socket != -1) {
-		if(verbose_flag)
+	if (client_socket != -1) {
+		if (verbose_flag)
 			PRINT_INFO("closing client socket\n");
-		if(!close(client_socket))
+		if (!close(client_socket))
 			client_socket = -1;
 	}
 
