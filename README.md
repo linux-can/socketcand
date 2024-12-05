@@ -13,6 +13,7 @@ To build and run socketcand make sure you have the following tools installed:
 * a kernel that includes the SocketCAN modules
 * the headers for your kernel version
 * the libconfig with headers (libconfig-dev under debian based systems)
+* the libsocketcan with headers (libsocketcan-dev under debian based systems) is a requirement to configure the interfaces from socketcand
 
 Execute the following commands to configure, build, and install the software:
 
