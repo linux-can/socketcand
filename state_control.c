@@ -24,7 +24,7 @@ void state_control() {
 	int i, items;
 
 	if(previous_state != STATE_CONTROL) {
-		PRINT_VERBOSE("starting statistics thread...\n")
+		PRINT_VERBOSE("starting statistics thread...\n");
 			pthread_create(&statistics_thread, NULL, &statistics_loop, NULL);
 
 		previous_state = STATE_CONTROL;
@@ -57,12 +57,12 @@ void state_control() {
 			       &i);
 
 		if (items != 1) {
-			PRINT_ERROR("Syntax error in statistics command\n")
+			PRINT_ERROR("Syntax error in statistics command\n");
 				} else {
 			statistics_ival = i;
 		}
 	} else {
-		PRINT_ERROR("unknown command '%s'.\n", buf)
+		PRINT_ERROR("unknown command '%s'.\n", buf);
 			strcpy(buf, "< error unknown command >");
 		send(client_socket, buf, strlen(buf), 0);
 		tcp_quickack(client_socket);

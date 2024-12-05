@@ -48,7 +48,8 @@ void state_isotp() {
 			return;
 		}
 
-		strncpy(ifr.ifr_name, bus_name, IFNAMSIZ);
+		strncpy(ifr.ifr_name, bus_name, IFNAMSIZ - 1);
+		ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 
 		if (state_changed(buf, state)) {
 			/* ensure proper handling in other states */
@@ -129,7 +130,7 @@ void state_isotp() {
 
 			setsockopt(si, SOL_CAN_ISOTP, CAN_ISOTP_RECV_FC, &fcopts, sizeof(fcopts));
 
-			PRINT_VERBOSE("binding ISOTP socket...\n")
+			PRINT_VERBOSE("binding ISOTP socket...\n");
 			if (bind(si, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 				PRINT_ERROR("Error while binding ISOTP socket %s\n", strerror(errno));
 				/* ensure proper handling in other states */
@@ -156,7 +157,7 @@ void state_isotp() {
 	} else {
 		ret = select((si > client_socket)?si+1:client_socket+1, &readfds, NULL, NULL, NULL);
 		if(ret < 0) {
-			PRINT_ERROR("Error in select()\n")
+			PRINT_ERROR("Error in select()\n");
 				state = STATE_SHUTDOWN;
 			return;
 		}
@@ -238,12 +239,12 @@ void state_isotp() {
 
 			ret = write(si, isobuf, items);
 			if(ret != items) {
-				PRINT_ERROR("Error in write()\n")
+				PRINT_ERROR("Error in write()\n");
 					state = STATE_SHUTDOWN;
 				return;
 			}
 		} else {
-			PRINT_ERROR("unknown command '%s'.\n", buf)
+			PRINT_ERROR("unknown command '%s'.\n", buf);
 				strcpy(buf, "< error unknown command >");
 			send(client_socket, buf, strlen(buf), 0);
 			tcp_quickack(client_socket);
