@@ -16,7 +16,7 @@ endif
 
 if enable_init_script
     init_conf = configuration_data()
-    init_conf.set('fullpath', get_option('prefix') / get_option('bindir'))
+    init_conf.set('fullpath', get_option('prefix') / get_option('sbindir'))
     configure_file(
         input : 'socketcand-init.d.in',
         output : 'socketcand',
