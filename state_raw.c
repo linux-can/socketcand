@@ -91,7 +91,7 @@ void state_raw() {
 		ret = select((raw_socket > client_socket)?raw_socket+1:client_socket+1, &readfds, NULL, NULL, NULL);
 
 		if(ret < 0) {
-			PRINT_ERROR("Error in select()\n")
+			PRINT_ERROR("Error in select()\n");
 				state = STATE_SHUTDOWN;
 			return;
 		}
@@ -105,7 +105,7 @@ void state_raw() {
 
 		ret = recvmsg(raw_socket, &msg, 0);
 		if(ret < sizeof(struct can_frame)) {
-			PRINT_ERROR("Error reading frame from RAW socket\n")
+			PRINT_ERROR("Error reading frame from RAW socket\n");
 				} else {
 			/* read timestamp data */
 			for (cmsg = CMSG_FIRSTHDR(&msg);
@@ -177,7 +177,7 @@ void state_raw() {
 				if ( (items < 2) ||
 				     (frame.can_dlc > 8) ||
 				     (items != 2 + frame.can_dlc)) {
-					PRINT_ERROR("Syntax error in send command\n")
+					PRINT_ERROR("Syntax error in send command\n");
 						return;
 				}
 

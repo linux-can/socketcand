@@ -21,9 +21,9 @@
 #define STATE_CONTROL 4
 #define STATE_ISOTP 5
 
-#define PRINT_INFO(...) if(daemon_flag) syslog(LOG_INFO, __VA_ARGS__); else printf(__VA_ARGS__);
-#define PRINT_ERROR(...) if(daemon_flag) syslog(LOG_ERR, __VA_ARGS__); else fprintf(stderr, __VA_ARGS__);
-#define PRINT_VERBOSE(...) if(verbose_flag && !daemon_flag) printf(__VA_ARGS__);
+#define PRINT_INFO(...) do{ if(daemon_flag) syslog(LOG_INFO, __VA_ARGS__); else printf(__VA_ARGS__); } while(0)
+#define PRINT_ERROR(...) do{ if(daemon_flag) syslog(LOG_ERR, __VA_ARGS__); else fprintf(stderr, __VA_ARGS__); } while(0)
+#define PRINT_VERBOSE(...) do{ if(verbose_flag && !daemon_flag) printf(__VA_ARGS__); } while(0)
 
 #ifndef VERSION_STRING
 #define VERSION_STRING "SNAPSHOT"

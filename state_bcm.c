@@ -60,7 +60,7 @@ void state_bcm() {
 		caddr.can_family = PF_CAN;
 		/* can_ifindex is set to 0 (any device) => need for sendto() */
 
-		PRINT_VERBOSE("connecting BCM socket...\n")
+		PRINT_VERBOSE("connecting BCM socket...\n");
 			if (connect(sc, (struct sockaddr *)&caddr, sizeof(caddr)) < 0) {
 				PRINT_ERROR("Error while connecting BCM socket %s\n", strerror(errno));
 				state = STATE_SHUTDOWN;
@@ -83,7 +83,7 @@ void state_bcm() {
 		ret = select((sc > client_socket)?sc+1:client_socket+1, &readfds, NULL, NULL, NULL);
 
 		if(ret < 0) {
-			PRINT_ERROR("Error in select()\n")
+			PRINT_ERROR("Error in select()\n");
 				state = STATE_SHUTDOWN;
 			return;
 		}
@@ -103,7 +103,7 @@ void state_bcm() {
 		/* Check if this is an error frame */
 		if(msg.msg_head.can_id & CAN_ERR_FLAG) {
 			if(msg.frame.can_dlc != CAN_ERR_DLC) {
-				PRINT_ERROR("Error frame has a wrong DLC!\n")
+				PRINT_ERROR("Error frame has a wrong DLC!\n");
 					} else {
 				snprintf(rxmsg, RXLEN, "< error %03X %ld.%06ld ", msg.msg_head.can_id, tv.tv_sec, tv.tv_usec);
 
@@ -148,7 +148,8 @@ void state_bcm() {
 		memset(&msg, 0, sizeof(msg));
 		msg.msg_head.nframes = 1;
 
-		strncpy(ifr.ifr_name, bus_name, IFNAMSIZ);
+		strncpy(ifr.ifr_name, bus_name, IFNAMSIZ - 1);
+		ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 
 		if (state_changed(buf, state)) {
 			close(sc);
@@ -183,7 +184,7 @@ void state_bcm() {
 			if ( (items < 2) ||
 			     (msg.frame.can_dlc > 8) ||
 			     (items != 2 + msg.frame.can_dlc)) {
-				PRINT_ERROR("Syntax error in send command\n")
+				PRINT_ERROR("Syntax error in send command\n");
 					return;
 			}
 
@@ -256,7 +257,7 @@ void state_bcm() {
 			if ( (items < 2) ||
 			     (msg.frame.can_dlc > 8) ||
 			     (items != 2 + msg.frame.can_dlc)) {
-				PRINT_ERROR("Syntax error in update send job command\n")
+				PRINT_ERROR("Syntax error in update send job command\n");
 					return;
 			}
 
@@ -279,7 +280,7 @@ void state_bcm() {
 				       &msg.msg_head.can_id);
 
 			if (items != 1)  {
-				PRINT_ERROR("Syntax error in delete job command\n")
+				PRINT_ERROR("Syntax error in delete job command\n");
 					return;
 			}
 
@@ -316,7 +317,7 @@ void state_bcm() {
 			if( (items < 4) ||
 			    (msg.frame.can_dlc > 8) ||
 			    (items != 4 + msg.frame.can_dlc) ) {
-				PRINT_ERROR("syntax error in filter command.\n")
+				PRINT_ERROR("syntax error in filter command.\n");
 					return;
 			}
 
@@ -350,7 +351,7 @@ void state_bcm() {
 			if( (items != 4) ||
 			    (muxmsg.msg_head.nframes < 2) ||
 			    (muxmsg.msg_head.nframes > 257) ) {
-				PRINT_ERROR("syntax error in muxfilter command.\n")
+				PRINT_ERROR("syntax error in muxfilter command.\n");
 					return;
 			}
 
@@ -363,12 +364,12 @@ void state_bcm() {
 
 			cfptr = element_start(buf, 6);
 			if (cfptr == NULL) {
-				PRINT_ERROR("failed to find filter data start in muxfilter.\n")
+				PRINT_ERROR("failed to find filter data start in muxfilter.\n");
 					return;
 			}
 
 			if (strlen(cfptr) <  muxmsg.msg_head.nframes * 24) {
-				PRINT_ERROR("muxfilter data too short.\n")
+				PRINT_ERROR("muxfilter data too short.\n");
 					return;
 			}
 
@@ -379,7 +380,7 @@ void state_bcm() {
 
 					tmp = asc2nibble(cfptr[(24*i + 3*j)]);
 					if (tmp > 0x0F) {
-						PRINT_ERROR("failed to process filter data in muxfilter.\n")
+						PRINT_ERROR("failed to process filter data in muxfilter.\n");
 							return;
 					}
 
@@ -387,7 +388,7 @@ void state_bcm() {
 
 					tmp = asc2nibble(cfptr[(24*i + 3*j)+1]);
 					if (tmp > 0x0F) {
-						PRINT_ERROR("failed to process filter data in muxfilter.\n")
+						PRINT_ERROR("failed to process filter data in muxfilter.\n");
 							return;
 					}
 
@@ -409,7 +410,7 @@ void state_bcm() {
 				       &msg.msg_head.can_id);
 
 			if (items != 3) {
-				PRINT_ERROR("syntax error in subscribe command\n")
+				PRINT_ERROR("syntax error in subscribe command\n");
 					return;
 			}
 
@@ -432,7 +433,7 @@ void state_bcm() {
 				       &msg.msg_head.can_id);
 
 			if (items != 1) {
-				PRINT_ERROR("syntax error in unsubscribe command\n")
+				PRINT_ERROR("syntax error in unsubscribe command\n");
 					return;
 			}
 
@@ -449,7 +450,7 @@ void state_bcm() {
 				       (struct sockaddr*)&caddr, sizeof(caddr));
 			}
 		} else {
-			PRINT_ERROR("unknown command '%s'.\n", buf)
+			PRINT_ERROR("unknown command '%s'.\n", buf);
 				strcpy(buf, "< error unknown command >");
 			send(client_socket, buf, strlen(buf), 0);
 			tcp_quickack(client_socket);
