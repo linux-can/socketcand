@@ -1,3 +1,4 @@
 option('libconfig', type: 'boolean', value: false, description: 'enable support for libconfig')
+option('libsocketcan', type: 'boolean', value: false, description: 'enable support for libsocketcan')
 option('rc_script', type: 'boolean', value: false, description: 'enable creation of rc.d start script')
 option('init_script', type: 'boolean', value: false, description: 'enable creation of init.d start script')

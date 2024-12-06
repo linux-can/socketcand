@@ -28,11 +28,14 @@ if enable_libconfig
 endif
 
 # Check if libsocketcan is available
-dep_libsocketcan = dependency('libsocketcan', required: false)
-if dep_libsocketcan.found()
-    conf.set_quoted('HAVE_LIBSOCKETCAN', '1')
-    deps += dep_libsocketcan
-    src += 'canctl.c'
+enable_libsocketcan = get_option('libsocketcan')
+if enable_libsocketcan
+    dep_libsocketcan = dependency('libsocketcan')
+    if dep_libsocketcan.found()
+        conf.set_quoted('HAVE_LIBSOCKETCAN', '1')
+        deps += dep_libsocketcan
+        src += 'canctl.c'
+    endif
 endif
 
 executable('socketcand',
