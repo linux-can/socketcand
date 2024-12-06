@@ -1,0 +1,8 @@
+debhelper-build-stamp
+files
+socketcand.substvars
+socketcand.debhelper.log
+socketcand.postinst.debhelper
+socketcand.postrm.debhelper
+socketcand.prerm.debhelper
+
