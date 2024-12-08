@@ -43,3 +43,8 @@ Usage
 * **-n** (deactivates the discovery beacon)
 * **-d** (set this flag if you want log to syslog instead of STDOUT)
 * **-h** (prints this message)
+
+License
+-------
+
+The source code is released under either GPL-2.0-only or BSD-3-Clause licenses.
