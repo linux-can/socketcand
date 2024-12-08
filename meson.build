@@ -10,21 +10,15 @@ enable_init_script = get_option('init_script')
 # Check if libconfig is available
 enable_libconfig = get_option('libconfig')
 if enable_libconfig
-    dep_libconfig = dependency('libconfig')
-    if dep_libconfig.found()
-        conf.set_quoted('HAVE_LIBCONFIG', '1')
-        deps += dep_libconfig
-    endif
+    conf.set_quoted('HAVE_LIBCONFIG', '1')
+    deps += dependency('libconfig')
 endif
 
 # Check if libsocketcan is available
 enable_libsocketcan = get_option('libsocketcan')
 if enable_libsocketcan
-    dep_libsocketcan = dependency('libsocketcan')
-    if dep_libsocketcan.found()
-        conf.set_quoted('HAVE_LIBSOCKETCAN', '1')
-        deps += dep_libsocketcan
-    endif
+    conf.set_quoted('HAVE_LIBSOCKETCAN', '1')
+    deps += dependency('libsocketcan')
 endif
 
 conf.set_quoted('PACKAGE_VERSION', meson.project_version())
