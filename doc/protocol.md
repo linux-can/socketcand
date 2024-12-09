@@ -1,10 +1,10 @@
 Socketcand protocol
 ===================
 
-The socketcand provides a network interface to a number of CAN busses on the host. It can be controlled over a single TCP socket and supports transmission and reception of CAN frames. The used protocol is ASCII based and has some states in which different commands may be used.
+The socketcand provides a network interface to a number of CAN buses on the host. It can be controlled over a single TCP socket and supports transmission and reception of CAN frames. The used protocol is ASCII based and has some states in which different commands may be used.
 
 ## Mode NO_BUS ##
-After connecting to the socket the client is greeted with '< hi >'. The open command is used to select one of the CAN busses that were announced in the broadcast beacon. The syntax is '<open canbus>', e.g.
+After connecting to the socket the client is greeted with '< hi >'. The open command is used to select one of the CAN buses that were announced in the broadcast beacon. The syntax is '<open canbus>', e.g.
 
     < open can0 >
 
@@ -49,7 +49,7 @@ Send the CAN frame 123#42424242 every 20 msecs
 #### Update a frame ####
 This command updates a frame transmission job that was created via the 'add' command with new content. The transmission timers are not touched
 
-Examle:
+Example:
 Update the CAN frame 123#42424242 with 123#112233 - no change of timers
 
     < update 123 3 11 22 33 >
@@ -185,7 +185,7 @@ With '< controlmode >' it is possible to enter the CONTROL mode. Here statistics
 
 #### Statistics ####
 In CONTROL mode it is possible to receive bus statistics. Transmission is enabled by the '< statistics ival >' command. Ival is the interval between two statistics transmissions in milliseconds. The ival may be set to '0' to deactivate transmission.
-After enabling statistics transmission the data is send inline with normal CAN frames and other data. The daemon takes care of the interval that was specified. The information is transfered in the following format:
+After enabling statistics transmission the data is send inline with normal CAN frames and other data. The daemon takes care of the interval that was specified. The information is transferred in the following format:
     < stat rbytes rpackets tbytes tpackets >
 The reported bytes and packets are reported as unsigned integers.
 
@@ -194,7 +194,7 @@ Example for CAN interface 'can0' to enable statistics with interval of one secon
     < open can0 >< controlmode >< statistics 1000 >
 
 ## Mode ISO-TP ##
-A transport protocol, such as ISO-TP, is needed to enable e.g. software updload via CAN. It organises the connection-less transmission of a sequence of data. An ISO-TP channel consists of two exclusive CAN IDs, one to transmit data and the other to receive data.
+A transport protocol, such as ISO-TP, is needed to enable e.g. software upload via CAN. It organises the connection-less transmission of a sequence of data. An ISO-TP channel consists of two exclusive CAN IDs, one to transmit data and the other to receive data.
 After configuration a single ISO-TP channel can be used. The ISO-TP mode can be used exclusively like the other modes (bcmmode, rawmode, isotpmode).
 
 Switch to ISO-TP mode
@@ -213,8 +213,8 @@ Configure the ISO-TP channel - optional parameters are in [ ] brackets.
 * wftmax - maximum number of wait frames (0 = off)
 * txpad_content - padding value in the tx path (enable CAN_ISOTP_TX_PADDING in flags)
 * rxpad_content - padding value in the rx path (enable CAN_ISOTP_RX_PADDING in flags)
-* ext_address - extended adressing freature (value for tx and rx if not specified separately / enable CAN_ISOTP_EXTEND_ADDR in flags)
-* rx_ext_address - extended adressing freature (separate value for rx / enable CAN_ISOTP_RX_EXT_ADDR in flags)
+* ext_address - extended addressing freature (value for tx and rx if not specified separately / enable CAN_ISOTP_EXTEND_ADDR in flags)
+* rx_ext_address - extended addressing freature (separate value for rx / enable CAN_ISOTP_RX_EXT_ADDR in flags)
 
 The flags contents are built from the original isotp.h file:
 
@@ -257,16 +257,16 @@ Example: Receiving of the same data as sent in the example above
 Service discovery
 -----------------
 
-Because configuration shall be as easy as possible and the virtual CAN bus and the Kayak instance are not necessarily on the same machine a machanism for service discovery is necessary.
+Because configuration shall be as easy as possible and the virtual CAN bus and the Kayak instance are not necessarily on the same machine a mechanism for service discovery is necessary.
 
-The server sends a UDP broadcast beacon to port 42000 on the subnet where the server port was bound. The interval for these discovery beacons shall not be longer than three seconds. Because the BCM server handles all communication (even for multiple busses) over a single TCP connection the broadcast must provide information about all busses that are accessible through the BCM server.
+The server sends a UDP broadcast beacon to port 42000 on the subnet where the server port was bound. The interval for these discovery beacons shall not be longer than three seconds. Because the BCM server handles all communication (even for multiple buses) over a single TCP connection the broadcast must provide information about all buses that are accessible through the BCM server.
 
 ### Content ###
 
 Required:
 
-* Name of the device that provides access to the busses. On linux machines this could be the hostname
-* Name of the busses (in case of socketCAN and embedded this should be the same as the device name)
+* Name of the device that provides access to the buses. On linux machines this could be the hostname
+* Name of the buses (in case of socketCAN and embedded this should be the same as the device name)
 * URL with port and IP address. If the server is listening on multiple sockets all of them should be included in the beacon
 * Device type the service is running on
 
