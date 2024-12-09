@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: (GPL-2.0-only OR BSD-3-Clause) */
 
+#include "canctl.h"
 #include "config.h"
 #include "socketcand.h"
-#include "include/linux/canctl.h"
 
 #include <stdio.h>
 #include <string.h>
