@@ -46,12 +46,12 @@ jobs:
       env:
         cc: gcc
       run: |
-        podman exec -i stable meson setup -Dlibconfig=true -Dlibsocketcan=true build-${cc}
+        podman exec -i --env CC=${cc} stable meson setup -Dlibconfig=true -Dlibsocketcan=true build-${cc}
         podman exec -i stable ninja -C build-${cc}
 
     - name: Configure & Build with clang
       env:
         cc: clang
       run: |
-        podman exec -i stable meson setup -Dlibconfig=true -Dlibsocketcan=true build-${cc}
+        podman exec -i --env CC=${cc} stable meson setup -Dlibconfig=true -Dlibsocketcan=true build-${cc}
         podman exec -i stable ninja -C build-${cc}
