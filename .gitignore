@@ -1,7 +1,3 @@
-socketcand
-socketcandcl
-*.o
-init.d/socketcand
-debian_pack
-tags
-.cache
+/.cache
+/.ccls-cache
+/tags
