@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 		} else {
 			strcpy(&serveraddr_un.sun_path[1], afuxname);
 			serveraddr_un.sun_path[0] = 0;
-			/* abtract name length definition without trailing \0 but with leading \0 */
+			/* abstract name length definition without trailing \0 but with leading \0 */
 			serveraddr_un_len = strlen(afuxname) + sizeof(serveraddr_un.sun_family) + 1;
 		}
 

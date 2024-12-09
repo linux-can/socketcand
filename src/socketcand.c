@@ -283,7 +283,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	/* parse busses */
+	/* parse buses */
 	for (i = 0;; i++) {
 		if (busses_string[i] == '\0')
 			break;
@@ -352,7 +352,7 @@ int main(int argc, char **argv)
 		} else {
 			strcpy(&unaddr.sun_path[1], afuxname);
 			unaddr.sun_path[0] = 0;
-			/* abtract name length definition without trailing \0 but with leading \0 */
+			/* abstract name length definition without trailing \0 but with leading \0 */
 			unaddrlen = strlen(afuxname) + sizeof(unaddr.sun_family) + 1;
 		}
 		PRINT_VERBOSE("binding unix socket to '%s' with unaddrlen %d\n", afuxname, unaddrlen);
@@ -622,20 +622,20 @@ void determine_adress()
 
 	close(probe_socket);
 
-	PRINT_VERBOSE("Listen adress is %s\n", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
+	PRINT_VERBOSE("Listen address is %s\n", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
 	PRINT_VERBOSE("Netmask is %s\n", inet_ntoa(((struct sockaddr_in *)&ifr_mask.ifr_netmask)->sin_addr));
 
-	/* set listen adress */
+	/* set listen address */
 	saddr.sin_family = AF_INET;
 	saddr.sin_addr = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
 	saddr.sin_port = htons(port);
 
-	/* calculate and set broadcast adress */
+	/* calculate and set broadcast address */
 	broadcast_addr.sin_family = AF_INET;
 	broadcast_addr.sin_addr = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
 	broadcast_addr.sin_addr.s_addr |= ~((struct sockaddr_in *)&ifr_mask.ifr_netmask)->sin_addr.s_addr;
 	broadcast_addr.sin_port = htons(BROADCAST_PORT);
-	PRINT_VERBOSE("Broadcast adress is %s\n", inet_ntoa(broadcast_addr.sin_addr));
+	PRINT_VERBOSE("Broadcast address is %s\n", inet_ntoa(broadcast_addr.sin_addr));
 }
 
 void print_usage(void)

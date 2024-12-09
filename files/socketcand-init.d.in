@@ -7,7 +7,7 @@
 # Default-Start:     2 3 4 5
 # Default-Stop:
 # Short-Description: socketcand
-# Description:       daemon that provides network access to local CAN busses
+# Description:       daemon that provides network access to local CAN buses
 ### END INIT INFO
 
 [ -f /etc/default/rcS ] && . /etc/default/rcS
