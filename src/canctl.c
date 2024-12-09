@@ -1,4 +1,7 @@
-/* SPDX-License-Identifier: (GPL-2.0-only OR BSD-3-Clause) */
+/**
+ * SPDX-License-Identifier: (GPL-2.0-only OR BSD-3-Clause)
+ * SPDX-FileCopyrightText: 2024 Jesus Jorge Serrano <jesusjorgeserrano@geotab.com>
+ */
 
 #include "config.h"
 
