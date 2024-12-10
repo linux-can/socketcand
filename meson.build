@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-3-Clause)
+# SPDX-FileCopyrightText: 2024 Matthias Weißer <m.weisser.m@gmail.com>
+
 project('socketcand', 'c', version : '0.6.1')
 conf = configuration_data()
 
