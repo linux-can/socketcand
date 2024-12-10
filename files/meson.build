@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-3-Clause)
+# SPDX-FileCopyrightText: 2024 Yegor Yefremov <yegorslists@googlemail.com>
+
 if enable_libconfig
     install_data(
         sources: 'socketcand.conf',
