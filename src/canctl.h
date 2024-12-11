@@ -12,6 +12,8 @@
 #ifndef __CANCTRL_H__
 #define __CANCTRL_H__
 
+#include "config.h"
+
 #ifdef HAVE_LIBSOCKETCAN
 
 #include <libsocketcan.h>
