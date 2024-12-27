@@ -447,7 +447,7 @@ inline void state_connected()
 			}
 
 			if (FD_ISSET(raw_socket, &readfds)) {
-				ret = recv(raw_socket, &frame, sizeof(struct can_frame), MSG_WAITALL);
+				ret = recv(raw_socket, &frame, sizeof(struct canfd_frame), MSG_WAITALL);
 				if (ret < sizeof(struct can_frame)) {
 					PRINT_ERROR("Error reading frame from RAW socket\n");
 					perror("Reading CAN socket\n");
