@@ -240,7 +240,7 @@ void state_bcm()
 			}
 
 			// Construct the format string for the dynamically based on frame.len
-			char format[256];
+			char format[512];
 			snprintf(format, sizeof(format), "< %%*s %%x %%hhx %%hhu");
 			for (int i = 0; i < msg.frame.len; i++) {
 				strncat(format, " %hhx", sizeof(format) - strlen(format) - 1);
