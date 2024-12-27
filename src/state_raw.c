@@ -21,12 +21,13 @@
 #include <syslog.h>
 
 #include <linux/can.h>
+#include <linux/can/raw.h>
 
 int raw_socket;
 struct ifreq ifr;
 struct sockaddr_can addr;
 struct msghdr msg;
-struct can_frame frame;
+struct canfd_frame frame;
 struct iovec iov;
 char ctrlmsg[CMSG_SPACE(sizeof(struct timeval)) + CMSG_SPACE(sizeof(__u32))];
 struct timeval tv;
@@ -62,7 +63,26 @@ void state_raw()
 			return;
 		}
 
-		if (bind(raw_socket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+		if(ioctl(raw_socket,SIOCGIFMTU,&ifr) < 0) {
+			PRINT_ERROR("Error while searching for bus MTU %s\n", strerror(errno));
+			state = STATE_SHUTDOWN;
+			return;
+		}
+
+		/*
+		 *if the device supports CAN FD, use it
+		 * if you don't want to use CAN FD, you should initialize the device as classic CAN
+		*/
+		if (ifr.ifr_mtu == CANFD_MTU) {
+			const int canfd_on = 1;
+			if(setsockopt(raw_socket, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &canfd_on, sizeof(canfd_on)) < 0) {
+				PRINT_ERROR("Could not enable CAN FD support\n");
+				state = STATE_SHUTDOWN;
+				return;
+			}
+		}
+
+		if(bind(raw_socket, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
 			PRINT_ERROR("Error while binding RAW socket %s\n", strerror(errno));
 			state = STATE_SHUTDOWN;
 			return;
@@ -104,7 +124,7 @@ void state_raw()
 		msg.msg_controllen = sizeof(ctrlmsg);
 
 		ret = recvmsg(raw_socket, &msg, 0);
-		if (ret < sizeof(struct can_frame)) {
+		if(ret != sizeof(struct canfd_frame) && ret != sizeof(struct can_frame)) {
 			PRINT_ERROR("Error reading frame from RAW socket\n");
 		} else {
 			/* read timestamp data */
@@ -124,12 +144,25 @@ void state_raw()
 			} else if (frame.can_id & CAN_RTR_FLAG) {
 				/* TODO implement */
 			} else {
-				if (frame.can_id & CAN_EFF_FLAG) {
-					ret = sprintf(buf, "< frame %08X %ld.%06ld ", frame.can_id & CAN_EFF_MASK, tv.tv_sec, tv.tv_usec);
-				} else {
-					ret = sprintf(buf, "< frame %03X %ld.%06ld ", frame.can_id & CAN_SFF_MASK, tv.tv_sec, tv.tv_usec);
+				switch(ret) {
+					// if the frame is a classic CAN frame
+					case sizeof(struct can_frame):
+						if(frame.can_id & CAN_EFF_FLAG) {
+							ret = sprintf(buf, "< frame %08X %ld.%06ld ", frame.can_id & CAN_EFF_MASK, tv.tv_sec, tv.tv_usec);
+						} else {
+							ret = sprintf(buf, "< frame %03X %ld.%06ld ", frame.can_id & CAN_SFF_MASK, tv.tv_sec, tv.tv_usec);
+						}
+					break;
+					// if the frame is a CAN FD frame
+					case sizeof(struct canfd_frame):
+						if(frame.can_id & CAN_EFF_FLAG) {
+							ret = sprintf(buf, "< fdframe %08X %02X %ld.%06ld ", frame.can_id & CAN_EFF_MASK, frame.flags, tv.tv_sec, tv.tv_usec);
+						} else {
+							ret = sprintf(buf, "< fdframe %03X %02X %ld.%06ld ", frame.can_id & CAN_SFF_MASK, frame.flags, tv.tv_sec, tv.tv_usec);
+						}
 				}
-				for (i = 0; i < frame.can_dlc; i++) {
+
+				for (i = 0; i < frame.len; i++) {
 					ret += sprintf(buf + ret, "%02X", frame.data[i]);
 				}
 				sprintf(buf + ret, " >");
@@ -163,7 +196,7 @@ void state_raw()
 					       "%hhx %hhx %hhx %hhx %hhx %hhx "
 					       "%hhx %hhx >",
 					       &frame.can_id,
-					       &frame.can_dlc,
+					       &frame.len,
 					       &frame.data[0],
 					       &frame.data[1],
 					       &frame.data[2],
@@ -174,8 +207,8 @@ void state_raw()
 					       &frame.data[7]);
 
 				if ((items < 2) ||
-				    (frame.can_dlc > 8) ||
-				    (items != 2 + frame.can_dlc)) {
+				    (frame.len > 8) ||
+				    (items != 2 + frame.len)) {
 					PRINT_ERROR("Syntax error in send command\n");
 					return;
 				}
@@ -186,6 +219,71 @@ void state_raw()
 
 				ret = send(raw_socket, &frame, sizeof(struct can_frame), 0);
 				if (ret == -1) {
+					state = STATE_SHUTDOWN;
+					return;
+				}
+				/* Send a single CANFD frame */
+			} else if(!strncmp("< fdsend ", buf, 9)) {
+		    // First, read the fixed part of the frame
+		    items = sscanf(buf, "< %*s %x %hhx %hhu",
+		                   &frame.can_id,
+		                   &frame.flags,
+		                   &frame.len);
+
+		    if (items != 3) {
+		        PRINT_ERROR("Syntax error in fdsend command\n");
+		        return;
+		    }
+
+		    // Ensure frame.len does not exceed the maximum allowed length
+		    if (frame.len > 64) {
+		        PRINT_ERROR("Frame length exceeds maximum allowed length\n");
+		        return;
+		    }
+
+		    // Construct the format string dynamically based on frame.len
+		    char format[512];
+		    snprintf(format, sizeof(format), "< %%*s %%x %%hhx %%hhu");
+		    for (int i = 0; i < frame.len; i++) {
+		        strncat(format, " %hhx", sizeof(format) - strlen(format) - 1);
+		    }
+		    strncat(format, " >", sizeof(format) - strlen(format) - 1);
+
+		    // Read the variable-length frame.data
+		    items = sscanf(buf, format,
+		                   &frame.can_id,
+		                   &frame.flags,
+		                   &frame.len,
+		                   &frame.data[0], &frame.data[1], &frame.data[2], &frame.data[3],
+		                   &frame.data[4], &frame.data[5], &frame.data[6], &frame.data[7],
+		                   &frame.data[8], &frame.data[9], &frame.data[10], &frame.data[11],
+		                   &frame.data[12], &frame.data[13], &frame.data[14], &frame.data[15],
+		                   &frame.data[16], &frame.data[17], &frame.data[18], &frame.data[19],
+		                   &frame.data[20], &frame.data[21], &frame.data[22], &frame.data[23],
+		                   &frame.data[24], &frame.data[25], &frame.data[26], &frame.data[27],
+		                   &frame.data[28], &frame.data[29], &frame.data[30], &frame.data[31],
+		                   &frame.data[32], &frame.data[33], &frame.data[34], &frame.data[35],
+		                   &frame.data[36], &frame.data[37], &frame.data[38], &frame.data[39],
+		                   &frame.data[40], &frame.data[41], &frame.data[42], &frame.data[43],
+		                   &frame.data[44], &frame.data[45], &frame.data[46], &frame.data[47],
+		                   &frame.data[48], &frame.data[49], &frame.data[50], &frame.data[51],
+		                   &frame.data[52], &frame.data[53], &frame.data[54], &frame.data[55],
+		                   &frame.data[56], &frame.data[57], &frame.data[58], &frame.data[59],
+		                   &frame.data[60], &frame.data[61], &frame.data[62], &frame.data[63]);
+
+				if ( (items < 2) ||
+				     (frame.len > 64) ||
+				     (items != 3 + frame.len)) {
+					PRINT_ERROR("Syntax error in fdsend command\n");
+						return;
+				}
+
+				/* < fdsend XXXXXXXX ... > check for extended identifier */
+				if(element_length(buf, 2) == 8)
+					frame.can_id |= CAN_EFF_FLAG;
+
+				ret = send(raw_socket, &frame, sizeof(struct canfd_frame), 0);
+				if(ret==-1) {
 					state = STATE_SHUTDOWN;
 					return;
 				}
