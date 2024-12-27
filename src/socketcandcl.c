@@ -393,11 +393,32 @@ inline void state_connected()
 
 						frame.len = strlen(data_str) / 2;
 
-						sscanf(data_str, "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
-						       &frame.data[0], &frame.data[1],
-						       &frame.data[2], &frame.data[3],
-						       &frame.data[4], &frame.data[5],
-						       &frame.data[6], &frame.data[7]);
+						sscanf(data_str,
+									"%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
+									"%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
+									"%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
+									"%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
+									"%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
+									"%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
+									"%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
+									"%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
+						       &frame.data[0], &frame.data[1], &frame.data[2], &frame.data[3],
+						       &frame.data[4], &frame.data[5], &frame.data[6], &frame.data[7],
+						       &frame.data[8], &frame.data[9], &frame.data[10], &frame.data[11],
+						       &frame.data[12], &frame.data[13], &frame.data[14], &frame.data[15],
+						       &frame.data[16], &frame.data[17], &frame.data[18], &frame.data[19],
+						       &frame.data[20], &frame.data[21], &frame.data[22], &frame.data[23],
+						       &frame.data[24], &frame.data[25], &frame.data[26], &frame.data[27],
+						       &frame.data[28], &frame.data[29], &frame.data[30], &frame.data[31],
+						       &frame.data[32], &frame.data[33], &frame.data[34], &frame.data[35],
+						       &frame.data[36], &frame.data[37], &frame.data[38], &frame.data[39],
+						       &frame.data[40], &frame.data[41], &frame.data[42], &frame.data[43],
+						       &frame.data[44], &frame.data[45], &frame.data[46], &frame.data[47],
+						       &frame.data[48], &frame.data[49], &frame.data[50], &frame.data[51],
+						       &frame.data[52], &frame.data[53], &frame.data[54], &frame.data[55],
+						       &frame.data[56], &frame.data[57], &frame.data[58], &frame.data[59],
+						       &frame.data[60], &frame.data[61], &frame.data[62], &frame.data[63]
+									);
 
 						ret = write(raw_socket, &frame, sizeof(struct canfd_frame));
 						if(ret != sizeof(struct canfd_frame)) {
@@ -461,6 +482,10 @@ inline void state_connected()
 							ret += sprintf(buf+ret, "%02x ", frame.data[i]);
 						}
 						sprintf(buf+ret, ">");
+
+#ifdef DEBUG
+						PRINT_VERBOSE("%s\n", buf);
+#endif
 
 						const size_t len = strlen(buf);
 						ret = send(server_socket, buf, len, 0);
