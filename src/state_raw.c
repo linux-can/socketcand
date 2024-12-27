@@ -125,8 +125,8 @@ void state_raw()
 
 		ret = recvmsg(raw_socket, &msg, 0);
 		if(ret != sizeof(struct canfd_frame) && ret != sizeof(struct can_frame)) {
-			PRINT_ERROR("Error reading frame from RAW socket\n")
-				} else {
+			PRINT_ERROR("Error reading frame from RAW socket\n");
+		} else {
 			/* read timestamp data */
 			for (cmsg = CMSG_FIRSTHDR(&msg);
 			     cmsg && (cmsg->cmsg_level == SOL_SOCKET);
@@ -209,7 +209,7 @@ void state_raw()
 				if ( (items < 2) ||
 				     (frame.len > 8) ||
 				     (items != 2 + frame.len)) {
-					PRINT_ERROR("Syntax error in send command\n")
+					PRINT_ERROR("Syntax error in send command\n");
 						return;
 				}
 
@@ -274,7 +274,7 @@ void state_raw()
 				if ( (items < 2) ||
 				     (frame.len > 64) ||
 				     (items != 3 + frame.len)) {
-					PRINT_ERROR("Syntax error in fdsend command\n")
+					PRINT_ERROR("Syntax error in fdsend command\n");
 						return;
 				}
 

@@ -104,8 +104,8 @@ void state_bcm()
 		/* Check if this is an error frame */
 		if(msg.msg_head.can_id & CAN_ERR_FLAG) {
 			if(msg.frame.len != CAN_ERR_DLC) {
-				PRINT_ERROR("Error frame has a wrong DLC!\n")
-					} else {
+				PRINT_ERROR("Error frame has a wrong DLC!\n");
+			} else {
 				snprintf(rxmsg, RXLEN, "< error %03X %ld.%06ld ", msg.msg_head.can_id, tv.tv_sec, tv.tv_usec);
 
 				for ( i = 0; i < msg.frame.len; i++)
@@ -204,7 +204,7 @@ void state_bcm()
 			if ( (items < 2) ||
 			     (msg.frame.len > 8) ||
 			     (items != 2 + msg.frame.len)) {
-				PRINT_ERROR("Syntax error in send command\n")
+				PRINT_ERROR("Syntax error in send command\n");
 					return;
 			}
 
@@ -272,7 +272,7 @@ void state_bcm()
 			if ( (items < 2) ||
 					 (msg.frame.len > 64) ||
 			     (items != 3 + msg.frame.len)) {
-				PRINT_ERROR("Syntax error in fdsend command\n")
+				PRINT_ERROR("Syntax error in fdsend command\n");
 					return;
 			}
 
@@ -344,7 +344,7 @@ void state_bcm()
 			if ( (items < 2) ||
 			     (msg.frame.len > 8) ||
 			     (items != 2 + msg.frame.len)) {
-				PRINT_ERROR("Syntax error in update send job command\n")
+				PRINT_ERROR("Syntax error in update send job command\n");
 					return;
 			}
 
@@ -404,7 +404,7 @@ void state_bcm()
 			if( (items < 4) ||
 			    (msg.frame.len > 8) ||
 			    (items != 4 + msg.frame.len) ) {
-				PRINT_ERROR("syntax error in filter command.\n")
+				PRINT_ERROR("syntax error in filter command.\n");
 					return;
 			}
 
