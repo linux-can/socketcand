@@ -162,8 +162,8 @@ void state_raw()
 						}
 				}
 
-				for(i=0;i<frame.len;i++) {
-					ret += sprintf(buf+ret, "%02X", frame.data[i]);
+				for (i = 0; i < frame.len; i++) {
+					ret += sprintf(buf + ret, "%02X", frame.data[i]);
 				}
 				sprintf(buf + ret, " >");
 				send(client_socket, buf, strlen(buf), 0);
@@ -206,11 +206,11 @@ void state_raw()
 					       &frame.data[6],
 					       &frame.data[7]);
 
-				if ( (items < 2) ||
-				     (frame.len > 8) ||
-				     (items != 2 + frame.len)) {
+				if ((items < 2) ||
+				    (frame.len > 8) ||
+				    (items != 2 + frame.len)) {
 					PRINT_ERROR("Syntax error in send command\n");
-						return;
+					return;
 				}
 
 				/* < send XXXXXXXX ... > check for extended identifier */

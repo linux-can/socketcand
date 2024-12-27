@@ -298,7 +298,7 @@ inline void state_connected()
 			return;
 		}
 
-		if(ioctl(raw_socket,SIOCGIFMTU,&ifr) < 0) {
+		if (ioctl(raw_socket,SIOCGIFMTU,&ifr) < 0) {
 			PRINT_ERROR("Error while searching for bus MTU %s\n", strerror(errno));
 			state = STATE_SHUTDOWN;
 			return;
@@ -306,15 +306,12 @@ inline void state_connected()
 
 		if (ifr.ifr_mtu == CANFD_MTU) {
 			const int canfd_on = 1;
-			if(setsockopt(raw_socket, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &canfd_on, sizeof(canfd_on)) < 0) {
+			if (setsockopt(raw_socket, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &canfd_on, sizeof(canfd_on)) < 0) {
 				PRINT_ERROR("Could not enable CAN FD support\n");
 				state = STATE_SHUTDOWN;
 				return;
 			}
 		}
-
-//		fprintf(stderr, "MTU of %s is %d\n", ldev, ifr.ifr_mtu);
-
 
 		/* bind socket */
 		if (bind(raw_socket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
@@ -364,8 +361,6 @@ inline void state_connected()
 
 						frame.len = strlen(data_str) / 2;
 
-//						fprintf(stderr, "frame.can_id: %d  frame.flags: %d  frame.len: %d\n", frame.can_id, frame.flags, frame.len);
-
 						sscanf(data_str, "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
 						       &frame.data[0], &frame.data[1],
 						       &frame.data[2], &frame.data[3],
@@ -373,22 +368,22 @@ inline void state_connected()
 						       &frame.data[6], &frame.data[7]);
 
 						ret = write(raw_socket, &frame, sizeof(struct can_frame));
-						if(ret != sizeof(struct can_frame)) {
+						if (ret != sizeof(struct can_frame)) {
 							perror("Writing CAN frame to can socket\n");
 						}
-					} else if(!strncmp("< fdframe", buf, 9)) {
+					} else if (!strncmp("< fdframe", buf, 9)) {
 						char data_str[2*64];
 
 						sscanf(buf, "< fdframe %x %hhx %*d.%*d %s >", &frame.can_id, &frame.flags,
 						       data_str);
 
 						char* s = buf + 9;
-						for(; ++s;) {
-							if(*s== ' ') {
+						for (; ++s;) {
+							if (*s== ' ') {
 								break;
 							}
 						}
-						if((s - buf - 9) > 4)
+						if ((s - buf - 9) > 4)
 							frame.can_id |= CAN_EFF_FLAG;
 
 						frame.len = strlen(data_str) / 2;
@@ -421,7 +416,7 @@ inline void state_connected()
 									);
 
 						ret = write(raw_socket, &frame, sizeof(struct canfd_frame));
-						if(ret != sizeof(struct canfd_frame)) {
+						if (ret != sizeof(struct canfd_frame)) {
 							perror("Writing CAN frame to can socket\n");
 						}
 					}
@@ -459,18 +454,16 @@ inline void state_connected()
 					} else {
 						int i;
 
-//						fprintf(stderr, "frame.can_id: %d  frame.flags: %d  frame.len: %d\n", frame.can_id, frame.flags, frame.len);
-
-						if(ret == sizeof(struct can_frame)) {
-							if(frame.can_id & CAN_EFF_FLAG) {
+						if (ret == sizeof(struct can_frame)) {
+							if (frame.can_id & CAN_EFF_FLAG) {
 								ret = sprintf(buf, "< send %08X %d ",
 									      frame.can_id & CAN_EFF_MASK, frame.len);
 							} else {
 								ret = sprintf(buf, "< send %03X %d ",
 									      frame.can_id & CAN_SFF_MASK, frame.len);
 							}
-						} else if(ret == sizeof(struct canfd_frame)) {
-							if(frame.can_id & CAN_EFF_FLAG) {
+						} else if (ret == sizeof(struct canfd_frame)) {
+							if (frame.can_id & CAN_EFF_FLAG) {
 								ret = sprintf(buf, "< fdsend %08X %02X %d ",
 									      frame.can_id & CAN_EFF_MASK, frame.flags, frame.len);
 							} else {
@@ -478,14 +471,10 @@ inline void state_connected()
 									      frame.can_id & CAN_SFF_MASK, frame.flags, frame.len);
 							}
 						}
-						for(i=0; i<frame.len; i++) {
-							ret += sprintf(buf+ret, "%02x ", frame.data[i]);
+						for (i = 0; i < frame.len; i++) {
+							ret += sprintf(buf + ret, "%02x ", frame.data[i]);
 						}
-						sprintf(buf+ret, ">");
-
-#ifdef DEBUG
-						PRINT_VERBOSE("%s\n", buf);
-#endif
+						sprintf(buf + ret, " >");
 
 						const size_t len = strlen(buf);
 						ret = send(server_socket, buf, len, 0);
