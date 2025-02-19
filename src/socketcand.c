@@ -50,6 +50,7 @@ int receive_command(int socket, char *buf);
 int sl, client_socket;
 pthread_t beacon_thread, statistics_thread;
 char **interface_names;
+char **bus_names;
 int interface_count = 0;
 int port;
 int verbose_flag = 0;
@@ -298,6 +299,16 @@ int main(int argc, char **argv)
 
 	for (i = 1; i < interface_count; i++) {
 		interface_names[i] = strtok(NULL, ",");
+	}
+
+	/* check if any of the intefaces requires a different bus name */
+	bus_names = malloc(sizeof(char *) * interface_count);
+	for (i = 0; i < interface_count; i++) {
+		strtok(interface_names[i], "="); /* split at the = if it's there */
+		bus_names[i] = strtok(NULL, "=");
+		if (bus_names[i] == NULL) {
+			bus_names[i] = interface_names[i];
+		}
 	}
 
 	/* if daemon mode was activated the syslog must be opened */

@@ -8,13 +8,15 @@
 #include <string.h>
 #include <sys/socket.h>
 
-static int check_bus(const char *bus_name)
+static int check_bus(char *bus_name)
 {
 	int found = 0, i;
 
 	for (i = 0; i < interface_count; i++) {
-		if (!strcmp(interface_names[i], bus_name))
+		if (!strcmp(bus_names[i], bus_name)) {
+			strcpy(bus_name, interface_names[i]);
 			found = 1;
+		}
 	}
 	return found;
 }

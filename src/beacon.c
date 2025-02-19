@@ -54,7 +54,7 @@ void *beacon_loop(void *ptr)
 			}
 			chars_left = BEACON_LENGTH - n;
 
-			snprintf(buffer + (n * sizeof(char)), chars_left, "<Bus name=\"%s\"/>", interface_names[i]);
+			snprintf(buffer + (n * sizeof(char)), chars_left, "<Bus name=\"%s\"/>", bus_names[i]);
 		}
 
 		/* Find \0 in beacon buffer */
