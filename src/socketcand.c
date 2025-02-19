@@ -50,6 +50,7 @@ int receive_command(int socket, char *buf);
 int sl, client_socket;
 pthread_t beacon_thread, statistics_thread;
 char **interface_names;
+char **bus_names;
 int interface_count = 0;
 int port;
 int verbose_flag = 0;
@@ -298,6 +299,16 @@ int main(int argc, char **argv)
 
 	for (i = 1; i < interface_count; i++) {
 		interface_names[i] = strtok(NULL, ",");
+	}
+
+	/* check if any of the intefaces requires a different bus name */
+	bus_names = malloc(sizeof(char *) * interface_count);
+	for (i = 0; i < interface_count; i++) {
+		strtok(interface_names[i], "="); /* split at the = if it's there */
+		bus_names[i] = strtok(NULL, "=");
+		if (bus_names[i] == NULL) {
+			bus_names[i] = interface_names[i];
+		}
 	}
 
 	/* if daemon mode was activated the syslog must be opened */
@@ -645,7 +656,7 @@ void print_usage(void)
 	printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port] [-q | --quick-ack]\n\t\t[-l interface | --listen interface] [-u name | --afuxname name]\n\t\t[-n | --no-beacon] [-d | --daemon] [-h | --help]\n\n");
 	printf("Options:\n");
 	printf("\t-v (activates verbose output to STDOUT)\n");
-	printf("\t-i <interfaces> (comma separated list of SocketCAN interfaces the daemon\n\t\tshall provide access to e.g. '-i can0,vcan1' - default: %s)\n", DEFAULT_BUSNAME);
+	printf("\t-i <interfaces>[=<bus>] (comma separated list of SocketCAN interfaces the daemon\n\t\tshall provide access to e.g. '-i can0,vcan1'\n\t\tmight include an optional bus name,\n\t\tif different from interface e.g. '-i vcan0=mybus' - default: %s)\n", DEFAULT_BUSNAME);
 	printf("\t-p <port> (changes the default port '%d' the daemon is listening at)\n", PORT);
 	printf("\t-q (enable TCP_QUICKACK socket option)\n");
 	printf("\t-l <interface> (changes the default network interface the daemon will\n\t\tbind to - default: %s)\n", DEFAULT_INTERFACE);

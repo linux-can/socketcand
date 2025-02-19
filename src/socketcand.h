@@ -56,6 +56,7 @@ void state_nobus();
 
 extern int client_socket;
 extern char **interface_names;
+extern char **bus_names;
 extern int interface_count;
 extern int port;
 extern int verbose_flag;
