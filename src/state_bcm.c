@@ -32,6 +32,7 @@ int sc = -1;
 void state_bcm()
 {
 	int i, j, ret;
+	unsigned long long sec, usec;
 	struct sockaddr_can caddr;
 	socklen_t caddrlen = sizeof(caddr);
 	struct ifreq ifr;
@@ -106,7 +107,8 @@ void state_bcm()
 			if (msg.frame.can_dlc != CAN_ERR_DLC) {
 				PRINT_ERROR("Error frame has a wrong DLC!\n");
 			} else {
-				snprintf(rxmsg, RXLEN, "< error %03X %ld.%06ld ", msg.msg_head.can_id, tv.tv_sec, tv.tv_usec);
+				snprintf(rxmsg, RXLEN, "< error %03X %lld.%06lld ", msg.msg_head.can_id,
+					 (signed long long) tv.tv_sec, (signed long long) tv.tv_usec);
 
 				for (i = 0; i < msg.frame.can_dlc; i++)
 					snprintf(rxmsg + strlen(rxmsg), RXLEN - strlen(rxmsg), "%02X ",
@@ -118,11 +120,13 @@ void state_bcm()
 			}
 		} else {
 			if (msg.msg_head.can_id & CAN_EFF_FLAG) {
-				snprintf(rxmsg, RXLEN, "< frame %08X %ld.%06ld ",
-					 msg.msg_head.can_id & CAN_EFF_MASK, tv.tv_sec, tv.tv_usec);
+				snprintf(rxmsg, RXLEN, "< frame %08X %lld.%06lld ",
+					 msg.msg_head.can_id & CAN_EFF_MASK,
+					 (signed long long) tv.tv_sec, (signed long long) tv.tv_usec);
 			} else {
-				snprintf(rxmsg, RXLEN, "< frame %03X %ld.%06ld ",
-					 msg.msg_head.can_id & CAN_SFF_MASK, tv.tv_sec, tv.tv_usec);
+				snprintf(rxmsg, RXLEN, "< frame %03X %lld.%06lld ",
+					 msg.msg_head.can_id & CAN_SFF_MASK,
+					 (signed long long) tv.tv_sec, (signed long long) tv.tv_usec);
 			}
 
 			for (i = 0; i < msg.frame.can_dlc; i++)
@@ -203,11 +207,12 @@ void state_bcm()
 			}
 			/* Add a send job */
 		} else if (!strncmp("< add ", buf, 6)) {
-			items = sscanf(buf, "< %*s %lu %lu %x %hhu "
+
+			items = sscanf(buf, "< %*s %llu %llu %x %hhu "
 				       "%hhx %hhx %hhx %hhx %hhx %hhx "
 				       "%hhx %hhx >",
-				       &msg.msg_head.ival2.tv_sec,
-				       &msg.msg_head.ival2.tv_usec,
+				       &sec,
+				       &usec,
 				       &msg.msg_head.can_id,
 				       &msg.frame.can_dlc,
 				       &msg.frame.data[0],
@@ -230,6 +235,8 @@ void state_bcm()
 			if (element_length(buf, 4) == 8)
 				msg.msg_head.can_id |= CAN_EFF_FLAG;
 
+			msg.msg_head.ival2.tv_sec = sec;
+			msg.msg_head.ival2.tv_usec = usec;
 			msg.msg_head.opcode = TX_SETUP;
 			msg.msg_head.flags |= SETTIMER | STARTTIMER;
 			msg.frame.can_id = msg.msg_head.can_id;
@@ -299,11 +306,11 @@ void state_bcm()
 			}
 			/* Receive CAN ID with content matching */
 		} else if (!strncmp("< filter ", buf, 9)) {
-			items = sscanf(buf, "< %*s %lu %lu %x %hhu "
+			items = sscanf(buf, "< %*s %llu %llu %x %hhu "
 				       "%hhx %hhx %hhx %hhx %hhx %hhx "
 				       "%hhx %hhx >",
-				       &msg.msg_head.ival2.tv_sec,
-				       &msg.msg_head.ival2.tv_usec,
+				       &sec,
+				       &usec,
 				       &msg.msg_head.can_id,
 				       &msg.frame.can_dlc,
 				       &msg.frame.data[0],
@@ -326,6 +333,8 @@ void state_bcm()
 			if (element_length(buf, 4) == 8)
 				msg.msg_head.can_id |= CAN_EFF_FLAG;
 
+			msg.msg_head.ival2.tv_sec = sec;
+			msg.msg_head.ival2.tv_usec = usec;
 			msg.msg_head.opcode = RX_SETUP;
 			msg.msg_head.flags = SETTIMER;
 			msg.frame.can_id = msg.msg_head.can_id;
@@ -342,9 +351,9 @@ void state_bcm()
 
 			memset(&muxmsg, 0, sizeof(muxmsg));
 
-			items = sscanf(buf, "< %*s %lu %lu %x %u ",
-				       &muxmsg.msg_head.ival2.tv_sec,
-				       &muxmsg.msg_head.ival2.tv_usec,
+			items = sscanf(buf, "< %*s %llu %llu %x %u ",
+				       &sec,
+				       &usec,
 				       &muxmsg.msg_head.can_id,
 				       &muxmsg.msg_head.nframes);
 
@@ -359,6 +368,8 @@ void state_bcm()
 			if (element_length(buf, 4) == 8)
 				muxmsg.msg_head.can_id |= CAN_EFF_FLAG;
 
+			msg.msg_head.ival2.tv_sec = sec;
+			msg.msg_head.ival2.tv_usec = usec;
 			muxmsg.msg_head.opcode = RX_SETUP;
 			muxmsg.msg_head.flags = SETTIMER;
 
@@ -404,9 +415,9 @@ void state_bcm()
 			}
 			/* Add a filter */
 		} else if (!strncmp("< subscribe ", buf, 12)) {
-			items = sscanf(buf, "< %*s %lu %lu %x >",
-				       &msg.msg_head.ival2.tv_sec,
-				       &msg.msg_head.ival2.tv_usec,
+			items = sscanf(buf, "< %*s %llu %llu %x >",
+				       &sec,
+				       &usec,
 				       &msg.msg_head.can_id);
 
 			if (items != 3) {
@@ -418,6 +429,8 @@ void state_bcm()
 			if (element_length(buf, 4) == 8)
 				msg.msg_head.can_id |= CAN_EFF_FLAG;
 
+			msg.msg_head.ival2.tv_sec = sec;
+			msg.msg_head.ival2.tv_usec = usec;
 			msg.msg_head.opcode = RX_SETUP;
 			msg.msg_head.flags = RX_FILTER_ID | SETTIMER;
 			msg.frame.can_id = msg.msg_head.can_id;

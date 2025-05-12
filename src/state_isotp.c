@@ -175,7 +175,8 @@ void state_isotp()
 		if (items > 0 && items <= ISOTPLEN) {
 			int startlen;
 
-			sprintf(rxmsg, "< pdu %ld.%06ld ", tv.tv_sec, tv.tv_usec);
+			sprintf(rxmsg, "< pdu %lld.%06lld ", (signed long long) tv.tv_sec,
+				(signed long long) tv.tv_usec);
 			startlen = strlen(rxmsg);
 
 			for (i = 0; i < items; i++)
