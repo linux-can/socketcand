@@ -63,11 +63,13 @@ void state_raw()
 			return;
 		}
 
-		can_err_mask_t err_mask = CAN_ERR_MASK;
-		if (setsockopt(raw_socket, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &err_mask, sizeof(err_mask)) < 0) {
-			PRINT_ERROR("Could not enable CAN_RAW_ERR_FILTER\n");
-			state = STATE_SHUTDOWN;
-			return;
+		if (error_mask != 0) {
+			can_err_mask_t err_mask = (error_mask & CAN_ERR_MASK);
+			if (setsockopt(raw_socket, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &err_mask, sizeof(err_mask)) < 0) {
+				PRINT_ERROR("Could not enable CAN_RAW_ERR_FILTER\n");
+				state = STATE_SHUTDOWN;
+				return;
+			}
 		}
 
 		if (bind(raw_socket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {

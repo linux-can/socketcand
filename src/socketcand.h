@@ -2,6 +2,7 @@
 
 #include <pthread.h>
 #include <syslog.h>
+#include <linux/can.h>
 
 /* max. length for ISO 15765-2 PDUs */
 #define ISOTPLEN 4095
@@ -69,6 +70,7 @@ extern pthread_t statistics_thread;
 extern int more_elements;
 extern struct sockaddr_in broadcast_addr;
 extern struct sockaddr_in saddr;
+extern can_err_mask_t error_mask;
 
 int receive_command(int socket, char *buf);
 int state_changed(char *buf, int current_state);
