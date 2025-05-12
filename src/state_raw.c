@@ -21,6 +21,7 @@
 #include <syslog.h>
 
 #include <linux/can.h>
+#include <linux/can/raw.h>
 
 int raw_socket;
 struct ifreq ifr;
@@ -58,6 +59,13 @@ void state_raw()
 		const int timestamp_on = 1;
 		if (setsockopt(raw_socket, SOL_SOCKET, SO_TIMESTAMP, &timestamp_on, sizeof(timestamp_on)) < 0) {
 			PRINT_ERROR("Could not enable CAN timestamps\n");
+			state = STATE_SHUTDOWN;
+			return;
+		}
+
+		can_err_mask_t err_mask = CAN_ERR_MASK;
+		if (setsockopt(raw_socket, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &err_mask, sizeof(err_mask)) < 0) {
+			PRINT_ERROR("Could not enable CAN_RAW_ERR_FILTER\n");
 			state = STATE_SHUTDOWN;
 			return;
 		}
