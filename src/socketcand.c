@@ -64,6 +64,7 @@ int cmd_index = 0;
 char *description;
 char *afuxname;
 int more_elements = 0;
+can_err_mask_t error_mask = 0;
 struct sockaddr_in saddr, broadcast_addr;
 struct sockaddr_un unaddr;
 socklen_t unaddrlen;
@@ -212,11 +213,12 @@ int main(int argc, char **argv)
 			{ "daemon", no_argument, 0, 'd' },
 			{ "version", no_argument, 0, 'z' },
 			{ "no-beacon", no_argument, 0, 'n' },
+			{ "error-mask", required_argument, 0, 'e' },
 			{ "help", no_argument, 0, 'h' },
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "vi:p:qu:l:dznh", long_options, &option_index);
+		c = getopt_long(argc, argv, "vi:p:qu:l:dzne:h", long_options, &option_index);
 
 		if (c == -1)
 			break;
@@ -267,6 +269,10 @@ int main(int argc, char **argv)
 
 		case 'n':
 			disable_beacon = 1;
+			break;
+
+		case 'e':
+			error_mask = strtoul(optarg, NULL, 16);
 			break;
 
 		case 'h':
@@ -651,6 +657,7 @@ void print_usage(void)
 	printf("\t-l <interface> (changes the default network interface the daemon will\n\t\tbind to - default: %s)\n", DEFAULT_INTERFACE);
 	printf("\t-u <name> (the AF_UNIX socket path - abstract name when leading '/' is missing)\n\t\t(N.B. the AF_UNIX binding will supersede the port/interface settings)\n");
 	printf("\t-n (deactivates the discovery beacon)\n");
+	printf("\t-e <error_mask> (enable CAN error frames in raw mode providing an hexadecimal error mask, e.g: 0x1FFFFFFF)\n");
 	printf("\t-d (set this flag if you want log to syslog instead of STDOUT)\n");
 	printf("\t-h (prints this message)\n");
 }
