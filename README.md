@@ -32,15 +32,17 @@ Usage
      socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]
 		[-p port | --port port] [-l interface | --listen interface]
 		[-u name | --afuxname name] [-n | --no-beacon] [-d | --daemon]
+		[-e error_mask | --error-mask error_mask]
 		[-h | --help]
 
 ### Description of the options
 * **-v** (activates verbose output to STDOUT)
-* **-i interfaces** (comma separated list of SocketCAN interfaces the daemon shall provide access to e.g. '-i can0,vcan1' - default: vcan0)
+* **-i interfaces** (comma separated list of CAN interfaces the daemon shall provide access to e.g. '-i can0,vcan1' - default: vcan0)
 * **-p port** (changes the default port '29536' the daemon is listening at)
 * **-l interface** (changes the default network interface the daemon will bind to - default: eth0)
-* **-u name** (the AF_UNIX socket path - abstract name when leading '/' is missing) (N.B. the AF_UNIX binding will supersede the port/interface settings)
+* **-u name** (the AF_UNIX socket path - an abstract name is used when the leading '/' is missing. N.B. the AF_UNIX binding will supersede the port/interface settings)
 * **-n** (deactivates the discovery beacon)
+* **-e error_mask** (enable CAN error frames in raw mode providing an hexadecimal error mask, e.g: 0x1FFFFFFF)
 * **-d** (set this flag if you want log to syslog instead of STDOUT)
 * **-h** (prints this message)
 
