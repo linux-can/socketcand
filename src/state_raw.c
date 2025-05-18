@@ -128,16 +128,19 @@ void state_raw()
 
 			if (frame.can_id & CAN_ERR_FLAG) {
 				canid_t class = frame.can_id & CAN_EFF_MASK;
-				ret = sprintf(buf, "< error %03X %ld.%06ld >", class, tv.tv_sec, tv.tv_usec);
+				ret = sprintf(buf, "< error %03X %lld.%06lld >", class,
+					      (signed long long) tv.tv_sec, (signed long long) tv.tv_usec);
 				send(client_socket, buf, strlen(buf), 0);
 				tcp_quickack(client_socket);
 			} else if (frame.can_id & CAN_RTR_FLAG) {
 				/* TODO implement */
 			} else {
 				if (frame.can_id & CAN_EFF_FLAG) {
-					ret = sprintf(buf, "< frame %08X %ld.%06ld ", frame.can_id & CAN_EFF_MASK, tv.tv_sec, tv.tv_usec);
+					ret = sprintf(buf, "< frame %08X %lld.%06lld ", frame.can_id & CAN_EFF_MASK,
+						      (signed long long) tv.tv_sec, (signed long long) tv.tv_usec);
 				} else {
-					ret = sprintf(buf, "< frame %03X %ld.%06ld ", frame.can_id & CAN_SFF_MASK, tv.tv_sec, tv.tv_usec);
+					ret = sprintf(buf, "< frame %03X %lld.%06lld ", frame.can_id & CAN_SFF_MASK,
+						      (signed long long) tv.tv_sec, (signed long long) tv.tv_usec);
 				}
 				for (i = 0; i < frame.can_dlc; i++) {
 					ret += sprintf(buf + ret, "%02X", frame.data[i]);
