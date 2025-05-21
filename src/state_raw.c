@@ -23,15 +23,15 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-int raw_socket;
-struct ifreq ifr;
-struct sockaddr_can addr;
-struct msghdr msg;
-struct can_frame frame;
-struct iovec iov;
-char ctrlmsg[CMSG_SPACE(sizeof(struct timeval)) + CMSG_SPACE(sizeof(__u32))];
-struct timeval tv;
-struct cmsghdr *cmsg;
+static int raw_socket;
+static struct ifreq ifr;
+static struct sockaddr_can addr;
+static struct msghdr msg;
+static struct can_frame frame;
+static struct iovec iov;
+static char ctrlmsg[CMSG_SPACE(sizeof(struct timeval)) + CMSG_SPACE(sizeof(__u32))];
+static struct timeval tv;
+static struct cmsghdr *cmsg;
 
 void state_raw(void)
 {

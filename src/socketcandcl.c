@@ -60,17 +60,17 @@ void sigint(int signum);
 int receive_command(int socket, char *buf);
 void state_connected();
 
-int server_socket;
-int raw_socket;
-int port;
-int verbose_flag = 0;
-int cmd_index = 0;
-int more_elements = 0;
-int state, previous_state;
-char ldev[IFNAMSIZ];
-char rdev[IFNAMSIZ];
-char buf[MAXLEN];
-char cmd_buffer[MAXLEN];
+static int server_socket;
+static int raw_socket;
+static int port;
+static int verbose_flag = 0;
+static int cmd_index = 0;
+static int more_elements = 0;
+static int state, previous_state;
+static char ldev[IFNAMSIZ];
+static char rdev[IFNAMSIZ];
+static char buf[MAXLEN];
+static char cmd_buffer[MAXLEN];
 
 int main(int argc, char **argv)
 {
