@@ -48,12 +48,12 @@
 
 #undef DEBUG_RECEPTION
 
-void state_bcm();
-void state_raw();
-void state_isotp();
-void state_control();
+void state_bcm(void);
+void state_raw(void);
+void state_isotp(void);
+void state_control(void);
 void tcp_quickack(int s);
-void state_nobus();
+void state_nobus(void);
 
 extern int client_socket;
 extern char **interface_names;

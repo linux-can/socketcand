@@ -29,7 +29,7 @@
 
 int sc = -1;
 
-void state_bcm()
+void state_bcm(void)
 {
 	int i, j, ret;
 	unsigned long long sec, usec;

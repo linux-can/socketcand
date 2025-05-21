@@ -14,7 +14,7 @@
 
 int statistics_ival = 0;
 
-struct timeval last_fired;
+static struct timeval last_fired;
 
 void *statistics_loop(void *ptr)
 {
