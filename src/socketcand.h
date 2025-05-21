@@ -52,7 +52,7 @@ void state_bcm();
 void state_raw();
 void state_isotp();
 void state_control();
-void tcp_quickack();
+void tcp_quickack(int s);
 void state_nobus();
 
 extern int client_socket;
