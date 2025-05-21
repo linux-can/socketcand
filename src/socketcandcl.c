@@ -56,7 +56,7 @@
 	} while (0)
 
 void print_usage(void);
-void sigint();
+void sigint(int signum);
 int receive_command(int socket, char *buf);
 void state_connected();
 
@@ -519,12 +519,12 @@ void print_usage(void)
 	printf("\t-h prints this message\n");
 }
 
-void childdied()
+void childdied(int signum)
 {
 	wait(NULL);
 }
 
-void sigint()
+void sigint(int signum)
 {
 	if (verbose_flag)
 		PRINT_ERROR("received SIGINT\n");

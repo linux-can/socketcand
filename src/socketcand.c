@@ -42,8 +42,8 @@
 #include "beacon.h"
 
 void print_usage(void);
-void sigint();
-void childdied();
+void sigint(int signum);
+void childdied(int signum);
 void determine_adress();
 int receive_command(int socket, char *buf);
 
@@ -662,12 +662,12 @@ void print_usage(void)
 	printf("\t-h (prints this message)\n");
 }
 
-void childdied()
+void childdied(int signum)
 {
 	wait(NULL);
 }
 
-void sigint()
+void sigint(int signum)
 {
 	if (verbose_flag)
 		PRINT_ERROR("received SIGINT\n");
