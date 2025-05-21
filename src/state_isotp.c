@@ -26,7 +26,7 @@
 
 int si = -1;
 
-void state_isotp()
+void state_isotp(void)
 {
 	int i, items, ret;
 

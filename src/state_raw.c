@@ -33,7 +33,7 @@ char ctrlmsg[CMSG_SPACE(sizeof(struct timeval)) + CMSG_SPACE(sizeof(__u32))];
 struct timeval tv;
 struct cmsghdr *cmsg;
 
-void state_raw()
+void state_raw(void)
 {
 	char buf[MAXLEN];
 	int i, ret, items;

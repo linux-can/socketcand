@@ -19,7 +19,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-void state_control()
+void state_control(void)
 {
 	char buf[MAXLEN];
 	int i, items;
