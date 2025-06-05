@@ -61,6 +61,7 @@ extern int interface_count;
 extern int port;
 extern int verbose_flag;
 extern int daemon_flag;
+extern int can_fd_mode_flag;
 extern int state;
 extern int previous_state;
 extern char bus_name[];

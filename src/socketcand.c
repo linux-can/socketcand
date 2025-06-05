@@ -64,6 +64,7 @@ int cmd_index = 0;
 char *description;
 char *afuxname;
 int more_elements = 0;
+int can_fd_mode_flag = 0;
 can_err_mask_t error_mask = 0;
 struct sockaddr_in saddr, broadcast_addr;
 struct sockaddr_un unaddr;
@@ -214,6 +215,7 @@ int main(int argc, char **argv)
 			{ "version", no_argument, 0, 'z' },
 			{ "no-beacon", no_argument, 0, 'n' },
 			{ "error-mask", required_argument, 0, 'e' },
+			{ "can-fd", no_argument, 0, 'f' },
 			{ "help", no_argument, 0, 'h' },
 			{ 0, 0, 0, 0 }
 		};
@@ -278,11 +280,14 @@ int main(int argc, char **argv)
 		case 'h':
 			print_usage();
 			return 0;
-
+		
+		case 'f':
+			can_fd_mode_flag = 1;
+			break;
+		
 		case '?':
 			print_usage();
 			return 0;
-
 		default:
 			print_usage();
 			return -1;
@@ -648,7 +653,7 @@ void print_usage(void)
 {
 	printf("%s Version %s\n", PACKAGE_NAME, PACKAGE_VERSION);
 	printf("Report bugs to %s\n\n", PACKAGE_BUGREPORT);
-	printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port] [-q | --quick-ack]\n\t\t[-l interface | --listen interface] [-u name | --afuxname name]\n\t\t[-e error_mask | --error-mask error_mask]\n\t\t[-n | --no-beacon] [-d | --daemon] [-h | --help]\n\n");
+	printf("Usage: socketcand [-v | --verbose] [-i interfaces | --interfaces interfaces]\n\t\t[-p port | --port port] [-q | --quick-ack]\n\t\t[-l interface | --listen interface] [-u name | --afuxname name]\n\t\t[-e error_mask | --error-mask error_mask]\n\t\t[-n | --no-beacon] [-f | --can-fd] [-d | --daemon] [-h | --help]\n\n");
 	printf("Options:\n");
 	printf("\t-v (activates verbose output to STDOUT)\n");
 	printf("\t-i <interfaces> (comma separated list of CAN interfaces the daemon\n\t\tshall provide access to e.g. '-i can0,vcan1' - default: %s)\n", DEFAULT_BUSNAME);
@@ -657,6 +662,7 @@ void print_usage(void)
 	printf("\t-l <interface> (changes the default network interface the daemon will\n\t\tbind to - default: %s)\n", DEFAULT_INTERFACE);
 	printf("\t-u <name> (the AF_UNIX socket path - an abstract name is used when\n\t\tthe leading '/' is missing. N.B. the AF_UNIX binding will\n\t\tsupersede the port/interface settings)\n");
 	printf("\t-n (deactivates the discovery beacon)\n");
+	printf("\t-f (allow CAN-FD frames in socket raw mode. Use only if your harware support it)\n");
 	printf("\t-e <error_mask> (enable CAN error frames in raw mode providing an\n\t\thexadecimal error mask, e.g: 0x1FFFFFFF)\n");
 	printf("\t-d (set this flag if you want log to syslog instead of STDOUT)\n");
 	printf("\t-h (prints this message)\n");
