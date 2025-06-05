@@ -95,14 +95,14 @@ void state_raw(void)
 			state = STATE_SHUTDOWN;
 			return;
 		}
-		
-		int enable = 1;
-		if (setsockopt(raw_socket, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &enable, sizeof(enable)) < 0) {
-			PRINT_ERROR("Could not enable CAN FD\n");
-			state = STATE_SHUTDOWN;
-			return;
+		if (can_fd_mode_flag != 0) {
+			int enable = 1;
+			if (setsockopt(raw_socket, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &enable, sizeof(enable)) < 0) {
+				PRINT_ERROR("Could not enable CAN FD\n");
+				state = STATE_SHUTDOWN;
+				return;
+			}
 		}
-        
 		if (error_mask != 0) {
 			can_err_mask_t err_mask = (error_mask & CAN_ERR_MASK);
 			if (setsockopt(raw_socket, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &err_mask, sizeof(err_mask)) < 0) {
