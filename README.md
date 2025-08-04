@@ -21,10 +21,14 @@ Execute the following commands to configure, build, and install the software:
     $ meson compile -C build
     $ meson install -C build
 
-Service discovery
------------------
-
-The daemon uses a simple UDP beacon mechanism for service discovery. A beacon containing the service name, type and address is sent to the broadcast address (port 42000) at minimum every 3 seconds. A client only has to listen for messages of this type to detect all SocketCAN daemons in the local network.
+Docker image
+------------
+Prebuild docker images are available.  
+Note this image still needs a host kernel with SocketCAN modules.  
+The CAN interface needs to be configured on the host and made available to the container using the `--network=host` option.  
+  
+Example usage:  
+`docker run --rm --network=host -it ghcr.io/linux-can/socketcand:latest -v -i can0`
 
 Usage
 -----
@@ -45,6 +49,11 @@ Usage
 * **-e error_mask** (enable CAN error frames in raw mode providing an hexadecimal error mask, e.g: 0x1FFFFFFF)
 * **-d** (set this flag if you want log to syslog instead of STDOUT)
 * **-h** (prints this message)
+
+Service discovery
+-----------------
+
+The daemon uses a simple UDP beacon mechanism for service discovery. A beacon containing the service name, type and address is sent to the broadcast address (port 42000) at minimum every 3 seconds. A client only has to listen for messages of this type to detect all SocketCAN daemons in the local network.
 
 License
 -------
