@@ -39,7 +39,19 @@ void state_nobus(void)
 		return;
 	}
 
-	if (!strncmp("< open ", buf, 7)) {
+	if (!strncmp("< list >", buf, 8)) {
+		size_t len;
+
+		strcpy(buf, "< interfaces");
+		len = strlen(buf);
+		for (i = 0; i < interface_count; i++) {
+			len += snprintf(buf + len, MAXLEN - len, " %s", interface_names[i]);
+		}
+		snprintf(buf + len, MAXLEN - len, " >");
+		send(client_socket, buf, strlen(buf), 0);
+		tcp_quickack(client_socket);
+		return;
+	} else if (!strncmp("< open ", buf, 7)) {
 		sscanf(buf, "< open %s>", bus_name);
 
 		/* check if access to this bus is allowed */
