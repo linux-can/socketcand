@@ -11,6 +11,15 @@ After connecting to the socket the client is greeted with '< hi >'. The open com
 where canbus may be at maximum 16 characters long. If the client is allowed to access the bus the server will respond with '< ok >'. Otherwise an error is returned and the connection is terminated.
 After a bus was opened the mode is switched to BCM mode. The Mode NO_BUS is the only mode where bittimings or other bus configuration settings may be done.
 
+#### List available buses ####
+The list command can be used to query the CAN buses the daemon provides access to. The server answers with a single line containing all available bus names.
+
+    < list >
+
+The response has the following format, e.g.
+
+    < interfaces can0 can1 >
+
 #### Configure the bittiming ####
 The protocol enables the client to change the bittiming of a given bus as provided by set link. Automatic bitrate configuration by the kernel is not supported because it is not guaranteed that the corresponding option was enabled during compile time (e.g. in Ubuntu 10.10 it is not). This way it it also easier to implement the function in a microcontroller based adapter.
 
