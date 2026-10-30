@@ -56,6 +56,21 @@ void state_raw(void)
 		addr.can_family = AF_CAN;
 		addr.can_ifindex = ifr.ifr_ifindex;
 
+		/*
+		 * Enable CAN FD frames if the interface supports them (CAN FD
+		 * capable interfaces have at least CANFD_MTU). On classic CAN
+		 * interfaces only CAN_MTU sized frames are exchanged; the
+		 * canfd_frame buffer is layout-compatible with struct can_frame.
+		 */
+		if (ioctl(raw_socket, SIOCGIFMTU, &ifr) == 0 && ifr.ifr_mtu >= (int)CANFD_MTU) {
+			const int canfd_frames = 1;
+			if (setsockopt(raw_socket, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &canfd_frames, sizeof(canfd_frames)) < 0) {
+				PRINT_ERROR("Could not enable CAN FD frames\n");
+				state = STATE_SHUTDOWN;
+				return;
+			}
+		}
+
 		const int timestamp_on = 1;
 		if (setsockopt(raw_socket, SOL_SOCKET, SO_TIMESTAMP, &timestamp_on, sizeof(timestamp_on)) < 0) {
 			PRINT_ERROR("Could not enable CAN timestamps\n");
@@ -134,6 +149,23 @@ void state_raw(void)
 				tcp_quickack(client_socket);
 			} else if (frame.can_id & CAN_RTR_FLAG) {
 				/* TODO implement */
+			} else if (ret == (int)CANFD_MTU) {
+				/* CAN FD frame: < fdframe can_id flags seconds.useconds [data]* > */
+				__u8 flags = frame.flags & (CANFD_BRS | CANFD_ESI);
+
+				if (frame.can_id & CAN_EFF_FLAG) {
+					ret = sprintf(buf, "< fdframe %08X %02X %lld.%06lld ", frame.can_id & CAN_EFF_MASK,
+						      flags, (signed long long) tv.tv_sec, (signed long long) tv.tv_usec);
+				} else {
+					ret = sprintf(buf, "< fdframe %03X %02X %lld.%06lld ", frame.can_id & CAN_SFF_MASK,
+						      flags, (signed long long) tv.tv_sec, (signed long long) tv.tv_usec);
+				}
+				for (i = 0; i < frame.len && i < CANFD_MAX_DLEN; i++) {
+					ret += sprintf(buf + ret, "%02X", frame.data[i]);
+				}
+				sprintf(buf + ret, " >");
+				send(client_socket, buf, strlen(buf), 0);
+				tcp_quickack(client_socket);
 			} else {
 				if (frame.can_id & CAN_EFF_FLAG) {
 					ret = sprintf(buf, "< frame %08X %lld.%06lld ", frame.can_id & CAN_EFF_MASK,
