@@ -172,6 +172,35 @@ Reception of a CAN frame with CAN ID 0x123 , data length 4 and data 0x1A, 0x22, 
 
     < frame 123 23.424242 1A220344 >
 
+#### CAN FD frames ####
+If the CAN interface supports CAN FD (i.e. its MTU is at least `CANFD_MTU`, e.g. `ip link set can0 type can bitrate 500000 dbitrate 2000000 fd on` or `ip link set vcan0 mtu 72`), CAN FD frames are supported in RAW mode as well. Classic CAN frames keep using the messages described above, so clients that only support classic CAN are not affected.
+
+Received CAN FD frames are sent in the following format:
+
+    < fdframe can_id flags seconds.useconds [data]* >
+
+* can_id - CAN identifier (3 hex digits for standard, 8 hex digits for extended identifiers)
+* flags - hex value of the CAN FD flags: `CANFD_BRS` (0x01, bit rate switch) and `CANFD_ESI` (0x02, error state indicator)
+* data - up to 64 bytes, padded uppercase hex without spaces inbetween
+
+Example:
+Reception of a CAN FD frame with CAN ID 0x18DAF110 and bit rate switch, data length 12 at time 23.424242.
+
+    < fdframe 18DAF110 01 23.424242 000A62F19031323334353637 >
+
+A single CAN FD frame is sent with the 'fdsend' command. The data is lowercase unpadded hex with spaces inbetween. The command is rejected if the CAN interface does not support CAN FD.
+
+    < fdsend can_id flags len [data]* >
+
+* can_id - CAN identifier; as for 'send', 8 hex digits select an extended identifier
+* flags - hex value of the CAN FD flags `CANFD_BRS` (0x01) and `CANFD_ESI` (0x02)
+* len - number of data bytes (0 .. 64). Payloads that are not a valid CAN FD data length (0 .. 8, 12, 16, 20, 24, 32, 48, 64) are padded with zeros up to the next valid length.
+
+Example:
+Send a CAN FD frame with ID 0x123, bit rate switch, data length 12
+
+    < fdsend 123 01 12 11 22 33 44 55 66 77 88 99 aa bb cc >
+
 #### Switch to BCM mode ####
 With '< bcmmode >' it is possible to switch back to BCM mode.
 
