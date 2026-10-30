@@ -32,6 +32,21 @@ static struct iovec iov;
 static char ctrlmsg[CMSG_SPACE(sizeof(struct timeval)) + CMSG_SPACE(sizeof(__u32))];
 static struct timeval tv;
 static struct cmsghdr *cmsg;
+static int canfd_on;
+
+/* round up to the next valid CAN FD data length (0..8, 12, 16, 20, 24, 32, 48, 64) */
+static __u8 canfd_valid_len(unsigned int len)
+{
+	static const __u8 valid_len[] = { 8, 12, 16, 20, 24, 32, 48, 64 };
+	unsigned int i;
+
+	for (i = 0; i < sizeof(valid_len); i++) {
+		if (len <= valid_len[i])
+			return len <= CAN_MAX_DLEN ? len : valid_len[i];
+	}
+
+	return CANFD_MAX_DLEN;
+}
 
 void state_raw(void)
 {
@@ -62,6 +77,7 @@ void state_raw(void)
 		 * interfaces only CAN_MTU sized frames are exchanged; the
 		 * canfd_frame buffer is layout-compatible with struct can_frame.
 		 */
+		canfd_on = 0;
 		if (ioctl(raw_socket, SIOCGIFMTU, &ifr) == 0 && ifr.ifr_mtu >= (int)CANFD_MTU) {
 			const int canfd_frames = 1;
 			if (setsockopt(raw_socket, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &canfd_frames, sizeof(canfd_frames)) < 0) {
@@ -69,6 +85,7 @@ void state_raw(void)
 				state = STATE_SHUTDOWN;
 				return;
 			}
+			canfd_on = 1;
 		}
 
 		const int timestamp_on = 1;
@@ -231,6 +248,63 @@ void state_raw(void)
 					frame.can_id |= CAN_EFF_FLAG;
 
 				ret = send(raw_socket, &frame, CAN_MTU, 0);
+				if (ret == -1) {
+					state = STATE_SHUTDOWN;
+					return;
+				}
+
+				/* Send a single CAN FD frame */
+			} else if (!strncmp("< fdsend ", buf, 9)) {
+				unsigned int can_id, flags, len;
+				int pos = 0, n = 0;
+
+				if (!canfd_on) {
+					PRINT_ERROR("CAN FD is not supported by bus %s\n", bus_name);
+					return;
+				}
+
+				memset(&frame, 0, sizeof(frame));
+				items = sscanf(buf, "< %*s %x %x %u %n", &can_id, &flags, &len, &pos);
+				if ((items != 3) ||
+				    (len > CANFD_MAX_DLEN) ||
+				    (flags & ~(CANFD_BRS | CANFD_ESI))) {
+					PRINT_ERROR("Syntax error in fdsend command\n");
+					return;
+				}
+
+				for (i = 0; i < (int)len; i++) {
+					if (sscanf(buf + pos, "%hhx %n", &frame.data[i], &n) != 1) {
+						PRINT_ERROR("Syntax error in fdsend command\n");
+						return;
+					}
+					pos += n;
+				}
+
+				if (strcmp(buf + pos, ">")) {
+					PRINT_ERROR("Syntax error in fdsend command\n");
+					return;
+				}
+
+				/* < fdsend XXXXXXXX ... > check for extended identifier */
+				if (element_length(buf, 2) == 8) {
+					if (can_id > CAN_EFF_MASK) {
+						PRINT_ERROR("Syntax error in fdsend command\n");
+						return;
+					}
+					frame.can_id = can_id | CAN_EFF_FLAG;
+				} else {
+					if (can_id > CAN_SFF_MASK) {
+						PRINT_ERROR("Syntax error in fdsend command\n");
+						return;
+					}
+					frame.can_id = can_id;
+				}
+
+				/* pad with zeros up to the next valid CAN FD data length */
+				frame.len = canfd_valid_len(len);
+				frame.flags = flags | CANFD_FDF;
+
+				ret = send(raw_socket, &frame, CANFD_MTU, 0);
 				if (ret == -1) {
 					state = STATE_SHUTDOWN;
 					return;
