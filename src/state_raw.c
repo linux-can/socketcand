@@ -27,7 +27,7 @@ static int raw_socket;
 static struct ifreq ifr;
 static struct sockaddr_can addr;
 static struct msghdr msg;
-static struct can_frame frame;
+static struct canfd_frame frame;
 static struct iovec iov;
 static char ctrlmsg[CMSG_SPACE(sizeof(struct timeval)) + CMSG_SPACE(sizeof(__u32))];
 static struct timeval tv;
@@ -114,7 +114,7 @@ void state_raw(void)
 		msg.msg_controllen = sizeof(ctrlmsg);
 
 		ret = recvmsg(raw_socket, &msg, 0);
-		if (ret < sizeof(struct can_frame)) {
+		if (ret != (int)CAN_MTU && ret != (int)CANFD_MTU) {
 			PRINT_ERROR("Error reading frame from RAW socket\n");
 		} else {
 			/* read timestamp data */
@@ -142,7 +142,7 @@ void state_raw(void)
 					ret = sprintf(buf, "< frame %03X %lld.%06lld ", frame.can_id & CAN_SFF_MASK,
 						      (signed long long) tv.tv_sec, (signed long long) tv.tv_usec);
 				}
-				for (i = 0; i < frame.can_dlc; i++) {
+				for (i = 0; i < frame.len; i++) {
 					ret += sprintf(buf + ret, "%02X", frame.data[i]);
 				}
 				sprintf(buf + ret, " >");
@@ -172,11 +172,12 @@ void state_raw(void)
 
 			/* Send a single frame */
 			if (!strncmp("< send ", buf, 7)) {
+				memset(&frame, 0, sizeof(frame));
 				items = sscanf(buf, "< %*s %x %hhu "
 					       "%hhx %hhx %hhx %hhx %hhx %hhx "
 					       "%hhx %hhx >",
 					       &frame.can_id,
-					       &frame.can_dlc,
+					       &frame.len,
 					       &frame.data[0],
 					       &frame.data[1],
 					       &frame.data[2],
@@ -187,8 +188,8 @@ void state_raw(void)
 					       &frame.data[7]);
 
 				if ((items < 2) ||
-				    (frame.can_dlc > 8) ||
-				    (items != 2 + frame.can_dlc)) {
+				    (frame.len > CAN_MAX_DLEN) ||
+				    (items != 2 + frame.len)) {
 					PRINT_ERROR("Syntax error in send command\n");
 					return;
 				}
@@ -197,7 +198,7 @@ void state_raw(void)
 				if (element_length(buf, 2) == 8)
 					frame.can_id |= CAN_EFF_FLAG;
 
-				ret = send(raw_socket, &frame, sizeof(struct can_frame), 0);
+				ret = send(raw_socket, &frame, CAN_MTU, 0);
 				if (ret == -1) {
 					state = STATE_SHUTDOWN;
 					return;
